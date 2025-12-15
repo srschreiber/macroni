@@ -19,6 +19,7 @@ program: stmt*                              -> stmt_block
 
 assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
 expr_stmt: expr ";"                         -> expr_stmt
+            | conditional_expr        -> expr_stmt
 
 # ---------- built-ins ----------
 built_in_calls: print_stmt
@@ -54,6 +55,9 @@ while_stmt: "while" expr block              -> loop_stmt
 
 ?expr: comparison
      | built_in_calls
+     | conditional_expr
+
+?conditional_expr: "if" comparison block ["else" block]  -> conditional_expr
 
 ?comparison: sum
            | sum ">" sum   -> gt
@@ -81,6 +85,8 @@ while_stmt: "while" expr block              -> loop_stmt
      | call
      | NAME                                  -> var
      | "(" expr ")"
+     | "null"                                -> null
+
 
 call: NAME "(" [args] ")"                    -> call
 args: expr ("," expr)*                       -> args
@@ -244,6 +250,8 @@ class Interpreter:
                 return self.eval(c[0], env) / self.eval(c[1], env)
             if t == "mod":
                 return self.eval(c[0], env) % self.eval(c[1], env)
+            if t == "null":
+                return None
 
             # comparisons (return 1/0 like you had)
             if t == "gt":
@@ -255,7 +263,15 @@ class Interpreter:
             if t == "le":
                 return 1 if self.eval(c[0], env) <= self.eval(c[1], env) else 0
             if t == "eq":
-                return 1 if self.eval(c[0], env) == self.eval(c[1], env) else 0
+                # check if comparing to null
+                first_eval = self.eval(c[0], env)
+                second_eval = self.eval(c[1], env)
+                # check for null comparison
+                if first_eval is None:
+                    return 1 if second_eval is None else 0
+                if second_eval is None:
+                    return 1 if first_eval is None else 0
+                return 1 if first_eval == second_eval else 0
             if t == "ne":
                 return 1 if self.eval(c[0], env) != self.eval(c[1], env) else 0
 
@@ -344,6 +360,15 @@ class Interpreter:
                 if pos is not None:
                     return pos
                 return None, None  # not found
+            
+            if t == "conditional_expr":
+                condition, t_block, f_block = c[0], c[1], c[2] if len(c) == 3 else None
+                condition = self.eval(c[0], env)
+                if condition:
+                    return self.eval(t_block, env)
+                elif len(c) == 3:
+                    return self.eval(f_block, env)
+                return None
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -360,10 +385,8 @@ def wait_func(duration, random_range: tuple = (0,0)):
     time.sleep((wait_time + random_delay) / 1000)
     return wait_time + random_delay
 
-def main():
-    interp = Interpreter()
-
-    script = r"""
+def macroni_script():
+    return r"""
 fn print_grid(cell_char, size) {
     size_copy = size;
     while size > 0 {
@@ -397,12 +420,12 @@ fn tick_handler() {
 # set template dir
 template_dir = "/Users/sam.schreiber/src/macroni/templates";
 @set_template_dir(template_dir);
-
 @foreach_tick(tick_provider, tick_handler);
-
 """
 
-    tree = calc_parser.parse(script)
+def main():
+    interp = Interpreter()
+    tree = calc_parser.parse(macroni_script())
     interp.eval(tree)
 
 
