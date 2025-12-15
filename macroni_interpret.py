@@ -17,7 +17,7 @@ program: stmt*                              -> stmt_block
 
 # ---------- statements ----------
 
-assign_stmt: NAME "=" expr ";"              -> store_val
+assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
 expr_stmt: expr ";"                         -> expr_stmt
 
 # ---------- built-ins ----------
@@ -155,10 +155,29 @@ class Interpreter:
                     raise Exception(f"Index error: {e}")
 
             if t == "store_val":
-                name = str(c[0])
-                val = self.eval(c[1], env)
-                env[name] = val
-                return val
+                num_names = 0
+                for i in range(len(c) - 1):
+                    if isinstance(c[i], Token) and c[i].type == "NAME":
+                        num_names += 1
+                # now eval all exprs
+                exprs = c[num_names:]
+                vals = [self.eval(e, env) for e in exprs]
+                # if tuples, flatten
+                vals_flat = []
+                for v in vals:
+                    if isinstance(v, tuple):
+                        vals_flat.extend(v)
+                    else:
+                        vals_flat.append(v)
+                vals = vals_flat
+                if len(vals) != num_names:
+                    raise Exception("Arity mismatch in multiple assignment")
+                for i in range(num_names):
+                    name = str(c[i])
+                    val = vals[i]
+                    env[name] = val
+                return None
+                 
 
             if t == "expr_stmt":
                 return self.eval(c[0], env)
@@ -324,7 +343,7 @@ class Interpreter:
                 )
                 if pos is not None:
                     return pos
-                return None  # not found
+                return None, None  # not found
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -369,10 +388,10 @@ fn tick_provider(c,d) {
 
 fn tick_handler() {
     @print("TICK!\n");
-    star_pos = @find_template("star");
-    @mouse_move(star_pos[0], star_pos[1], 2000, 1);
-    pentagon_pos = @find_template("pentagon");
-    @mouse_move(pentagon_pos[0], pentagon_pos[1], 2000, 1);
+    star_x, star_y = @find_template("star");
+    @mouse_move(star_x, star_y, 2000, 1);
+    pent_x, pent_y = @find_template("pentagon");
+    @mouse_move(pent_x, pent_y, 2000, 1);
 }
 
 # set template dir
