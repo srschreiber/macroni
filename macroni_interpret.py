@@ -3,6 +3,7 @@ import ast
 import time
 import random
 from mouse_utils import move_mouse_to
+from template_match import locate_one_template_on_screen
 
 calc_grammar = r'''
 start: program
@@ -14,7 +15,7 @@ program: stmt*                              -> stmt_block
      | assign_stmt
      | expr_stmt
 
-# ---------- statements (require ;) ----------
+# ---------- statements ----------
 
 assign_stmt: NAME "=" expr ";"              -> store_val
 expr_stmt: expr ";"                         -> expr_stmt
@@ -26,16 +27,15 @@ built_in_calls: print_stmt
           | foreach_tick_stmt
           | mouse_move_stmt
           | set_template_dir_stmt
+          | find_template_stmt
 
-print_stmt: "@print" "(" expr ")"        -> print_func
-# args: duration ms, random range ms [start, end] OR scalar assumes [0, scalar]
-wait_stmt: "@wait" "(" args ")"        -> wait_func
-rand_stmt: "@rand" "(" args ")"           -> rand_func
-# tick provider, function to call, args
+print_stmt: "@print" "(" expr ")"           -> print_func
+wait_stmt: "@wait" "(" args ")"             -> wait_func
+rand_stmt: "@rand" "(" args ")"             -> rand_func
 foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
-# args: x, y, pixels per second, humanLike (0/1)
-mouse_move_stmt: "@mouse_move" "(" args ")"    -> mouse_move_func
+mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
 set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
+find_template_stmt: "@find_template" "(" args ")" -> find_template_func
 
 # ---------- function definition ----------
 
@@ -53,7 +53,7 @@ while_stmt: "while" expr block              -> loop_stmt
 # ---------- expressions ----------
 
 ?expr: comparison
-        | built_in_calls
+     | built_in_calls
 
 ?comparison: sum
            | sum ">" sum   -> gt
@@ -73,7 +73,10 @@ while_stmt: "while" expr block              -> loop_stmt
         | product "%" atom                   -> mod
         | atom
 
-?atom: NUMBER                                -> number
+# ---------- ATOMS (IMPORTANT PART) ----------
+
+?atom: atom "[" expr "]"                    -> index
+     | NUMBER                                -> number
      | STRING                                -> string
      | call
      | NAME                                  -> var
@@ -138,6 +141,18 @@ class Interpreter:
 
             if t == "params":
                 return [str(x) for x in c]
+            
+            if t == "index":
+                container = self.eval(c[0], env)
+                idx = self.eval(c[1], env)
+
+                if not isinstance(idx, int):
+                    raise Exception("Index must be an integer")
+
+                try:
+                    return container[idx] if container and len(container) > idx else None
+                except Exception as e:
+                    raise Exception(f"Index error: {e}")
 
             if t == "store_val":
                 name = str(c[0])
@@ -283,18 +298,33 @@ class Interpreter:
                     raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
                 x_offset = args[0]
                 y_offset = args[1]
+                if x_offset is None or y_offset is None:
+                    return None
                 pps = args[2]
                 humanLike = bool(args[3]) if len(args) >= 4 else True
                 move_mouse_to(x_offset, y_offset, pps, humanLike)
                 return 0
             if t == "set_template_dir_func":
                 args = self.eval(c[0], env)
-                if len(args) != 1:
+                if len(args) == 0:
                     raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
-                self.template_dir = str(args[0])
+                self.template_dir = str(args)
                 print(f"Template directory set to: {self.template_dir}")
                 return self.template_dir
                 # Here you would set the template directory in your application
+            if t == "find_template_func":
+                args = self.eval(c[0], env)
+                if len(args) != 1:
+                    raise Exception(f"find_template() takes exactly 1 argument, got {len(args)}")
+                template_name = str(args[0])
+                pos = locate_one_template_on_screen(
+                    template_dir=self.template_dir,
+                    template_name=template_name,
+                    downscale=0.5,
+                )
+                if pos is not None:
+                    return pos
+                return None  # not found
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -339,8 +369,15 @@ fn tick_provider(c,d) {
 
 fn tick_handler() {
     @print("TICK!\n");
-    @mouse_move(@rand(1000), @rand(1000), 2000, 1);
+    star_pos = @find_template("star");
+    @mouse_move(star_pos[0], star_pos[1], 2000, 1);
+    pentagon_pos = @find_template("pentagon");
+    @mouse_move(pentagon_pos[0], pentagon_pos[1], 2000, 1);
 }
+
+# set template dir
+template_dir = "/Users/sam.schreiber/src/macroni/templates";
+@set_template_dir(template_dir);
 
 @foreach_tick(tick_provider, tick_handler);
 
