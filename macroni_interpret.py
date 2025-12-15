@@ -403,18 +403,26 @@ fn print_grid(cell_char, size) {
 
 global_ticks = 0;
 fn tick_provider(c,d) {
-    @wait(500, 0, 500);
+    @wait(500, 0, 50);
     global_ticks = global_ticks + 1;
     @print(global_ticks);
     global_ticks > 5; # exit if 1. return is currently last expr
 }
 
 fn tick_handler() {
-    @print("TICK!\n");
-    star_x, star_y = @find_template("star");
-    @mouse_move(star_x, star_y, 2000, 1);
-    pent_x, pent_y = @find_template("pentagon");
-    @mouse_move(pent_x, pent_y, 2000, 1);
+    # @print("TICK!\n");
+    # star_x, star_y = @find_template("star");
+    # @mouse_move(star_x, star_y, 2000, 1);
+    # pent_x, pent_y = @find_template("pentagon");
+    # @mouse_move(pent_x, pent_y, 2000, 1);
+    # file_menu_x, file_menu_y = @find_template("filemenu");
+    # @mouse_move(file_menu_x, file_menu_y, 2000, 1);
+    # @wait(1000, 0, 500);
+    # save_x, save_y = @find_template("filemenusave");
+    # @mouse_move(save_x, save_y, 2000, 1);
+    windmill_x, windmill_y = @find_template("windmill");
+    r = @rand(-10,10);
+    @mouse_move(windmill_x, windmill_y, 2000, 1);
 }
 
 # set template dir

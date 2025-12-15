@@ -18,7 +18,7 @@ import math
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
 
-def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.08):
+def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.04):
     x1, y1 = pyautogui.position()
     dx, dy = x2 - x1, y2 - y1
     L = math.hypot(dx, dy) or 1.0

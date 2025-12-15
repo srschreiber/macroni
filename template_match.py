@@ -116,9 +116,9 @@ def locate_one_template_on_screen(
     template_dir: str = "./templates",
     template_name: str = "default",
     scales=np.linspace(0.8, 1.2, 5),
-    threshold=0.85,
+    threshold=0.70,
     use_gray=False,
-    downscale=0.5,
+    downscale=.9,
 ) -> tuple | None:
     screen = screenshot_bgr(region=None, downscale=downscale)
     sx, sy = screenshot_scale(screen)
