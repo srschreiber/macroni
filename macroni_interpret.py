@@ -25,6 +25,7 @@ built_in_calls: print_stmt
           | rand_stmt
           | foreach_tick_stmt
           | mouse_move_stmt
+          | set_template_dir_stmt
 
 print_stmt: "@print" "(" expr ")"        -> print_func
 # args: duration ms, random range ms [start, end] OR scalar assumes [0, scalar]
@@ -34,6 +35,7 @@ rand_stmt: "@rand" "(" args ")"           -> rand_func
 foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
 # args: x, y, pixels per second, humanLike (0/1)
 mouse_move_stmt: "@mouse_move" "(" args ")"    -> mouse_move_func
+set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
 
 # ---------- function definition ----------
 
@@ -97,6 +99,11 @@ class Interpreter:
     def __init__(self):
         self.vars = {}
         self.funcs = {}  # name -> (param_names, body_tree)
+        """
+            TEMPLATE DIR: 
+            Each file will be: target/ex1.png target/ex2.png etc.
+        """
+        self.template_dir = "./templates"
 
     def eval(self, node, env=None):
         if env is None:
@@ -269,7 +276,6 @@ class Interpreter:
                     _, body = self.funcs[func_name]
                    # local_env = dict(env)  # allow read-through to globals
                     results = self.eval(body, env)
-
                 return results
             if t == "mouse_move_func":
                 args = self.eval(c[0], env)
@@ -281,7 +287,14 @@ class Interpreter:
                 humanLike = bool(args[3]) if len(args) >= 4 else True
                 move_mouse_to(x_offset, y_offset, pps, humanLike)
                 return 0
-            
+            if t == "set_template_dir_func":
+                args = self.eval(c[0], env)
+                if len(args) != 1:
+                    raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
+                self.template_dir = str(args[0])
+                print(f"Template directory set to: {self.template_dir}")
+                return self.template_dir
+                # Here you would set the template directory in your application
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -321,18 +334,15 @@ fn tick_provider(c,d) {
     @wait(500, 0, 500);
     global_ticks = global_ticks + 1;
     @print(global_ticks);
-    global_ticks > 5; # exit if 1
+    global_ticks > 5; # exit if 1. return is currently last expr
 }
 
 fn tick_handler() {
     @print("TICK!\n");
-    @mouse_move(@rand(1000), @rand(1000), 5000, 1);
+    @mouse_move(@rand(1000), @rand(1000), 2000, 1);
 }
 
-@print("5" * 5);
 @foreach_tick(tick_provider, tick_handler);
-@print("Moving mouse...\n");
-# @mouse_move(300, 0, 1000, 1);
 
 """
 

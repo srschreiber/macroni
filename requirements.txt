@@ -1,2 +1,5 @@
 lark
+opencv-python
+pillow 
+pyscreeze 
 pyautogui
