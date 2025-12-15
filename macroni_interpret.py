@@ -2,6 +2,7 @@ from lark import Lark, Tree, Token
 import ast
 import time
 import random
+from mouse_utils import move_mouse_to
 
 calc_grammar = r'''
 start: program
@@ -23,12 +24,16 @@ built_in_calls: print_stmt
           | wait_stmt
           | rand_stmt
           | foreach_tick_stmt
+          | mouse_move_stmt
+
 print_stmt: "@print" "(" expr ")"        -> print_func
 # args: duration ms, random range ms [start, end] OR scalar assumes [0, scalar]
 wait_stmt: "@wait" "(" args ")"        -> wait_func
 rand_stmt: "@rand" "(" args ")"           -> rand_func
 # tick provider, function to call, args
 foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
+# args: x, y, pixels per second, humanLike (0/1)
+mouse_move_stmt: "@mouse_move" "(" args ")"    -> mouse_move_func
 
 # ---------- function definition ----------
 
@@ -262,10 +267,20 @@ class Interpreter:
                     if func_name not in self.funcs:
                         raise Exception(f"Function not found: {func_name}")
                     _, body = self.funcs[func_name]
-                    local_env = dict(env)  # allow read-through to globals
-                    results = self.eval(body, local_env)
+                   # local_env = dict(env)  # allow read-through to globals
+                    results = self.eval(body, env)
 
                 return results
+            if t == "mouse_move_func":
+                args = self.eval(c[0], env)
+                if len(args) < 3:
+                    raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
+                x_offset = args[0]
+                y_offset = args[1]
+                pps = args[2]
+                humanLike = bool(args[3]) if len(args) >= 4 else True
+                move_mouse_to(x_offset, y_offset, pps, humanLike)
+                return 0
             
 
             # passthrough for inlined rules
@@ -301,17 +316,23 @@ fn print_grid(cell_char, size) {
     }
 }
 
+global_ticks = 0;
 fn tick_provider(c,d) {
     @wait(500, 0, 500);
+    global_ticks = global_ticks + 1;
+    @print(global_ticks);
+    global_ticks > 5; # exit if 1
 }
 
 fn tick_handler() {
     @print("TICK!\n");
-    print_grid("*", 5);
+    @mouse_move(@rand(1000), @rand(1000), 5000, 1);
 }
 
 @print("5" * 5);
 @foreach_tick(tick_provider, tick_handler);
+@print("Moving mouse...\n");
+# @mouse_move(300, 0, 1000, 1);
 
 """
 

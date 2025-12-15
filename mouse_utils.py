@@ -37,7 +37,7 @@ def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.
     wobble_dir = random.choice([-1, 1])
 
     phase = random.uniform(0, 2 * math.pi)
-    omega = 2 * math.pi * cycles / total_time  # rad/s
+    omega = 2 * math.pi * cycles / max(total_time, 0.001)  # rad/s
 
     start = time.perf_counter()
     for i in range(1, steps + 1):
@@ -99,4 +99,3 @@ def move_mouse_to(x: int, y: int, pps: int, humanLike: bool) -> None:
     else:
         smooth_move_to(x, y, total_time=duration)
     
-move_mouse_offset(-500, 500, 1000, True)  # Example usage
