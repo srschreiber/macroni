@@ -54,7 +54,6 @@ while_stmt: "while" expr block              -> loop_stmt
 # ---------- expressions ----------
 
 ?expr: comparison
-     | built_in_calls
      | conditional_expr
 
 ?conditional_expr: "if" comparison block ["else" block]  -> conditional_expr
@@ -83,6 +82,7 @@ while_stmt: "while" expr block              -> loop_stmt
      | NUMBER                                -> number
      | STRING                                -> string
      | call
+     | built_in_calls
      | NAME                                  -> var
      | "(" expr ")"
      | "null"                                -> null
@@ -421,7 +421,6 @@ fn tick_handler() {
     # save_x, save_y = @find_template("filemenusave");
     # @mouse_move(save_x, save_y, 2000, 1);
     windmill_x, windmill_y = @find_template("windmill");
-    r = @rand(-10,10);
     @mouse_move(windmill_x, windmill_y, 2000, 1);
 }
 
