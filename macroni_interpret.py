@@ -5,6 +5,7 @@ import random
 import pyautogui
 import json
 import os
+from PIL import ImageGrab
 from mouse_utils import move_mouse_to
 from template_match import locate_one_template_on_screen
 
@@ -33,6 +34,8 @@ built_in_calls: print_stmt
           | set_template_dir_stmt
           | find_template_stmt
           | get_coordinates_stmt
+          | check_pixel_color_stmt
+          | get_pixel_color_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -42,6 +45,8 @@ mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
 set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
 find_template_stmt: "@find_template" "(" args ")" -> find_template_func
 get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
+check_pixel_color_stmt: "@check_pixel_color" "(" args ")" -> check_pixel_color_func
+get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
 
 # ---------- function definition ----------
 
@@ -378,13 +383,38 @@ class Interpreter:
                 use_cache = bool(args[1]) if len(args) == 2 else False
                 x, y = get_coordinates_interactive(message, use_cache)
                 return (x, y)
+
+            if t == "check_pixel_color_func":
+                args = self.eval(c[0], env)
+                if len(args) < 6 or len(args) > 7:
+                    raise Exception(f"check_pixel_color() takes 6 or 7 arguments (x, y, radius, r, g, b [, tolerance]), got {len(args)}")
+                x = int(args[0])
+                y = int(args[1])
+                radius = int(args[2])
+                target_r = int(args[3])
+                target_g = int(args[4])
+                target_b = int(args[5])
+                tolerance = int(args[6]) if len(args) == 7 else 0
+                found = check_pixel_color_in_radius(x, y, radius, target_r, target_g, target_b, tolerance)
+                return 1 if found else 0
+
+            if t == "get_pixel_color_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 2:
+                    raise Exception(f"get_pixel_color() takes 1 or 2 arguments (alias [, use_cache]), got {len(args)}")
+                alias = str(args[0])
+                use_cache = bool(args[1]) if len(args) == 2 else False
+                r, g, b = get_pixel_color_interactive(alias, use_cache)
+                return (r, g, b)
             
             if t == "conditional_expr":
-                condition, t_block, f_block = c[0], c[1], c[2] if len(c) == 3 else None
                 condition = self.eval(c[0], env)
+                t_block = c[1]
+                f_block = c[2] if len(c) == 3 else None
+
                 if condition:
                     return self.eval(t_block, env)
-                elif len(c) == 3:
+                elif f_block is not None:
                     return self.eval(f_block, env)
                 return None
 
@@ -471,6 +501,127 @@ def get_coordinates_interactive(message, use_cache=False):
 
     return x, y
 
+def load_pixel_colors_cache(cache_file="pixel_colors_cache.json"):
+    """Load cached pixel colors from JSON file."""
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load pixel colors cache file: {e}")
+            return {}
+    return {}
+
+def save_pixel_colors_cache(cache, cache_file="pixel_colors_cache.json"):
+    """Save pixel colors cache to JSON file."""
+    try:
+        with open(cache_file, 'w') as f:
+            json.dump(cache, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not save pixel colors cache file: {e}")
+
+def get_pixel_color_interactive(alias, use_cache=False):
+    """
+    Shows a prompt and waits for the user to hover over a pixel
+    and press Enter to capture its RGB color.
+
+    Args:
+        alias: Name/alias for the color
+        use_cache: If True, check cache first before prompting
+
+    Returns:
+        tuple: (r, g, b) color values
+
+    Note: Colors are always saved to cache after capture, regardless of use_cache value.
+    """
+    cache_file = "pixel_colors_cache.json"
+
+    # If using cache, try to load cached color
+    if use_cache:
+        cache = load_pixel_colors_cache(cache_file)
+        if alias in cache:
+            r, g, b = cache[alias]
+            print(f"✓ Using cached color for '{alias}': RGB({r}, {g}, {b})")
+            return r, g, b
+        else:
+            print(f"! No cached color found for '{alias}', prompting user...")
+
+    # Prompt user for color
+    print(f"\n{'='*50}")
+    print(f"CAPTURE PIXEL COLOR FOR: {alias}")
+    print(f"{'='*50}")
+    print("1. Hover your mouse over the desired pixel")
+    print("2. Press ENTER to capture the color")
+    print(f"{'='*50}\n")
+
+    # Wait for user to press Enter
+    input("Press ENTER when ready: ")
+
+    # Capture the current mouse position and pixel color
+    x, y = pyautogui.position()
+    screenshot = ImageGrab.grab(bbox=(x, y, x + 1, y + 1))
+    pixel = screenshot.getpixel((0, 0))
+    r, g, b = pixel[0], pixel[1], pixel[2]
+
+    print(f"✓ Captured color at ({x}, {y}): RGB({r}, {g}, {b})\n")
+
+    # Always save to cache
+    cache = load_pixel_colors_cache(cache_file)
+    cache[alias] = [r, g, b]
+    save_pixel_colors_cache(cache, cache_file)
+    print(f"✓ Saved color to cache for '{alias}'")
+
+    return r, g, b
+
+def check_pixel_color_in_radius(center_x, center_y, radius, target_r, target_g, target_b, tolerance=0):
+    """
+    Check if a specific pixel color exists within a radius of given coordinates.
+
+    Args:
+        center_x: X coordinate of the center point
+        center_y: Y coordinate of the center point
+        radius: Radius in pixels to search around the center
+        target_r: Target red value (0-255)
+        target_g: Target green value (0-255)
+        target_b: Target blue value (0-255)
+        tolerance: Color tolerance for matching (default 0 = exact match)
+
+    Returns:
+        bool: True if the color is found within radius, False otherwise
+    """
+    # Define the bounding box for the screenshot
+    left = center_x - radius
+    top = center_y - radius
+    right = center_x + radius
+    bottom = center_y + radius
+
+    # Capture screenshot of the region
+    screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
+    pixels = screenshot.load()
+
+    width, height = screenshot.size
+
+    # Check each pixel in the captured region
+    for x in range(width):
+        for y in range(height):
+            # Calculate distance from center
+            dx = x - radius
+            dy = y - radius
+            distance = (dx * dx + dy * dy) ** 0.5
+
+            # Only check pixels within the radius
+            if distance <= radius:
+                pixel = pixels[x, y]
+                r, g, b = pixel[0], pixel[1], pixel[2]
+
+                # Check if pixel matches target color within tolerance
+                if (abs(r - target_r) <= tolerance and
+                    abs(g - target_g) <= tolerance and
+                    abs(b - target_b) <= tolerance):
+                    return True
+
+    return False
+
 def macroni_script():
     return r"""
 fn print_grid(cell_char, size) {
@@ -505,15 +656,18 @@ fn tick_handler() {
 # @set_template_dir(template_dir);
 # @foreach_tick(tick_provider, tick_handler);
 
-# Example: Get coordinates with caching
-# use_cache = 1: Use cached value if available, otherwise prompt and save
-# use_cache = 0: Always prompt and update cache with new value
-button_x, button_y = @get_coordinates("start button", 1);
-@print("Button coordinates: ");
-@print(button_x);
-@print(", ");
-@print(button_y);
-@print("\n");
+use_cache = 0;
+
+button_x, button_y = @get_coordinates("start button", use_cache);
+
+target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
+
+while 1 {
+    # if pixel matches, move mouse to button
+    if @check_pixel_color(button_x, button_y, 50, target_r, target_g, target_b, 10) {
+        @mouse_move(button_x, button_y, 3000, 1);
+    }
+}
 """
 
 def main(): 
