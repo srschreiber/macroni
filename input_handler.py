@@ -172,6 +172,30 @@ def left_click():
     time.sleep(0.05)
     send_input("mouse", "left", "up")
 
+def press_and_release(delay_ms, *keys):
+    """
+    Press multiple keys in order, then release them in reverse order.
+
+    delay_ms: Time in milliseconds between each press/release action
+    *keys: Variable number of key names to press
+
+    Example: press_and_release(50, "shift", "a")
+             -> press shift, wait, press a, wait, release a, wait, release shift
+    """
+    delay_s = delay_ms / 1000.0
+
+    # Press all keys in order
+    for key in keys:
+        send_input("keyboard", key, "down")
+        if delay_s > 0:
+            time.sleep(delay_s)
+
+    # Release all keys in reverse order
+    for key in reversed(keys):
+        send_input("keyboard", key, "up")
+        if delay_s > 0:
+            time.sleep(delay_s)
+
 def send_input(type, key, action):
     """
     type: "keyboard" or "mouse"

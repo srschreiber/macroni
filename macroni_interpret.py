@@ -8,7 +8,7 @@ import os
 from PIL import ImageGrab
 from mouse_utils import move_mouse_to
 from template_match import locate_one_template_on_screen
-from input_handler import send_input, left_click
+from input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
 from threading import Event
 import threading
@@ -42,6 +42,7 @@ built_in_calls: print_stmt
           | get_pixel_color_stmt
           | left_click_stmt
           | send_input_stmt
+          | press_and_release_stmt
           | record_stmt
           | playback_stmt
           | recording_exists_stmt
@@ -60,6 +61,8 @@ get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
 left_click_stmt: "@left_click" "(" ")"               -> left_click_func
 # type, key, action
 send_input_stmt: "@send_input" "(" args ")"         -> send_input_func
+# delay_ms, *keys
+press_and_release_stmt: "@press_and_release" "(" args ")" -> press_and_release_func
 # recording_name, start_button, stop_button
 record_stmt: "@record" "(" args ")"                 -> record_func
 # recording_name, stop_button
@@ -450,6 +453,15 @@ class Interpreter:
                 key = str(args[1])
                 action = str(args[2])
                 send_input(t, key, action)
+                return 0
+
+            if t == "press_and_release_func":
+                args = self.eval(c[0], env)
+                if len(args) < 2:
+                    raise Exception(f"press_and_release() takes at least 2 arguments (delay_ms, key1, [key2, ...]), got {len(args)}")
+                delay_ms = int(args[0])
+                keys = [str(k) for k in args[1:]]
+                press_and_release(delay_ms, *keys)
                 return 0
 
             if t == "record_func":
@@ -1081,14 +1093,16 @@ target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 #         @mouse_move(windmill_x, windmill_y, 3000, 1);
 #     }
 # }
-@send_input("keyboard", "shift", "down");
-@send_input("keyboard", "a", "down");
-while 1 {
-    @send_input("keyboard", "a", "down");
-    @wait(1000);
-}
+# @send_input("keyboard", "shift", "down");
+# @send_input("keyboard", "a", "down");
+# while 1 {
+#     @send_input("keyboard", "a", "down");
+#     @wait(1000);
+# }
 # @record("my_recording", "space", "esc");
 # @playback("my_recording", "esc");
+# @press_and_release(500, "shift", "a");
+@left_click();
 """
 
 def main(): 
