@@ -8,6 +8,7 @@ import os
 from PIL import ImageGrab
 from mouse_utils import move_mouse_to
 from template_match import locate_one_template_on_screen
+from input_handler import send_input, left_click
 
 calc_grammar = r'''
 start: program
@@ -36,6 +37,8 @@ built_in_calls: print_stmt
           | get_coordinates_stmt
           | check_pixel_color_stmt
           | get_pixel_color_stmt
+          | left_click_stmt
+          | send_input_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -48,6 +51,10 @@ get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
 # params: x, y, radius, r, g, b, [tolerance]
 check_pixel_color_stmt: "@check_pixel_color" "(" args ")" -> check_pixel_color_func
 get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
+left_click_stmt: "@left_click" "(" ")"               -> left_click_func
+# type, key, action
+send_input_stmt: "@send_input" "(" args ")"         -> send_input_func
+
 
 # ---------- function definition ----------
 
@@ -418,6 +425,20 @@ class Interpreter:
                 elif f_block is not None:
                     return self.eval(f_block, env)
                 return None
+            
+            if t == "left_click_func":
+                left_click()
+                return 0
+            
+            if t == "send_input_func":
+                args = self.eval(c[0], env)
+                if len(args) != 3:
+                    raise Exception(f"send_input() takes exactly 3 arguments (type, key, action), got {len(args)}")
+                t = str(args[0])
+                key = str(args[1])
+                action = str(args[2])
+                send_input(t, key, action)
+                return 0
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -546,6 +567,7 @@ def get_pixel_color_interactive(alias, use_cache=False):
             return r, g, b
         else:
             print(f"! No cached color found for '{alias}', prompting user...")
+    
 
     # Prompt user for color
     print(f"\n{'='*50}")
@@ -663,20 +685,21 @@ button_x, button_y = @get_coordinates("start button", use_cache);
 
 target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 
-while 1 {
-    # if pixel matches, move mouse to button
-    if @check_pixel_color(button_x, button_y, 50, target_r, target_g, target_b, 10) {
-        @mouse_move(button_x, button_y, 3000, 1);
-    }
-    @wait(100);
-    # hover over windmill
-    windmill_x, windmill_y = @find_template("windmill");
-    if windmill_x == null {
-        # i dont support not equal
-    } else {
-        @mouse_move(windmill_x, windmill_y, 3000, 1);
-    }
-}
+# while 1 {
+#     # if pixel matches, move mouse to button
+#     if @check_pixel_color(button_x, button_y, 1, target_r, target_g, target_b, 0) {
+#         @mouse_move(button_x, button_y, 3000, 1);
+#     }
+#     @wait(100);
+#     # hover over windmill
+#     windmill_x, windmill_y = @find_template("windmill");
+#     if windmill_x == null {
+#         # i dont support not equal
+#     } else {
+#         @mouse_move(windmill_x, windmill_y, 3000, 1);
+#     }
+# }
+@left_click();
 """
 
 def main(): 

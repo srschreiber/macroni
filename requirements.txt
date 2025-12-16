@@ -3,3 +3,4 @@ opencv-python
 pillow 
 pyscreeze 
 pyautogui
+mss
