@@ -45,6 +45,7 @@ mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
 set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
 find_template_stmt: "@find_template" "(" args ")" -> find_template_func
 get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
+# params: x, y, radius, r, g, b, [tolerance]
 check_pixel_color_stmt: "@check_pixel_color" "(" args ")" -> check_pixel_color_func
 get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
 
