@@ -108,8 +108,11 @@ def locate_one_template_on_screen(
     downscale=1.0,
     debug=True,
 ) -> tuple | None:
+    total_perf_counter = time.perf_counter()
+    perf_counter = time.perf_counter()
     screen = screenshot_bgr(region=None, downscale=downscale, debug=debug)
     sx, sy = screenshot_scale(screen, region=None)
+    print(f"Screenshot took {time.perf_counter() - perf_counter:.3f} seconds")
 
     # Get template paths
     template_paths = get_template_examples(template_dir, template_name)
@@ -147,6 +150,7 @@ def locate_one_template_on_screen(
             break
 
     print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")
+    print(f"Total time: {time.perf_counter() - total_perf_counter:.3f} seconds")
     return found
 
 
