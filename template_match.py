@@ -3,6 +3,8 @@ import numpy as np
 import pyautogui
 from mouse_utils import move_mouse_to
 import time
+import os
+from vision import Vision
 
 def screenshot_scale(screen_bgr, region=None):
     img_h, img_w = screen_bgr.shape[:2]          # screenshot pixels
@@ -27,82 +29,11 @@ def screenshot_bgr(region=None, downscale=1.0):
     
     return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
-def match_template_multiscale(
-    screen_bgr: np.ndarray,
-    template_bgr: np.ndarray,
-    scales=np.linspace(0.7, 1.3, 25),
-    method=cv2.TM_CCOEFF_NORMED,
-    threshold=0.85,
-    use_gray=True,
-):
-    """
-    Returns dict with best match:
-      {
-        "found": bool,
-        "score": float,
-        "scale": float,
-        "top_left": (x, y),
-        "bottom_right": (x, y),
-        "center": (x, y),
-        "size": (w, h),
-      }
-    """
-    if use_gray:
-        screen = cv2.cvtColor(screen_bgr, cv2.COLOR_BGR2GRAY)
-        template0 = cv2.cvtColor(template_bgr, cv2.COLOR_BGR2GRAY)
-    else:
-        screen = screen_bgr
-        template0 = template_bgr
-
-    H, W = screen.shape[:2]
-    th0, tw0 = template0.shape[:2]
-
-    best = {
-        "found": False,
-        "score": -1.0,
-        "scale": None,
-        "top_left": None,
-        "bottom_right": None,
-        "center": None,
-        "size": None,
-    }
-
-    for s in scales:
-        tw = int(tw0 * s)
-        th = int(th0 * s)
-        if tw < 5 or th < 5:
-            continue
-        if tw > W or th > H:
-            continue
-
-        templ = cv2.resize(template0, (tw, th), interpolation=cv2.INTER_AREA)
-
-        res = cv2.matchTemplate(screen, templ, method)
-
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-        score = max_val if method in (cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR_NORMED) else -min_val
-        loc = max_loc if method in (cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR_NORMED) else min_loc
-
-        if score > best["score"]:
-            x, y = loc
-            best.update({
-                "score": float(score),
-                "scale": float(s),
-                "top_left": (int(x), int(y)),
-                "bottom_right": (int(x + tw), int(y + th)),
-                "center": (int(x + tw // 2), int(y + th // 2)),
-                "size": (int(tw), int(th)),
-            })
-
-    best["found"] = best["score"] >= threshold
-    return best
-
 def get_template_examples(template_dir, template_name):
     """
     Returns list of file paths for template examples in the given directory.
     Directory name should be the template_name, all files in that target directory correspond to examples
     """
-    import os
     target_dir = os.path.join(template_dir, template_name)
     if not os.path.isdir(target_dir):
         return []
@@ -123,32 +54,41 @@ def locate_one_template_on_screen(
     screen = screenshot_bgr(region=None, downscale=downscale)
     sx, sy = screenshot_scale(screen, region=None)
 
-
-    # preload images
-    imgs = [cv2.imread(p) for p in get_template_examples(template_dir, template_name)]
-    # downscale templates for performance
-    imgs = [cv2.resize(img, (0,0), fx=downscale, fy=downscale, interpolation=cv2.INTER_AREA) for img in imgs]
+    # Get template paths
+    template_paths = get_template_examples(template_dir, template_name)
     print("Start locating")
 
     perf_counter = time.perf_counter()
     found = None
-    for template in imgs:
-        match = match_template_multiscale(
-            screen, template,
-            scales=scales,
-            threshold=threshold,
-            use_gray=use_gray,
-        )
 
-        if match["found"]:
-            cx, cy = match["center"]
+    for template_path in template_paths:
+        # Create Vision instance for this template
+        # Need to downscale the template to match the downscaled screen
+        template_img = cv2.imread(template_path)
+        if downscale != 1.0:
+            template_img = cv2.resize(template_img, (0,0), fx=downscale, fy=downscale, interpolation=cv2.INTER_AREA)
+            # Save temporarily to create Vision instance
+            temp_path = template_path.replace('.png', '_temp.png')
+            cv2.imwrite(temp_path, template_img)
+            vision = Vision(temp_path)
+            os.remove(temp_path)
+        else:
+            vision = Vision(template_path)
+
+        # Find matches using multiscale
+        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray)
+
+        if points:
+            # Take first match
+            cx, cy = points[0]
             print(f"Template found image coords: ({cx}, {cy})")
 
-            # No region, use full screen scale
+            # Convert to screen coordinates
             mx, my = img_xy_to_screen_xy(cx, cy, sx, sy)
 
             found = (mx, my)
             break
+
     print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")
     return found
 
