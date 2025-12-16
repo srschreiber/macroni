@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import pyautogui
+import mss
 from mouse_utils import move_mouse_to
 import time
 import os
@@ -14,7 +15,62 @@ def screenshot_scale(screen_bgr, region=None):
 def img_xy_to_screen_xy(x_img, y_img, sx, sy):
     return (x_img / sx, y_img / sy)
 
-def screenshot_bgr(region=None, downscale=1.0):
+# def screenshot_bgr(region=None, downscale=1.0, debug=False):
+#     """
+#     region: (left, top, width, height) in screen coords, or None for full screen.
+#     returns: BGR uint8 image (OpenCV format)
+#     Note: On retina displays, MSS captures at actual pixel resolution (2x logical resolution).
+#     The screenshot_scale function handles this by calculating the ratio between screenshot pixels
+#     and screen points, which is then used by img_xy_to_screen_xy to convert back correctly.
+#     """
+#     with mss.mss() as sct:
+#         if region is None:
+#             # Capture primary monitor
+#             monitor = sct.monitors[1]
+#         else:
+#             # region is (left, top, width, height) in screen points
+#             # MSS needs actual pixel coordinates, so scale by the display scaling factor
+#             # For retina displays, this is typically 2.0
+#             monitor = {
+#                 "left": int(region[0]),
+#                 "top": int(region[1]),
+#                 "width": int(region[2]),
+#                 "height": int(region[3])
+#             }
+
+#         # MSS returns BGRA on most platforms
+#         # Just drop the alpha channel - OpenCV uses BGR natively
+#         screenshot = sct.grab(monitor)
+#         img = np.array(screenshot)
+
+#         if debug:
+#             print(f"MSS raw image shape: {img.shape}, dtype: {img.dtype}")
+#             print(f"MSS raw first pixel (BGRA?): {img[0, 0, :]}")
+#             # Save raw capture with all channels
+#             cv2.imwrite("debug_mss_raw.png", img)
+
+#         bgr = img[:, :, :3]  # Keep first 3 channels (BGR), drop alpha
+
+#         if debug:
+#             print(f"BGR image shape: {bgr.shape}")
+#             # Save as-is (assuming BGR)
+#             cv2.imwrite("debug_mss_as_bgr.png", bgr)
+#             # Save with RGB2BGR conversion to compare
+#             bgr_converted = cv2.cvtColor(img[:, :, :3], cv2.COLOR_RGB2BGR)
+#             cv2.imwrite("debug_mss_rgb2bgr.png", bgr_converted)
+
+#         # Apply downscaling for performance
+#         if downscale != 1.0:
+#             new_w = int(bgr.shape[1] * downscale)
+#             new_h = int(bgr.shape[0] * downscale)
+#             bgr = cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
+#         else:
+#             # Ensure contiguous array when no resize (OpenCV requires this)
+#             bgr = bgr.copy()
+
+#         return bgr
+
+def screenshot_bgr(region=None, downscale=1.0, debug=False):
     """
     region: (left, top, width, height) in screen coords, or None for full screen.
     returns: BGR uint8 image (OpenCV format)
@@ -48,10 +104,11 @@ def locate_one_template_on_screen(
     template_name: str = "default",
     scales=np.linspace(0.8, 1.2, 5),
     threshold=0.8,
-    use_gray=False,
-    downscale=.7,
+    use_gray=True,
+    downscale=1.0,
+    debug=True,
 ) -> tuple | None:
-    screen = screenshot_bgr(region=None, downscale=downscale)
+    screen = screenshot_bgr(region=None, downscale=downscale, debug=debug)
     sx, sy = screenshot_scale(screen, region=None)
 
     # Get template paths
@@ -76,7 +133,7 @@ def locate_one_template_on_screen(
             vision = Vision(template_path)
 
         # Find matches using multiscale
-        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray)
+        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray, find_one=True, debug_mode=debug)
 
         if points:
             # Take first match
@@ -98,7 +155,7 @@ if __name__ == "__main__":
     template_dir = "/Users/sam.schreiber/src/macroni/templates"
     template_name = "test"
 
-    pos = locate_one_template_on_screen(template_dir, template_name)
+    pos = locate_one_template_on_screen(template_dir, template_name, debug=True)
     if pos is not None:
         print(f"Template '{template_name}' found at screen position: {pos}")
         move_mouse_to(pos[0], pos[1], pps=5000, humanLike=True)
