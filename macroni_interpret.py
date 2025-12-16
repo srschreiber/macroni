@@ -653,8 +653,8 @@ fn tick_handler() {
 }
 
 # set template dir
-# template_dir = "/Users/sam.schreiber/src/macroni/templates";
-# @set_template_dir(template_dir);
+template_dir = "/Users/sam.schreiber/src/macroni/templates";
+@set_template_dir(template_dir);
 # @foreach_tick(tick_provider, tick_handler);
 
 use_cache = 0;
