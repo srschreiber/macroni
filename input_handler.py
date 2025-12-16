@@ -1,6 +1,7 @@
 import enum
 from pynput import keyboard, mouse
 import time
+import random
 
 class InputType(enum.Enum):
     # Letters
@@ -182,19 +183,27 @@ def press_and_release(delay_ms, *keys):
     Example: press_and_release(50, "shift", "a")
              -> press shift, wait, press a, wait, release a, wait, release shift
     """
+
+    # sprinkle some randomness in delay
+    delay_ms
     delay_s = delay_ms / 1000.0
+
+    def rand_delay_s():
+        two_percent = delay_ms * 0.02
+        return (random.uniform(-two_percent, two_percent)  + delay_ms) / 1000.0
 
     # Press all keys in order
     for key in keys:
         send_input("keyboard", key, "down")
-        if delay_s > 0:
-            time.sleep(delay_s)
+        if delay_ms > 0:
+            time.sleep(rand_delay_s()/2)
 
+    time.sleep(rand_delay_s())
     # Release all keys in reverse order
     for key in reversed(keys):
         send_input("keyboard", key, "up")
         if delay_s > 0:
-            time.sleep(delay_s)
+            time.sleep(rand_delay_s()/2)
 
 def send_input(type, key, action):
     """

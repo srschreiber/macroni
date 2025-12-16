@@ -1101,8 +1101,8 @@ target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 # }
 # @record("my_recording", "space", "esc");
 # @playback("my_recording", "esc");
-# @press_and_release(500, "shift", "a");
-@left_click();
+@press_and_release(500, "shift", "a");
+# @left_click();
 """
 
 def main(): 
