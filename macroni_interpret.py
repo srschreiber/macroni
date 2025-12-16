@@ -2,6 +2,9 @@ from lark import Lark, Tree, Token
 import ast
 import time
 import random
+import pyautogui
+import json
+import os
 from mouse_utils import move_mouse_to
 from template_match import locate_one_template_on_screen
 
@@ -29,6 +32,7 @@ built_in_calls: print_stmt
           | mouse_move_stmt
           | set_template_dir_stmt
           | find_template_stmt
+          | get_coordinates_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -37,6 +41,7 @@ foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
 mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
 set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
 find_template_stmt: "@find_template" "(" args ")" -> find_template_func
+get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
 
 # ---------- function definition ----------
 
@@ -364,6 +369,15 @@ class Interpreter:
                 if pos is not None:
                     return pos
                 return None, None  # not found
+
+            if t == "get_coordinates_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 2:
+                    raise Exception(f"get_coordinates() takes 1 or 2 arguments (message [, use_cache]), got {len(args)}")
+                message = str(args[0])
+                use_cache = bool(args[1]) if len(args) == 2 else False
+                x, y = get_coordinates_interactive(message, use_cache)
+                return (x, y)
             
             if t == "conditional_expr":
                 condition, t_block, f_block = c[0], c[1], c[2] if len(c) == 3 else None
@@ -388,6 +402,74 @@ def wait_func(duration, random_range: tuple = (0,0)):
     print(f"Waiting for {wait_time + random_delay} ms...")
     time.sleep((wait_time + random_delay) / 1000)
     return wait_time + random_delay
+
+def load_coordinates_cache(cache_file="coordinates_cache.json"):
+    """Load cached coordinates from JSON file."""
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load cache file: {e}")
+            return {}
+    return {}
+
+def save_coordinates_cache(cache, cache_file="coordinates_cache.json"):
+    """Save coordinates cache to JSON file."""
+    try:
+        with open(cache_file, 'w') as f:
+            json.dump(cache, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not save cache file: {e}")
+
+def get_coordinates_interactive(message, use_cache=False):
+    """
+    Shows a popup/console message and waits for the user to hover over
+    a position and press Enter to capture coordinates.
+
+    Args:
+        message: Label/key for the coordinates
+        use_cache: If True, check cache first before prompting
+
+    Returns:
+        tuple: (x, y) coordinates
+
+    Note: Coordinates are always saved to cache after capture, regardless of use_cache value.
+    """
+    cache_file = "coordinates_cache.json"
+
+    # If using cache, try to load cached coordinates
+    if use_cache:
+        cache = load_coordinates_cache(cache_file)
+        if message in cache:
+            x, y = cache[message]
+            print(f"✓ Using cached coordinates for '{message}': ({x}, {y})")
+            return x, y
+        else:
+            print(f"! No cached coordinates found for '{message}', prompting user...")
+
+    # Prompt user for coordinates
+    print(f"\n{'='*50}")
+    print(f"SET COORDINATES FOR: {message}")
+    print(f"{'='*50}")
+    print("1. Hover your mouse over the desired position")
+    print("2. Press ENTER to capture the coordinates")
+    print(f"{'='*50}\n")
+
+    # Wait for user to press Enter
+    input("Press ENTER when ready: ")
+
+    # Capture the current mouse position
+    x, y = pyautogui.position()
+    print(f"✓ Captured coordinates: ({x}, {y})\n")
+
+    # Always save to cache
+    cache = load_coordinates_cache(cache_file)
+    cache[message] = [x, y]
+    save_coordinates_cache(cache, cache_file)
+    print(f"✓ Saved coordinates to cache for '{message}'")
+
+    return x, y
 
 def macroni_script():
     return r"""
@@ -419,9 +501,19 @@ fn tick_handler() {
 }
 
 # set template dir
-template_dir = "/Users/sam.schreiber/src/macroni/templates";
-@set_template_dir(template_dir);
-@foreach_tick(tick_provider, tick_handler);
+# template_dir = "/Users/sam.schreiber/src/macroni/templates";
+# @set_template_dir(template_dir);
+# @foreach_tick(tick_provider, tick_handler);
+
+# Example: Get coordinates with caching
+# use_cache = 1: Use cached value if available, otherwise prompt and save
+# use_cache = 0: Always prompt and update cache with new value
+button_x, button_y = @get_coordinates("start button", 1);
+@print("Button coordinates: ");
+@print(button_x);
+@print(", ");
+@print(button_y);
+@print("\n");
 """
 
 def main(): 
