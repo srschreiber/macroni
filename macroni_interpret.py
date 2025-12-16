@@ -668,6 +668,14 @@ while 1 {
     if @check_pixel_color(button_x, button_y, 50, target_r, target_g, target_b, 10) {
         @mouse_move(button_x, button_y, 3000, 1);
     }
+    @wait(100);
+    # hover over windmill
+    windmill_x, windmill_y = @find_template("windmill");
+    if windmill_x == null {
+        # i dont support not equal
+    } else {
+        @mouse_move(windmill_x, windmill_y, 3000, 1);
+    }
 }
 """
 
