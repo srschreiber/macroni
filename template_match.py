@@ -4,7 +4,7 @@ import pyautogui
 from mouse_utils import move_mouse_to
 import time
 
-def screenshot_scale(screen_bgr):
+def screenshot_scale(screen_bgr, region=None):
     img_h, img_w = screen_bgr.shape[:2]          # screenshot pixels
     scr_w, scr_h = pyautogui.size() # screen points
     return (img_w / scr_w), (img_h / scr_h)
@@ -17,7 +17,7 @@ def screenshot_bgr(region=None, downscale=1.0):
     region: (left, top, width, height) in screen coords, or None for full screen.
     returns: BGR uint8 image (OpenCV format)
     """
-    im = pyautogui.screenshot(region=region)
+    im = pyautogui.screenshot(region=None)
     rgb = np.array(im)  # RGB
     # scale down 50% for performance
     if downscale != 1.0:
@@ -121,7 +121,8 @@ def locate_one_template_on_screen(
     downscale=.9,
 ) -> tuple | None:
     screen = screenshot_bgr(region=None, downscale=downscale)
-    sx, sy = screenshot_scale(screen)
+    sx, sy = screenshot_scale(screen, region=None)
+
 
     # preload images
     imgs = [cv2.imread(p) for p in get_template_examples(template_dir, template_name)]
@@ -141,7 +142,11 @@ def locate_one_template_on_screen(
 
         if match["found"]:
             cx, cy = match["center"]
+            print(f"Template found image coords: ({cx}, {cy})")
+
+            # No region, use full screen scale
             mx, my = img_xy_to_screen_xy(cx, cy, sx, sy)
+
             found = (mx, my)
             break
     print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")

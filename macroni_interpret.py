@@ -349,13 +349,17 @@ class Interpreter:
                 # Here you would set the template directory in your application
             if t == "find_template_func":
                 args = self.eval(c[0], env)
-                if len(args) != 1:
-                    raise Exception(f"find_template() takes exactly 1 argument, got {len(args)}")
+                if len(args) != 1 and len(args) != 5:
+                    raise Exception(f"find_template() takes 1 or 5 arguments (template_name [, left, top, width, height]), got {len(args)}")
                 template_name = str(args[0])
+                region = None
+                if len(args) == 5:
+                    # region format: (left, top, width, height)
+                    region = (args[1], args[2], args[3], args[4])
                 pos = locate_one_template_on_screen(
                     template_dir=self.template_dir,
                     template_name=template_name,
-                    downscale=0.5,
+                    downscale=0.5
                 )
                 if pos is not None:
                     return pos
@@ -410,16 +414,6 @@ fn tick_provider(c,d) {
 }
 
 fn tick_handler() {
-    # @print("TICK!\n");
-    # star_x, star_y = @find_template("star");
-    # @mouse_move(star_x, star_y, 2000, 1);
-    # pent_x, pent_y = @find_template("pentagon");
-    # @mouse_move(pent_x, pent_y, 2000, 1);
-    # file_menu_x, file_menu_y = @find_template("filemenu");
-    # @mouse_move(file_menu_x, file_menu_y, 2000, 1);
-    # @wait(1000, 0, 500);
-    # save_x, save_y = @find_template("filemenusave");
-    # @mouse_move(save_x, save_y, 2000, 1);
     windmill_x, windmill_y = @find_template("windmill");
     @mouse_move(windmill_x, windmill_y, 2000, 1);
 }
@@ -430,7 +424,7 @@ template_dir = "/Users/sam.schreiber/src/macroni/templates";
 @foreach_tick(tick_provider, tick_handler);
 """
 
-def main():
+def main(): 
     interp = Interpreter()
     tree = calc_parser.parse(macroni_script())
     interp.eval(tree)
