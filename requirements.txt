@@ -4,3 +4,4 @@ pillow
 pyscreeze 
 pyautogui
 mss
+pynput
