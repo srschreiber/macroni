@@ -1027,43 +1027,56 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
-fn print_grid(cell_char, size) {
-    size_copy = size;
-    while size > 0 {
-        inner_size = size_copy;
-        while inner_size > 0 {
-            @print(cell_char);
-            inner_size = inner_size - 1;
-            @print(cell_char);
-        }
-        @print("\n");
-        size = size - 1;
-    }
-}
-
-global_ticks = 0;
-fn tick_provider(c,d) {
-    @wait(500, 0, 50);
-    global_ticks = global_ticks + 1;
-    @print(global_ticks);
-    global_ticks > 5; # exit if 1. return is currently last expr
-}
-
-fn tick_handler() {
-    windmill_x, windmill_y = @find_template("windmill");
-    @mouse_move(windmill_x, windmill_y, 2000, 1);
-}
 
 # set template dir
-template_dir = "/Users/sam.schreiber/src/macroni/templates";
+template_dir = "C:\\Users\sam s\src\\macroni\\templates";
 @set_template_dir(template_dir);
-# @foreach_tick(tick_provider, tick_handler);
 
-use_cache = 0;
+use_cache = 1;
 
-button_x, button_y = @get_coordinates("start button", use_cache);
+inv_x, inv_y = @get_coordinates("inventory_slot", use_cache);
+empty_r, empty_g, empty_b = @get_pixel_color("inventory_slot", use_cache);
+iterations = 0;
+sal_x = null;
+sal_y = null;
+iterations = 0;
+while 1 {
+    if @check_pixel_color(inv_x, inv_y, 1, empty_r, empty_g, empty_b) {
+        # empty, salvage
+        s_x, s_y = @find_template("salvage");
+        if s_x == null {
+            # not found
+        } else {
+            if sal_x == null {
+                sal_x = s_x;
+                sal_y = s_y;
+            }
+            @mouse_move(sal_x, sal_y, 1500, 1);
+            @left_click();
+        }
+    } else {
+        # drop the salvage
+        if @recording_exists("drop_salvage") == 0 {
+            @record("drop_salvage", "space", "esc");
+        }
+        @playback("drop_salvage", "esc");
+        # @mouse_move(inv_x, inv_y, 1500, 1);
+        # @send_input("keyboard", "shift", "down");
+        # @wait(10, 10, 15);
+        # @left_click();
+        # @wait(10, 10, 15);
+        # @send_input("keyboard", "shift", "up");
+    }
+    if iterations % 15 == 0 {
+        sal_x = null;
+        sal_y = null;
+    }
+    iterations = iterations + 1;
+    @wait(500, 10, 50);
+}
 
-target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
+# button_x, button_y = @get_coordinates("start button", use_cache);
+# target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 
 # Example: Record and playback
 # To record: uncomment the line below
@@ -1101,7 +1114,6 @@ target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 # }
 # @record("my_recording", "space", "esc");
 # @playback("my_recording", "esc");
-@press_and_release(500, "shift", "a");
 # @left_click();
 """
 

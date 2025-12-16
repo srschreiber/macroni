@@ -93,7 +93,7 @@ def locate_one_template_on_screen(
     threshold=0.8,
     use_gray=True,
     downscale=.8,
-    debug=True,
+    debug=False,
 ) -> tuple | None:
     total_perf_counter = time.perf_counter()
     perf_counter = time.perf_counter()
