@@ -170,7 +170,7 @@ SPECIAL_KEYS = {
 
 def left_click():
     send_input("mouse", "left", "down")
-    time.sleep(0.05)
+    time.sleep(0.05 + random.uniform(0, 0.05))  # small random delay
     send_input("mouse", "left", "up")
 
 def press_and_release(delay_ms, *keys):
