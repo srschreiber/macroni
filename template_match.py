@@ -15,62 +15,47 @@ def screenshot_scale(screen_bgr, region=None):
 def img_xy_to_screen_xy(x_img, y_img, sx, sy):
     return (x_img / sx, y_img / sy)
 
-# def screenshot_bgr(region=None, downscale=1.0, debug=False):
-#     """
-#     region: (left, top, width, height) in screen coords, or None for full screen.
-#     returns: BGR uint8 image (OpenCV format)
-#     Note: On retina displays, MSS captures at actual pixel resolution (2x logical resolution).
-#     The screenshot_scale function handles this by calculating the ratio between screenshot pixels
-#     and screen points, which is then used by img_xy_to_screen_xy to convert back correctly.
-#     """
-#     with mss.mss() as sct:
-#         if region is None:
-#             # Capture primary monitor
-#             monitor = sct.monitors[1]
-#         else:
-#             # region is (left, top, width, height) in screen points
-#             # MSS needs actual pixel coordinates, so scale by the display scaling factor
-#             # For retina displays, this is typically 2.0
-#             monitor = {
-#                 "left": int(region[0]),
-#                 "top": int(region[1]),
-#                 "width": int(region[2]),
-#                 "height": int(region[3])
-#             }
-
-#         # MSS returns BGRA on most platforms
-#         # Just drop the alpha channel - OpenCV uses BGR natively
-#         screenshot = sct.grab(monitor)
-#         img = np.array(screenshot)
-
-#         if debug:
-#             print(f"MSS raw image shape: {img.shape}, dtype: {img.dtype}")
-#             print(f"MSS raw first pixel (BGRA?): {img[0, 0, :]}")
-#             # Save raw capture with all channels
-#             cv2.imwrite("debug_mss_raw.png", img)
-
-#         bgr = img[:, :, :3]  # Keep first 3 channels (BGR), drop alpha
-
-#         if debug:
-#             print(f"BGR image shape: {bgr.shape}")
-#             # Save as-is (assuming BGR)
-#             cv2.imwrite("debug_mss_as_bgr.png", bgr)
-#             # Save with RGB2BGR conversion to compare
-#             bgr_converted = cv2.cvtColor(img[:, :, :3], cv2.COLOR_RGB2BGR)
-#             cv2.imwrite("debug_mss_rgb2bgr.png", bgr_converted)
-
-#         # Apply downscaling for performance
-#         if downscale != 1.0:
-#             new_w = int(bgr.shape[1] * downscale)
-#             new_h = int(bgr.shape[0] * downscale)
-#             bgr = cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
-#         else:
-#             # Ensure contiguous array when no resize (OpenCV requires this)
-#             bgr = bgr.copy()
-
-#         return bgr
-
 def screenshot_bgr(region=None, downscale=1.0, debug=False):
+    """
+    region: (left, top, width, height) in screen coords, or None for full screen.
+    returns: BGR uint8 image (OpenCV format)
+    Note: On retina displays, MSS captures at actual pixel resolution (2x logical resolution).
+    The screenshot_scale function handles this by calculating the ratio between screenshot pixels
+    and screen points, which is then used by img_xy_to_screen_xy to convert back correctly.
+    """
+    with mss.mss() as sct:
+        if region is None:
+            # Capture primary monitor
+            monitor = sct.monitors[0]
+        else:
+            # region is (left, top, width, height) in screen points
+            # MSS needs actual pixel coordinates, so scale by the display scaling factor
+            # For retina displays, this is typically 2.0
+            monitor = {
+                "left": int(region[0]),
+                "top": int(region[1]),
+                "width": int(region[2]),
+                "height": int(region[3])
+            }
+
+        # MSS returns BGRA on all platforms (Windows, macOS, Linux)
+        # Drop alpha channel to get BGR format for OpenCV
+        screenshot = sct.grab(monitor)
+        img = np.array(screenshot)
+        bgr = img[:, :, :3]  # Keep first 3 channels (BGR), drop alpha
+
+        # Apply downscaling for performance (if not already done above)
+        if downscale != 1.0:
+            new_w = int(bgr.shape[1] * downscale)
+            new_h = int(bgr.shape[0] * downscale)
+            bgr = cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        else:
+            # Ensure contiguous array when no resize (OpenCV requires this)
+            bgr = bgr.copy()
+
+        return bgr
+
+def screenshot_bgr2(region=None, downscale=1.0, debug=False):
     """
     region: (left, top, width, height) in screen coords, or None for full screen.
     returns: BGR uint8 image (OpenCV format)
@@ -111,6 +96,10 @@ def locate_one_template_on_screen(
     total_perf_counter = time.perf_counter()
     perf_counter = time.perf_counter()
     screen = screenshot_bgr(region=None, downscale=downscale, debug=debug)
+    # screen1 = screenshot_bgr2(region=None, downscale=downscale, debug=debug)
+    # if debug:
+    #     cv2.imwrite("debug_screenshot.png", screen1)
+    #     cv2.imwrite("debug_screenshot_mss.png", screen)
     sx, sy = screenshot_scale(screen, region=None)
     print(f"Screenshot took {time.perf_counter() - perf_counter:.3f} seconds")
 
@@ -121,12 +110,19 @@ def locate_one_template_on_screen(
     perf_counter = time.perf_counter()
     found = None
 
+    # On macOS, templates are typically at 2x retina resolution, but MSS captures at 1x
+    # So we need to scale templates by 0.5x to match MSS screenshots
+    import sys
+    template_scale = downscale
+    if sys.platform == 'darwin':
+        template_scale *= 0.5  # Compensate for retina resolution difference
+
     for template_path in template_paths:
         # Create Vision instance for this template
-        # Need to downscale the template to match the downscaled screen
+        # Scale template to match the screenshot resolution
         template_img = cv2.imread(template_path)
-        if downscale != 1.0:
-            template_img = cv2.resize(template_img, (0,0), fx=downscale, fy=downscale, interpolation=cv2.INTER_AREA)
+        if template_scale != 1.0:
+            template_img = cv2.resize(template_img, (0,0), fx=template_scale, fy=template_scale, interpolation=cv2.INTER_AREA)
             # Save temporarily to create Vision instance
             temp_path = template_path.replace('.png', '_temp.png')
             cv2.imwrite(temp_path, template_img)
