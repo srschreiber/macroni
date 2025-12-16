@@ -1,6 +1,6 @@
 import enum
-import pyautogui
-
+from pynput import keyboard, mouse
+import time
 
 class InputType(enum.Enum):
     # Letters
@@ -126,8 +126,51 @@ class InputType(enum.Enum):
     SCROLL_UP = "scroll_up"
     SCROLL_DOWN = "scroll_down"
 
+keyboard_controller = keyboard.Controller()
+mouse_controller = mouse.Controller()
+
+# Map key names to pynput Key objects
+SPECIAL_KEYS = {
+    'shift': keyboard.Key.shift,
+    'ctrl': keyboard.Key.ctrl,
+    'alt': keyboard.Key.alt,
+    'cmd': keyboard.Key.cmd,
+    'command': keyboard.Key.cmd,
+    'option': keyboard.Key.alt,
+    'f1': keyboard.Key.f1,
+    'f2': keyboard.Key.f2,
+    'f3': keyboard.Key.f3,
+    'f4': keyboard.Key.f4,
+    'f5': keyboard.Key.f5,
+    'f6': keyboard.Key.f6,
+    'f7': keyboard.Key.f7,
+    'f8': keyboard.Key.f8,
+    'f9': keyboard.Key.f9,
+    'f10': keyboard.Key.f10,
+    'f11': keyboard.Key.f11,
+    'f12': keyboard.Key.f12,
+    'up': keyboard.Key.up,
+    'down': keyboard.Key.down,
+    'left': keyboard.Key.left,
+    'right': keyboard.Key.right,
+    'home': keyboard.Key.home,
+    'end': keyboard.Key.end,
+    'pageup': keyboard.Key.page_up,
+    'pagedown': keyboard.Key.page_down,
+    'enter': keyboard.Key.enter,
+    'return': keyboard.Key.enter,
+    'tab': keyboard.Key.tab,
+    'backspace': keyboard.Key.backspace,
+    'delete': keyboard.Key.delete,
+    'esc': keyboard.Key.esc,
+    'escape': keyboard.Key.esc,
+    'space': keyboard.Key.space,
+}
+
 def left_click():
     send_input("mouse", "left", "down")
+    time.sleep(0.05)
+    send_input("mouse", "left", "up")
 
 def send_input(type, key, action):
     """
@@ -136,12 +179,18 @@ def send_input(type, key, action):
     action: "down" or "up"
     """
     if type == "keyboard":
+        # Convert key name to pynput key
+        pynput_key = SPECIAL_KEYS.get(key.lower(), key)
+
         if action == "down":
-            pyautogui.keyDown(key)
+            keyboard_controller.press(pynput_key)
         elif action == "up":
-            pyautogui.keyUp(key)
+            keyboard_controller.release(pynput_key)
     elif type == "mouse":
+        # Convert button name to pynput button
+        button = getattr(mouse.Button, key)
+
         if action == "down":
-            pyautogui.mouseDown(button=key)
+            mouse_controller.press(button)
         elif action == "up":
-            pyautogui.mouseUp(button=key)
+            mouse_controller.release(button)

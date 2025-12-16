@@ -9,6 +9,9 @@ from PIL import ImageGrab
 from mouse_utils import move_mouse_to
 from template_match import locate_one_template_on_screen
 from input_handler import send_input, left_click
+from pynput import mouse, keyboard
+from threading import Event
+import threading
 
 calc_grammar = r'''
 start: program
@@ -39,6 +42,9 @@ built_in_calls: print_stmt
           | get_pixel_color_stmt
           | left_click_stmt
           | send_input_stmt
+          | record_stmt
+          | playback_stmt
+          | recording_exists_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -54,6 +60,12 @@ get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
 left_click_stmt: "@left_click" "(" ")"               -> left_click_func
 # type, key, action
 send_input_stmt: "@send_input" "(" args ")"         -> send_input_func
+# recording_name, start_button, stop_button
+record_stmt: "@record" "(" args ")"                 -> record_func
+# recording_name, stop_button
+playback_stmt: "@playback" "(" args ")"             -> playback_func
+# recording_name
+recording_exists_stmt: "@recording_exists" "(" expr ")" -> recording_exists_func
 
 
 # ---------- function definition ----------
@@ -440,6 +452,29 @@ class Interpreter:
                 send_input(t, key, action)
                 return 0
 
+            if t == "record_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 3:
+                    raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
+                recording_name = str(args[0])
+                start_button = str(args[1]) if len(args) >= 2 else "space"
+                stop_button = str(args[2]) if len(args) == 3 else "esc"
+                record_interactive(recording_name, start_button, stop_button)
+                return 0
+
+            if t == "playback_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 2:
+                    raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
+                recording_name = str(args[0])
+                stop_button = str(args[1]) if len(args) == 2 else "esc"
+                playback_interactive(recording_name, stop_button)
+                return 0
+
+            if t == "recording_exists_func":
+                recording_name = str(self.eval(c[0], env))
+                return 1 if recording_exists(recording_name) else 0
+
             # passthrough for inlined rules
             if len(c) == 1:
                 return self.eval(c[0], env)
@@ -645,6 +680,339 @@ def check_pixel_color_in_radius(center_x, center_y, radius, target_r, target_g, 
 
     return False
 
+def load_recordings_cache(cache_file="recordings_cache.json"):
+    """Load cached recordings from JSON file."""
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load recordings cache file: {e}")
+            return {}
+    return {}
+
+def save_recordings_cache(cache, cache_file="recordings_cache.json"):
+    """Save recordings cache to JSON file."""
+    try:
+        with open(cache_file, 'w') as f:
+            json.dump(cache, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not save recordings cache file: {e}")
+
+def recording_exists(recording_name, cache_file="recordings_cache.json"):
+    """
+    Check if a recording exists in the cache.
+
+    Args:
+        recording_name: Name/key for the recording
+        cache_file: Path to the recordings cache file
+
+    Returns:
+        bool: True if recording exists, False otherwise
+    """
+    cache = load_recordings_cache(cache_file)
+    return recording_name in cache
+
+def record_interactive(recording_name, start_button="space", stop_button="esc"):
+    """
+    Records mouse movements, clicks, and keyboard inputs.
+
+    Args:
+        recording_name: Name/key for the recording
+        start_button: Button to start recording (default 'space')
+        stop_button: Button to stop recording (default 'esc')
+
+    Returns:
+        None
+    """
+    cache_file = "recordings_cache.json"
+
+    print(f"\n{'='*60}")
+    print(f"RECORD MODE: {recording_name}")
+    print(f"{'='*60}")
+    print(f"Start button: {start_button.upper()}")
+    print(f"Stop button: {stop_button.upper()}")
+    print(f"{'='*60}")
+    print(f"Press {start_button.upper()} to start recording...")
+    print(f"{'='*60}\n")
+
+    events = []
+    recording = False
+    start_time = None
+    stop_event = Event()
+
+    # Convert button names to pynput keys
+    def get_key(button_name):
+        button_name = button_name.lower()
+        if button_name == "esc" or button_name == "escape":
+            return keyboard.Key.esc
+        elif button_name == "space":
+            return keyboard.Key.space
+        elif button_name == "enter":
+            return keyboard.Key.enter
+        elif button_name == "shift":
+            return keyboard.Key.shift
+        elif button_name == "ctrl":
+            return keyboard.Key.ctrl
+        elif button_name == "alt":
+            return keyboard.Key.alt
+        else:
+            return button_name
+
+    start_key = get_key(start_button)
+    stop_key = get_key(stop_button)
+
+    def on_move(x, y):
+        if recording:
+            timestamp = time.time() - start_time
+            events.append({
+                'type': 'mouse_move',
+                'x': x,
+                'y': y,
+                'timestamp': timestamp
+            })
+
+    def on_click(x, y, button, pressed):
+        if recording:
+            timestamp = time.time() - start_time
+            events.append({
+                'type': 'mouse_click',
+                'x': x,
+                'y': y,
+                'button': str(button),
+                'pressed': pressed,
+                'timestamp': timestamp
+            })
+
+    def on_scroll(x, y, dx, dy):
+        if recording:
+            timestamp = time.time() - start_time
+            events.append({
+                'type': 'mouse_scroll',
+                'x': x,
+                'y': y,
+                'dx': dx,
+                'dy': dy,
+                'timestamp': timestamp
+            })
+
+    def on_press(key):
+        nonlocal recording, start_time
+
+        try:
+            key_str = key.char if hasattr(key, 'char') else str(key)
+        except:
+            key_str = str(key)
+
+        # Check for start button
+        if not recording and key == start_key:
+            recording = True
+            start_time = time.time()
+            print(f"\n✓ Recording started! Press {stop_button.upper()} to stop.\n")
+            return
+
+        # Check for stop button
+        if recording and key == stop_key:
+            print(f"\n✓ Recording stopped! Captured {len(events)} events.\n")
+            stop_event.set()
+            return False  # Stop listener
+
+        # Record other key presses
+        if recording:
+            timestamp = time.time() - start_time
+            events.append({
+                'type': 'key_press',
+                'key': key_str,
+                'timestamp': timestamp
+            })
+
+    def on_release(key):
+        if recording:
+            try:
+                key_str = key.char if hasattr(key, 'char') else str(key)
+            except:
+                key_str = str(key)
+
+            timestamp = time.time() - start_time
+            events.append({
+                'type': 'key_release',
+                'key': key_str,
+                'timestamp': timestamp
+            })
+
+    # Start listeners
+    mouse_listener = mouse.Listener(
+        on_move=on_move,
+        on_click=on_click,
+        on_scroll=on_scroll
+    )
+    keyboard_listener = keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release
+    )
+
+    mouse_listener.start()
+    keyboard_listener.start()
+
+    # Wait for recording to stop
+    stop_event.wait()
+
+    # Stop listeners
+    mouse_listener.stop()
+    keyboard_listener.stop()
+
+    # Save to cache
+    cache = load_recordings_cache(cache_file)
+    cache[recording_name] = events
+    save_recordings_cache(cache, cache_file)
+    print(f"✓ Saved recording '{recording_name}' to cache with {len(events)} events.")
+
+def playback_interactive(recording_name, stop_button="esc"):
+    """
+    Plays back a recorded session.
+
+    Args:
+        recording_name: Name/key for the recording
+        stop_button: Button to stop playback (default 'esc')
+
+    Returns:
+        None
+    """
+    cache_file = "recordings_cache.json"
+
+    # Load recording from cache
+    cache = load_recordings_cache(cache_file)
+    if recording_name not in cache:
+        print(f"✗ Error: No recording found with name '{recording_name}'")
+        return
+
+    events = cache[recording_name]
+
+    print(f"\n{'='*60}")
+    print(f"PLAYBACK MODE: {recording_name}")
+    print(f"{'='*60}")
+    print(f"Stop button: {stop_button.upper()}")
+    print(f"Total events: {len(events)}")
+    print(f"{'='*60}")
+    print(f"Playback will start in 3 seconds...")
+    print(f"Press {stop_button.upper()} at any time to stop playback.")
+    print(f"{'='*60}\n")
+
+    time.sleep(3)
+
+    stop_playback = Event()
+
+    # Convert button name to pynput key
+    def get_key(button_name):
+        button_name = button_name.lower()
+        if button_name == "esc" or button_name == "escape":
+            return keyboard.Key.esc
+        elif button_name == "space":
+            return keyboard.Key.space
+        elif button_name == "enter":
+            return keyboard.Key.enter
+        elif button_name == "shift":
+            return keyboard.Key.shift
+        elif button_name == "ctrl":
+            return keyboard.Key.ctrl
+        elif button_name == "alt":
+            return keyboard.Key.alt
+        else:
+            return button_name
+
+    stop_key = get_key(stop_button)
+
+    def on_press(key):
+        if key == stop_key:
+            print(f"\n✓ Playback stopped by user.\n")
+            stop_playback.set()
+            return False  # Stop listener
+
+    # Start keyboard listener for stop button
+    keyboard_listener = keyboard.Listener(on_press=on_press)
+    keyboard_listener.start()
+
+    # Playback events
+    start_time = time.time()
+    mouse_controller = mouse.Controller()
+    keyboard_controller = keyboard.Controller()
+
+    print("✓ Playback started!\n")
+
+    for i, event in enumerate(events):
+        if stop_playback.is_set():
+            break
+
+        # Wait for the correct timestamp
+        target_time = event['timestamp']
+        elapsed = time.time() - start_time
+        wait_time = target_time - elapsed
+        if wait_time > 0:
+            time.sleep(wait_time)
+
+        # Execute event
+        try:
+            if event['type'] == 'mouse_move':
+                mouse_controller.position = (event['x'], event['y'])
+
+            elif event['type'] == 'mouse_click':
+                button_str = event['button']
+                pressed = event['pressed']
+
+                # Convert button string to pynput button
+                if 'left' in button_str.lower():
+                    btn = mouse.Button.left
+                elif 'right' in button_str.lower():
+                    btn = mouse.Button.right
+                elif 'middle' in button_str.lower():
+                    btn = mouse.Button.middle
+                else:
+                    continue
+
+                if pressed:
+                    mouse_controller.press(btn)
+                else:
+                    mouse_controller.release(btn)
+
+            elif event['type'] == 'mouse_scroll':
+                mouse_controller.scroll(event['dx'], event['dy'])
+
+            elif event['type'] == 'key_press':
+                key_str = event['key']
+                # Try to parse the key
+                try:
+                    if key_str.startswith('Key.'):
+                        key_name = key_str.replace('Key.', '')
+                        key_obj = getattr(keyboard.Key, key_name, None)
+                        if key_obj:
+                            keyboard_controller.press(key_obj)
+                    else:
+                        keyboard_controller.press(key_str)
+                except Exception as e:
+                    print(f"Warning: Could not press key '{key_str}': {e}")
+
+            elif event['type'] == 'key_release':
+                key_str = event['key']
+                # Try to parse the key
+                try:
+                    if key_str.startswith('Key.'):
+                        key_name = key_str.replace('Key.', '')
+                        key_obj = getattr(keyboard.Key, key_name, None)
+                        if key_obj:
+                            keyboard_controller.release(key_obj)
+                    else:
+                        keyboard_controller.release(key_str)
+                except Exception as e:
+                    print(f"Warning: Could not release key '{key_str}': {e}")
+
+        except Exception as e:
+            print(f"Warning: Error executing event {i}: {e}")
+
+    keyboard_listener.stop()
+
+    if not stop_playback.is_set():
+        print(f"✓ Playback completed! Executed {len(events)} events.\n")
+
 def macroni_script():
     return r"""
 fn print_grid(cell_char, size) {
@@ -685,6 +1053,20 @@ button_x, button_y = @get_coordinates("start button", use_cache);
 
 target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 
+# Example: Record and playback
+# To record: uncomment the line below
+# @record("my_recording", "space", "esc");
+
+# To playback: uncomment the line below
+# @playback("my_recording", "esc");
+
+# Check if recording exists before recording
+# if @recording_exists("my_recording") == 0 {
+#     @record("my_recording", "space", "esc");
+# } else {
+#     @print("Recording already exists, skipping...\n");
+# }
+
 # while 1 {
 #     # if pixel matches, move mouse to button
 #     if @check_pixel_color(button_x, button_y, 1, target_r, target_g, target_b, 0) {
@@ -699,7 +1081,14 @@ target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 #         @mouse_move(windmill_x, windmill_y, 3000, 1);
 #     }
 # }
-@left_click();
+@send_input("keyboard", "shift", "down");
+@send_input("keyboard", "a", "down");
+while 1 {
+    @send_input("keyboard", "a", "down");
+    @wait(1000);
+}
+# @record("my_recording", "space", "esc");
+# @playback("my_recording", "esc");
 """
 
 def main(): 
