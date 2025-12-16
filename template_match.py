@@ -55,20 +55,20 @@ def screenshot_bgr(region=None, downscale=1.0, debug=False):
 
         return bgr
 
-def screenshot_bgr2(region=None, downscale=1.0, debug=False):
-    """
-    region: (left, top, width, height) in screen coords, or None for full screen.
-    returns: BGR uint8 image (OpenCV format)
-    """
-    im = pyautogui.screenshot(region=None)
-    rgb = np.array(im)  # RGB
-    # scale down 50% for performance
-    if downscale != 1.0:
-        new_w = int(rgb.shape[1] * downscale)
-        new_h = int(rgb.shape[0] * downscale)
-        rgb = cv2.resize(rgb, (new_w, new_h), interpolation=cv2.INTER_AREA)
+# def screenshot_bgr2(region=None, downscale=1.0, debug=False):
+#     """
+#     region: (left, top, width, height) in screen coords, or None for full screen.
+#     returns: BGR uint8 image (OpenCV format)
+#     """
+#     im = pyautogui.screenshot(region=None)
+#     rgb = np.array(im)  # RGB
+#     # scale down 50% for performance
+#     if downscale != 1.0:
+#         new_w = int(rgb.shape[1] * downscale)
+#         new_h = int(rgb.shape[0] * downscale)
+#         rgb = cv2.resize(rgb, (new_w, new_h), interpolation=cv2.INTER_AREA)
     
-    return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+#     return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
 def get_template_examples(template_dir, template_name):
     """
@@ -90,16 +90,12 @@ def locate_one_template_on_screen(
     scales=np.linspace(0.8, 1.2, 5),
     threshold=0.8,
     use_gray=True,
-    downscale=1.0,
+    downscale=.8,
     debug=True,
 ) -> tuple | None:
     total_perf_counter = time.perf_counter()
     perf_counter = time.perf_counter()
     screen = screenshot_bgr(region=None, downscale=downscale, debug=debug)
-    # screen1 = screenshot_bgr2(region=None, downscale=downscale, debug=debug)
-    # if debug:
-    #     cv2.imwrite("debug_screenshot.png", screen1)
-    #     cv2.imwrite("debug_screenshot_mss.png", screen)
     sx, sy = screenshot_scale(screen, region=None)
     print(f"Screenshot took {time.perf_counter() - perf_counter:.3f} seconds")
 
