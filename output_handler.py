@@ -1,6 +1,8 @@
 from pynput import mouse, keyboard
 import time, threading, queue, dataclasses
 from typing import Optional
+from mouse_utils import move_mouse_to, distance
+import pyautogui
 
 event_queue: "queue.Queue[RecordedEvent]" = queue.Queue()
 stop_event = threading.Event()
@@ -11,7 +13,8 @@ class RecordedEvent:
     kind: str              # "mouse_move" | "mouse_click" | "key_down" | "key_up"
     key: str               # "move" | "Button.left" | "Key.space" | "a" ...
     action: str            # "move" | "down" | "up"
-    coordinates: Optional[tuple[int, int]] = None
+    to_coordinates: Optional[tuple[int, int]] = None
+    from_coordinates: Optional[tuple[int, int]] = None
     duration_ms: Optional[int] = None  # time until next event (or next move)
 
 def now() -> float:
@@ -27,7 +30,7 @@ def drain_queue(q: "queue.Queue[RecordedEvent]") -> list[RecordedEvent]:
     return out
 
 def squash_moves(events: list[RecordedEvent], bucket_size_ms: int = 50) -> list[RecordedEvent]:
-    """Keep only the last mouse_move within each bucket window."""
+    """Keep only the last mouse_move within each bucket window, preserving from_coordinates from first move."""
     out: list[RecordedEvent] = []
     bucket_s = bucket_size_ms / 1000.0
 
@@ -37,12 +40,18 @@ def squash_moves(events: list[RecordedEvent], bucket_size_ms: int = 50) -> list[
         e = events[i]
         if e.kind == "mouse_move":
             bucket_end = e.timestamp + bucket_s
+            first = e
             last = e
             j = i + 1
             while j < n and events[j].kind == "mouse_move" and events[j].timestamp <= bucket_end:
                 last = events[j]
                 j += 1
-            out.append(last)
+            # Create a new event with from_coordinates from first and to_coordinates from last
+            squashed = dataclasses.replace(
+                last,
+                from_coordinates=first.from_coordinates if first.from_coordinates else first.to_coordinates
+            )
+            out.append(squashed)
             i = j
         else:
             out.append(e)
@@ -64,8 +73,21 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
     event_queue = queue.Queue()
     stop_event.clear()
 
+    # Track last mouse position for from_coordinates
+    last_pos = {'x': None, 'y': None}
+
     def on_move(x, y):
-        event_queue.put(RecordedEvent(now(), "mouse_move", "move", "move", (int(x), int(y))))
+        from_x, from_y = last_pos['x'], last_pos['y']
+        from_coords = (int(from_x), int(from_y)) if from_x is not None and from_y is not None else None
+        event_queue.put(RecordedEvent(
+            now(),
+            "mouse_move",
+            "move",
+            "move",
+            to_coordinates=(int(x), int(y)),
+            from_coordinates=from_coords
+        ))
+        last_pos['x'], last_pos['y'] = x, y
 
     def on_click(x, y, button, pressed):
         event_queue.put(RecordedEvent(
@@ -73,7 +95,7 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
             "mouse_click",
             str(button),
             "down" if pressed else "up",
-            (int(x), int(y)),
+            to_coordinates=(int(x), int(y)),
         ))
 
     def on_press(key):
@@ -89,6 +111,17 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
     keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 
     print("Recording... press Esc to stop.")
+    # Initialize last_pos to current mouse position
+    x, y = pyautogui.position()
+    last_pos['x'], last_pos['y'] = x, y
+    event_queue.put(RecordedEvent(
+        now(),
+        "mouse_move",
+        "move",
+        "move",
+        to_coordinates=(int(x), int(y)),
+        from_coordinates=None
+    ))
     mouse_listener.start()
     keyboard_listener.start()
 
@@ -109,6 +142,7 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
     events = attach_durations(events)
 
     print(f"Stopped. Final events: {len(events)}")
+    playback(events)
     return events
 
 def playback(events: list[RecordedEvent]):
@@ -116,11 +150,42 @@ def playback(events: list[RecordedEvent]):
     mouse_controller = mouse.Controller()
     keyboard_controller = keyboard.Controller()
 
+    if not events:
+        print("No events to play back.")
+        return
+
+    # first, move the mouse quickly to the start position
+    first_move = next((e for e in events if e.kind == "mouse_move" and e.to_coordinates), None)
+    if first_move and first_move.to_coordinates:
+        current_pos = pyautogui.position()
+        dist = distance(
+            current_pos[0], current_pos[1],
+            first_move.to_coordinates[0], first_move.to_coordinates[1]
+        )
+        pps = 3000
+        move_mouse_to(first_move.to_coordinates[0], first_move.to_coordinates[1], pps, True)
+
+    print("Starting playback...")
+
+    # Track timing relative to the first event
+    first_event_timestamp = events[0].timestamp
+    playback_start_time = now()
+
     for e in events:
-        time.sleep(e.duration_ms / 1000.0 if e.duration_ms else 0)
-        if e.kind == "mouse_move" and e.coordinates:
-            mouse_controller.position = e.coordinates
-        elif e.kind == "mouse_click" and e.coordinates:
+        # Calculate when this event should occur relative to playback start
+        event_should_occur_at = (e.timestamp - first_event_timestamp)
+        actual_elapsed = now() - playback_start_time
+
+        # Wait if we're ahead of schedule
+        wait_time = event_should_occur_at - actual_elapsed
+        if wait_time > 0:
+            time.sleep(wait_time)
+
+        # Execute the event
+        if e.kind == "mouse_move" and e.to_coordinates:
+            # For mouse moves, use fast movement since we've already waited
+            move_mouse_to(e.to_coordinates[0], e.to_coordinates[1], 3000, True)
+        elif e.kind == "mouse_click" and e.to_coordinates:
             button = getattr(mouse.Button, e.key.split(".")[-1])
             if e.action == "down":
                 mouse_controller.press(button)
