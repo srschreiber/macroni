@@ -6,6 +6,8 @@ from mouse_utils import move_mouse_to
 import time
 import os
 from vision import Vision
+import sys
+
 
 def screenshot_scale(screen_bgr, region=None):
     img_h, img_w = screen_bgr.shape[:2]          # screenshot pixels
@@ -108,7 +110,6 @@ def locate_one_template_on_screen(
 
     # On macOS, templates are typically at 2x retina resolution, but MSS captures at 1x
     # So we need to scale templates by 0.5x to match MSS screenshots
-    import sys
     template_scale = downscale
     if sys.platform == 'darwin':
         template_scale *= 0.5  # Compensate for retina resolution difference
