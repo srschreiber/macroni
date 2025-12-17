@@ -1108,31 +1108,109 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
+    fn click_hook() {
+        hook_x, hook_y = @find_template("salvage");
+        if hook_x != null {
+            @mouse_move(hook_x, hook_y, 1200, 1);
+            @wait(10,15);
+            @left_click();
+            @wait(2000, 3000);
+        }
+    }
+
+    fn magic_tab() {
+        @press_and_release("50", "f6");
+    }
+
+    fn inv_tab() {
+        @press_and_release("50", "esc");
+    }
+
+    fn init_inv() {
+        # requires full of salvage
+        slots = @find_template("targetitem");
+        slots;
+    }
+
+    fn alch_item(item) {
+        # switch to magic tab
+        magic_tab();
+        @wait(100);
+        ha_x, ha_y = @find_template("highalch");
+        if ha_x != null {
+            @mouse_move(ha_x, ha_y, 1200, 1);
+            @left_click();
+            @mouse_move(item[0], item[1], 1200, 1);
+            @left_click();
+            @wait(1200);
+        } else {
+            @print("HIGH ALCH NOT FOUND");
+        }
+        ensure_inv();
+    }
+
+    fn ensure_inv() {
+        magic_tab();
+        inv_tab();
+    }
+
+    fn drop_items(items) {
+        i = 0;
+        @send_input("keyboard", "shift", "down");
+        while i < @len(items) {
+            salvage_x, salvage_y = items[i];
+            @mouse_move(salvage_x, salvage_y, 600, 1);
+            @wait(10, 25);
+            @left_click();
+
+            # check for valuable dialog
+            valuable_x, valuable_y = @find_template("valuable");
+            if valuable_x != null {
+                @send_input("keyboard", "shift", "up");
+                alch_item((valuable_x, valuable_y));
+                @send_input("keyboard", "shift", "down");
+            }
+            i = i + 1;
+        }
+        @send_input("keyboard", "shift", "up");
+    }
+
     @print("starting in 5 seconds");
     @wait(5000);
+    ensure_inv();
+    running = 1;
+    inv_slots = init_inv();
     running = 1;
     while running {
         # check how much salvage there is
         salvages = @find_templates("targetitem", 20);
-        if @len(salvages) > 18 {
-            i = 0;
-            @send_input("keyboard", "shift", "down");
-            while i < @len(salvages) {
-                salvage_x, salvage_y = salvages[i];
-                @mouse_move(salvage_x, salvage_y, 600, 1);
-                @wait(10, 25);
+        if @len(salvages) > 5 {
+            station_x, station_y = @find_template("station");
+            if station_x != null {
+                @mouse_move(station_x, station_y, 1200, 1);
                 @left_click();
-                i = i + 1;
+                @wait(10, 15);
+
+                # wait to finish salvaging
+                salvaging = 1;
+                while salvaging {
+                    rem = @len(@find_templates("targetitem", 20));
+                    @print("remaining salvage");
+                    @print(rem);
+                    @print("\n");
+                    if rem < 2 {
+                        salvaging = 0;
+                    }
+                    @wait(100);
+                }
+
+                # done salvaging, drop the junk
+                drop_items(inv_slots);
+                # go back to hook
+                click_hook();
             }
-            @send_input("keyboard", "shift", "up");
         } else {
-            hook_x, hook_y = @find_template("salvage");
-            if hook_x != null {
-                @mouse_move(hook_x, hook_y, 1200, 1);
-                @wait(10,15);
-                @left_click();
-                @wait(2000, 3000);
-            }
+            click_hook();
         }
 
         @wait(1000);
