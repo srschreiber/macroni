@@ -1,0 +1,37 @@
+# Example: Basic Template Matching and Clicking
+# This script demonstrates how to find a button on screen and click it
+
+# Set the template directory
+@set_template_dir("./templates");
+
+@print("=== Button Clicker Example ===");
+@print("Searching for login button...");
+
+# Find the button on screen
+x, y = @find_template("login_button");
+
+# Always check if template was found
+if x == null {
+    @print("ERROR: Login button not found!");
+    @print("Make sure:");
+    @print("1. Template directory exists: ./templates/login_button/");
+    @print("2. At least one ex*.png file exists in that folder");
+    @print("3. The button is visible on screen");
+} else {
+    @print("Found button at coordinates:", x, y);
+
+    # Move mouse to the button location
+    @print("Moving mouse to button...");
+    @mouse_move(x, y, 1000, 1);
+
+    # Wait a moment (more human-like)
+    @wait(150, 50);
+
+    # Click the button
+    @print("Clicking button...");
+    @left_click();
+
+    @print("Success! Button clicked.");
+}
+
+@print("=== Script Complete ===");

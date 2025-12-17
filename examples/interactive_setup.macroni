@@ -1,0 +1,66 @@
+# Example: Interactive Setup with Caching
+# Demonstrates using @get_coordinates and @get_pixel_color with caching
+
+@print("=== Interactive Setup Example ===");
+@print("");
+@print("This script uses interactive coordinate capture.");
+@print("On first run, you'll set up coordinates.");
+@print("On subsequent runs, cached values are used.");
+@print("");
+
+# Capture coordinates (will use cache if available)
+@print("--- Setting up Start Button ---");
+start_x, start_y = @get_coordinates("Start button", 1);
+@print("Start button:", start_x, start_y);
+@print("");
+
+@print("--- Setting up End Button ---");
+end_x, end_y = @get_coordinates("End button", 1);
+@print("End button:", end_x, end_y);
+@print("");
+
+# Capture colors (will use cache if available)
+@print("--- Setting up Active Color ---");
+active_r, active_g, active_b = @get_pixel_color("Active indicator", 1);
+@print("Active color: RGB(", active_r, active_g, active_b, ")");
+@print("");
+
+@print("=== Setup Complete ===");
+@print("");
+@print("Now using the captured coordinates...");
+@print("");
+
+# Use the coordinates in automation
+@print("Clicking start button...");
+@mouse_move(start_x, start_y, 1000, 1);
+@wait(150);
+@left_click();
+@print("Start clicked!");
+
+@wait(2000);
+
+@print("Clicking end button...");
+@mouse_move(end_x, end_y, 1000, 1);
+@wait(150);
+@left_click();
+@print("End clicked!");
+
+@print("");
+@print("Checking for active indicator color...");
+# Check if active color is present at start button location
+found = @check_pixel_color(start_x, start_y, 10, active_r, active_g, active_b, 20);
+
+if found {
+    @print("Active indicator detected!");
+} else {
+    @print("Not active");
+}
+
+@print("");
+@print("=== Script Complete ===");
+@print("");
+@print("Note: Coordinates and colors are cached in:");
+@print("  - coordinates_cache.json");
+@print("  - pixel_colors_cache.json");
+@print("");
+@print("Delete these files to reset and re-capture.");

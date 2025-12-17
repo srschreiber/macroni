@@ -1,0 +1,53 @@
+# Example: Random Clicking with Human-Like Behavior
+# Demonstrates randomization for more natural automation
+
+@print("=== Random Clicker Example ===");
+
+# Function to click at a random position within bounds
+fn random_click(min_x, min_y, max_x, max_y) {
+    # Generate random coordinates
+    x = @rand_i(min_x, max_x);
+    y = @rand_i(min_y, max_y);
+
+    @print("Clicking at:", x, y);
+
+    # Random mouse speed (800-1200 pixels/second)
+    speed = @rand_i(800, 1200);
+
+    # Move with human-like curve
+    @mouse_move(x, y, speed, 1);
+
+    # Random delay before clicking (100-300ms)
+    @wait(@rand_i(100, 300));
+
+    # Click
+    @left_click();
+}
+
+# Configuration
+min_x = 100;
+min_y = 100;
+max_x = 800;
+max_y = 600;
+num_clicks = 10;
+
+@print("Will perform", num_clicks, "random clicks");
+@print("Area: (", min_x, min_y, ") to (", max_x, max_y, ")");
+@print("");
+
+# Perform random clicks
+counter = 0;
+while counter < num_clicks {
+    @print("Click", counter + 1, "of", num_clicks);
+    random_click(min_x, min_y, max_x, max_y);
+
+    # Random delay between clicks (500-1500ms)
+    delay = @rand_i(500, 1500);
+    @print("Waiting", delay, "ms...");
+    @wait(delay);
+
+    counter = counter + 1;
+}
+
+@print("");
+@print("=== Completed", num_clicks, "random clicks ===");
