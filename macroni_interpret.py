@@ -437,8 +437,8 @@ class Interpreter:
                     template_name=template_name,
                     downscale=0.5
                 )
-                if pos is not None:
-                    return pos[0]
+                if pos is not None and len(pos) != 0:
+                    return pos[0][0], pos[0][1]
                 return None, None  # not found
 
             if t == "find_templates_func":
@@ -1108,138 +1108,60 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
-fn print_grid(cell_char, size) {
-    size_copy = size;
-    while size > 0 {
-        inner_size = size_copy;
-        while inner_size > 0 {
-            @print(cell_char);
-            inner_size = inner_size - 1;
-            @print(cell_char);
+    @print("starting in 5 seconds");
+    @wait(5000);
+    running = 1;
+    while running {
+        # check how much salvage there is
+        salvages = @find_templates("targetitem", 20);
+        if @len(salvages) > 18 {
+            i = 0;
+            @send_input("keyboard", "shift", "down");
+            while i < @len(salvages) {
+                salvage_x, salvage_y = salvages[i];
+                @mouse_move(salvage_x, salvage_y, 600, 1);
+                @wait(10, 25);
+                @left_click();
+                i = i + 1;
+            }
+            @send_input("keyboard", "shift", "up");
+        } else {
+            hook_x, hook_y = @find_template("salvage");
+            if hook_x != null {
+                @mouse_move(hook_x, hook_y, 1200, 1);
+                @wait(10,15);
+                @left_click();
+                @wait(2000, 3000);
+            }
         }
-        @print("\n");
-        size = size - 1;
+
+        @wait(1000);
     }
-}
-
-global_ticks = 0;
-fn tick_provider(c,d) {
-    @wait(500, 0, 50);
-    global_ticks = global_ticks + 1;
-    @print(global_ticks);
-    global_ticks > 5; # exit if 1. return is currently last expr
-}
-
-fn tick_handler() {
-    windmill_x, windmill_y = @find_template("windmill");
-    @mouse_move(windmill_x, windmill_y, 2000, 1);
-}
-
-# set template dir
-template_dir = "/Users/sam.schreiber/src/macroni/templates";
-@set_template_dir(template_dir);
-
-# Example of using find_templates to find multiple matches
-# matches = @find_templates("windmill", 5);  # Find up to 5 windmills
-# @print("Found ");
-# @print(@len(matches));
-# @print(" windmills\n");
-#
-# # Example of double indexing into nested tuples
-# if @len(matches) > 0 {
-#     first_x, first_y = matches[0];
-#     @print("First windmill at: (");
-#     @print(first_x);
-#     @print(", ");
-#     @print(first_y);
-#     @print(")\n");
-#
-#     # Or access directly with double indexing
-#     @print("First windmill X coordinate: ");
-#     @print(matches[0][0]);
-#     @print("\n");
-# }
-
-# @foreach_tick(tick_provider, tick_handler);
-
-# use_cache = 0;
-
-# button_x, button_y = @get_coordinates("start button", use_cache);
-
-# target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
-
-# Example: Record and playback
-# To record: uncomment the line below
-# @record("my_recording", "space", "esc");
-
-# To playback: uncomment the line below
-# @playback("my_recording", "esc");
-
-# Check if recording exists before recording
-# if @recording_exists("my_recording") == 0 {
-#     @record("my_recording", "space", "esc");
+    
+# all_squares = @find_templates("square", 10);
+# if @len(all_squares) > 0 {
+#     @print("Found ");
+#     @print(@len(all_squares));
+#     @print(" squares\n");
+#     idx = 0;
+#     while idx < @len(all_squares) {
+#         square_x, square_y = all_squares[idx];
+#         @print("Square ");
+#         @print(idx);
+#         @print(" at: (");
+#         @print(square_x);
+#         @print(", ");
+#         @print(square_y);
+#         @print(")\n");
+#         idx = idx + 1;
+#     }
 # } else {
-#     @print("Recording already exists, skipping...\n");
+#     @print("No squares found\n");
 # }
 
-# while 1 {
-#     # if pixel matches, move mouse to button
-#     if @check_pixel_color(button_x, button_y, 1, target_r, target_g, target_b, 0) {
-#         @mouse_move(button_x, button_y, 3000, 1);
-#     }
-#     @wait(100);
-#     # hover over windmill
-#     windmill_x, windmill_y = @find_template("windmill");
-#     if windmill_x == null {
-#         # i dont support not equal
-#     } else {
-#         @mouse_move(windmill_x, windmill_y, 3000, 1);
-#     }
-# }
-# @send_input("keyboard", "shift", "down");
-# @send_input("keyboard", "a", "down");
-# while 1 {
-#     @send_input("keyboard", "a", "down");
-#     @wait(1000);
-# }
-# if @recording_exists("test2") == 0 {
-#     @record("test2", "space", "esc");
-# }
-# @playback("test2", "esc");
-
-# Test tuple literals and nested indexing
-# my_tuple = (1, 2, (3, 4), 5);
-# @print("Nested tuple element: ");
-# @print(my_tuple[2][1]);  # should print 4
 # @print("\n");
-# @print("Tuple length: ");
-# @print(@len(my_tuple));  # should print 4
-# @print("\n");
-
-all_squares = @find_templates("square", 10);
-if @len(all_squares) > 0 {
-    @print("Found ");
-    @print(@len(all_squares));
-    @print(" squares\n");
-    idx = 0;
-    while idx < @len(all_squares) {
-        square_x, square_y = all_squares[idx];
-        @print("Square ");
-        @print(idx);
-        @print(" at: (");
-        @print(square_x);
-        @print(", ");
-        @print(square_y);
-        @print(")\n");
-        idx = idx + 1;
-    }
-} else {
-    @print("No squares found\n");
-}
-
-@print("\n");
-@print(5);
-@print((@rand(5) + 15)%2);
+# @print(5);
+# @print((@rand(5) + 15)%2);
 """
 
 def main(): 
