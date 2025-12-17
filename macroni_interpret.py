@@ -48,6 +48,7 @@ built_in_calls: print_stmt
           | playback_stmt
           | recording_exists_stmt
           | len_stmt
+          | rand_i_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -73,6 +74,7 @@ playback_stmt: "@playback" "(" args ")"             -> playback_func
 # recording_name
 recording_exists_stmt: "@recording_exists" "(" expr ")" -> recording_exists_func
 len_stmt: "@len" "(" expr ")"                   -> len_func
+rand_i_stmt: "@rand_i" "(" args ")"             -> rand_i_func
 
 
 # ---------- function definition ----------
@@ -296,7 +298,11 @@ class Interpreter:
             if t == "div":
                 return self.eval(c[0], env) / self.eval(c[1], env)
             if t == "mod":
-                return self.eval(c[0], env) % self.eval(c[1], env)
+                result = self.eval(c[0], env) % self.eval(c[1], env)
+                # Convert to int if result is a whole number
+                if isinstance(result, float) and result.is_integer():
+                    return int(result)
+                return result
             if t == "null":
                 return None
 
@@ -365,6 +371,17 @@ class Interpreter:
                 else:
                     raise Exception(f"rand() takes 1 or 2 arguments, got {len(args)}")
                 return random.uniform(low, high)
+            if t == "rand_i_func":
+                args = self.eval(c[0], env)
+                if len(args) == 1:
+                    low = 0
+                    high = args[0]
+                elif len(args) == 2:
+                    low = args[0]
+                    high = args[1]
+                else:
+                    raise Exception(f"rand_i() takes 1 or 2 arguments, got {len(args)}")
+                return random.randint(low, high)
             if t == "foreach_tick_func":
                 while True:
                     tick_provider_name = str(c[0])
@@ -1191,13 +1208,38 @@ template_dir = "/Users/sam.schreiber/src/macroni/templates";
 # @playback("test2", "esc");
 
 # Test tuple literals and nested indexing
-my_tuple = (1, 2, (3, 4), 5);
-@print("Nested tuple element: ");
-@print(my_tuple[2][1]);  # should print 4
+# my_tuple = (1, 2, (3, 4), 5);
+# @print("Nested tuple element: ");
+# @print(my_tuple[2][1]);  # should print 4
+# @print("\n");
+# @print("Tuple length: ");
+# @print(@len(my_tuple));  # should print 4
+# @print("\n");
+
+all_squares = @find_templates("square", 10);
+if @len(all_squares) > 0 {
+    @print("Found ");
+    @print(@len(all_squares));
+    @print(" squares\n");
+    idx = 0;
+    while idx < @len(all_squares) {
+        square_x, square_y = all_squares[idx];
+        @print("Square ");
+        @print(idx);
+        @print(" at: (");
+        @print(square_x);
+        @print(", ");
+        @print(square_y);
+        @print(")\n");
+        idx = idx + 1;
+    }
+} else {
+    @print("No squares found\n");
+}
+
 @print("\n");
-@print("Tuple length: ");
-@print(@len(my_tuple));  # should print 4
-@print("\n");
+@print(5);
+@print((@rand(5) + 15)%2);
 """
 
 def main(): 

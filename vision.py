@@ -92,7 +92,7 @@ class Vision:
 
         return points
 
-    def find_multiscale(self, haystack_img, scales=None, threshold=0.5, use_gray=True, find_one=True, debug_mode=None):
+    def find_multiscale(self, haystack_img, scales=None, threshold=0.5, use_gray=True, find_one=False, debug_mode=None):
         """
         Find needle in haystack at multiple scales.
         Returns list of (x, y) center points for matches found.

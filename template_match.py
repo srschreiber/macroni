@@ -131,7 +131,7 @@ def locate_template_on_screen(
             vision = Vision(template_path)
 
         # Find matches using multiscale
-        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray, find_one=True, debug_mode=debug)
+        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray, find_one=False, debug_mode=debug)
 
         if points:
             # Take first match
