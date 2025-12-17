@@ -7,7 +7,7 @@ import json
 import os
 from PIL import ImageGrab
 from mouse_utils import move_mouse_to
-from template_match import locate_one_template_on_screen
+from template_match import locate_template_on_screen
 from input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
 from threading import Event
@@ -37,6 +37,7 @@ built_in_calls: print_stmt
           | mouse_move_stmt
           | set_template_dir_stmt
           | find_template_stmt
+          | find_templates_stmt
           | get_coordinates_stmt
           | check_pixel_color_stmt
           | get_pixel_color_stmt
@@ -46,6 +47,7 @@ built_in_calls: print_stmt
           | record_stmt
           | playback_stmt
           | recording_exists_stmt
+          | len_stmt
 
 print_stmt: "@print" "(" expr ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -54,6 +56,7 @@ foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
 mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
 set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
 find_template_stmt: "@find_template" "(" args ")" -> find_template_func
+find_templates_stmt: "@find_templates" "(" args ")" -> find_templates_func
 get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
 # params: x, y, radius, r, g, b, [tolerance]
 check_pixel_color_stmt: "@check_pixel_color" "(" args ")" -> check_pixel_color_func
@@ -69,6 +72,7 @@ record_stmt: "@record" "(" args ")"                 -> record_func
 playback_stmt: "@playback" "(" args ")"             -> playback_func
 # recording_name
 recording_exists_stmt: "@recording_exists" "(" expr ")" -> recording_exists_func
+len_stmt: "@len" "(" expr ")"                   -> len_func
 
 
 # ---------- function definition ----------
@@ -119,6 +123,7 @@ while_stmt: "while" expr block              -> loop_stmt
      | NAME                                  -> var
      | "(" expr ")"
      | "null"                                -> null
+     | "(" atom ("," atom)+ ")"              -> tuple
 
 
 call: NAME "(" [args] ")"                    -> call
@@ -201,16 +206,25 @@ class Interpreter:
                 # now eval all exprs
                 exprs = c[num_names:]
                 vals = [self.eval(e, env) for e in exprs]
-                # if tuples, flatten
-                vals_flat = []
-                for v in vals:
-                    if isinstance(v, tuple):
-                        vals_flat.extend(v)
-                    else:
-                        vals_flat.append(v)
-                vals = vals_flat
-                if len(vals) != num_names:
-                    raise Exception("Arity mismatch in multiple assignment")
+
+                # Only flatten tuples if we have multiple names (destructuring)
+                if num_names > 1:
+                    # if tuples, flatten
+                    vals_flat = []
+                    for v in vals:
+                        if isinstance(v, tuple):
+                            vals_flat.extend(v)
+                        else:
+                            vals_flat.append(v)
+                    vals = vals_flat
+                    if len(vals) != num_names:
+                        raise Exception("Arity mismatch in multiple assignment")
+                else:
+                    # Single name assignment - don't flatten, just assign the value directly
+                    if len(vals) != 1:
+                        raise Exception(f"Expected 1 value for single assignment, got {len(vals)}")
+                    vals = [vals[0]]
+
                 for i in range(num_names):
                     name = str(c[i])
                     val = vals[i]
@@ -286,6 +300,10 @@ class Interpreter:
             if t == "null":
                 return None
 
+            if t == "tuple":
+                # Evaluate all children and return as tuple
+                return tuple(self.eval(child, env) for child in c)
+
             # comparisons (return 1/0 like you had)
             if t == "gt":
                 return 1 if self.eval(c[0], env) > self.eval(c[1], env) else 0
@@ -306,6 +324,14 @@ class Interpreter:
                     return 1 if first_eval is None else 0
                 return 1 if first_eval == second_eval else 0
             if t == "ne":
+                first_eval = self.eval(c[0], env)
+                second_eval = self.eval(c[1], env)
+                # check for null comparison
+                if first_eval is None:
+                    return 0 if second_eval is None else 1
+                if second_eval is None:
+                    return 0 if first_eval is None else 1
+                
                 return 1 if self.eval(c[0], env) != self.eval(c[1], env) else 0
 
             if t == "loop_stmt":
@@ -389,14 +415,44 @@ class Interpreter:
                 if len(args) == 5:
                     # region format: (left, top, width, height)
                     region = (args[1], args[2], args[3], args[4])
-                pos = locate_one_template_on_screen(
+                pos = locate_template_on_screen(
                     template_dir=self.template_dir,
                     template_name=template_name,
                     downscale=0.5
                 )
                 if pos is not None:
-                    return pos
+                    return pos[0]
                 return None, None  # not found
+
+            if t == "find_templates_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 6:
+                    raise Exception(f"find_templates() takes 1 to 6 arguments (template_name [, left, top, width, height, top_k]), got {len(args)}")
+                template_name = str(args[0])
+                region = None
+                top_k = 10  # default to finding up to 10 matches
+
+                if len(args) == 2:
+                    # Just template_name and top_k
+                    top_k = int(args[1])
+                elif len(args) == 6:
+                    # region format: (left, top, width, height) and top_k
+                    region = (args[1], args[2], args[3], args[4])
+                    top_k = int(args[5])
+                elif len(args) == 5:
+                    # region format: (left, top, width, height), no top_k
+                    region = (args[1], args[2], args[3], args[4])
+
+                positions = locate_template_on_screen(
+                    template_dir=self.template_dir,
+                    template_name=template_name,
+                    downscale=0.5,
+                    top_k=top_k
+                )
+                if positions is not None and len(positions) > 0:
+                    # Return tuple of tuples
+                    return tuple(positions)
+                return tuple()  # empty tuple if not found
 
             if t == "get_coordinates_func":
                 args = self.eval(c[0], env)
@@ -486,6 +542,14 @@ class Interpreter:
             if t == "recording_exists_func":
                 recording_name = str(self.eval(c[0], env))
                 return 1 if recording_exists(recording_name) else 0
+
+            if t == "len_func":
+                val = self.eval(c[0], env)
+                if val is None:
+                    return 0
+                if isinstance(val, (tuple, list, str)):
+                    return len(val)
+                raise Exception(f"len() requires a tuple, list, or string, got {type(val)}")
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -1057,13 +1121,35 @@ fn tick_handler() {
 # set template dir
 template_dir = "/Users/sam.schreiber/src/macroni/templates";
 @set_template_dir(template_dir);
+
+# Example of using find_templates to find multiple matches
+# matches = @find_templates("windmill", 5);  # Find up to 5 windmills
+# @print("Found ");
+# @print(@len(matches));
+# @print(" windmills\n");
+#
+# # Example of double indexing into nested tuples
+# if @len(matches) > 0 {
+#     first_x, first_y = matches[0];
+#     @print("First windmill at: (");
+#     @print(first_x);
+#     @print(", ");
+#     @print(first_y);
+#     @print(")\n");
+#
+#     # Or access directly with double indexing
+#     @print("First windmill X coordinate: ");
+#     @print(matches[0][0]);
+#     @print("\n");
+# }
+
 # @foreach_tick(tick_provider, tick_handler);
 
-use_cache = 0;
+# use_cache = 0;
 
-button_x, button_y = @get_coordinates("start button", use_cache);
+# button_x, button_y = @get_coordinates("start button", use_cache);
 
-target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
+# target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 
 # Example: Record and playback
 # To record: uncomment the line below
@@ -1099,10 +1185,19 @@ target_r, target_g, target_b = @get_pixel_color("button_color", use_cache);
 #     @send_input("keyboard", "a", "down");
 #     @wait(1000);
 # }
-# @record("my_recording", "space", "esc");
-# @playback("my_recording", "esc");
-@press_and_release(500, "shift", "a");
-# @left_click();
+# if @recording_exists("test2") == 0 {
+#     @record("test2", "space", "esc");
+# }
+# @playback("test2", "esc");
+
+# Test tuple literals and nested indexing
+my_tuple = (1, 2, (3, 4), 5);
+@print("Nested tuple element: ");
+@print(my_tuple[2][1]);  # should print 4
+@print("\n");
+@print("Tuple length: ");
+@print(@len(my_tuple));  # should print 4
+@print("\n");
 """
 
 def main(): 

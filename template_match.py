@@ -86,7 +86,7 @@ def get_template_examples(template_dir, template_name):
             files.append(os.path.join(target_dir, fname))
     return files
 
-def locate_one_template_on_screen(
+def locate_template_on_screen(
     template_dir: str = "./templates",
     template_name: str = "default",
     scales=np.linspace(0.8, 1.2, 5),
@@ -94,6 +94,7 @@ def locate_one_template_on_screen(
     use_gray=True,
     downscale=.8,
     debug=True,
+    top_k=1,
 ) -> tuple | None:
     total_perf_counter = time.perf_counter()
     perf_counter = time.perf_counter()
@@ -114,6 +115,7 @@ def locate_one_template_on_screen(
     if sys.platform == 'darwin':
         template_scale *= 0.5  # Compensate for retina resolution difference
 
+    ret = []
     for template_path in template_paths:
         # Create Vision instance for this template
         # Scale template to match the screenshot resolution
@@ -133,18 +135,15 @@ def locate_one_template_on_screen(
 
         if points:
             # Take first match
-            cx, cy = points[0]
-            print(f"Template found image coords: ({cx}, {cy})")
-
+            
+            print(f"Templates found image coords: {len(points)}")
             # Convert to screen coordinates
-            mx, my = img_xy_to_screen_xy(cx, cy, sx, sy)
-
-            found = (mx, my)
+            ret = [img_xy_to_screen_xy(cx, cy, sx, sy) for cx, cy in points[:top_k]]
             break
 
     print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")
     print(f"Total time: {time.perf_counter() - total_perf_counter:.3f} seconds")
-    return found
+    return ret
 
 
 if __name__ == "__main__":
@@ -152,8 +151,9 @@ if __name__ == "__main__":
     template_dir = "/Users/sam.schreiber/src/macroni/templates"
     template_name = "test"
 
-    pos = locate_one_template_on_screen(template_dir, template_name, debug=True)
+    pos = locate_template_on_screen(template_dir, template_name, debug=True)
     if pos is not None:
+        pos = pos[0]
         print(f"Template '{template_name}' found at screen position: {pos}")
         move_mouse_to(pos[0], pos[1], pps=5000, humanLike=True)
     else:
