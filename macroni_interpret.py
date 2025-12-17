@@ -5,6 +5,7 @@ import random
 import pyautogui
 import json
 import os
+# import click
 from PIL import ImageGrab
 from mouse_utils import move_mouse_to
 from template_match import locate_template_on_screen
@@ -49,8 +50,13 @@ built_in_calls: print_stmt
           | recording_exists_stmt
           | len_stmt
           | rand_i_stmt
+          | time_stmt
+          | shuffle_stmt
+          | get_pixel_at_stmt
+          | append_stmt
+          | pop_stmt
 
-print_stmt: "@print" "(" expr ")"           -> print_func
+print_stmt: "@print" "(" args ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
 rand_stmt: "@rand" "(" args ")"             -> rand_func
 foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
@@ -75,6 +81,11 @@ playback_stmt: "@playback" "(" args ")"             -> playback_func
 recording_exists_stmt: "@recording_exists" "(" expr ")" -> recording_exists_func
 len_stmt: "@len" "(" expr ")"                   -> len_func
 rand_i_stmt: "@rand_i" "(" args ")"             -> rand_i_func
+time_stmt: "@time" "(" ")"                      -> time_func
+shuffle_stmt: "@shuffle" "(" expr ")"           -> shuffle_func
+get_pixel_at_stmt: "@get_pixel_at" "(" args ")" -> get_pixel_at_func
+append_stmt: "@append" "(" args ")"             -> append_func
+pop_stmt: "@pop" "(" args ")"                   -> pop_func
 
 
 # ---------- function definition ----------
@@ -126,6 +137,9 @@ while_stmt: "while" expr block              -> loop_stmt
      | "(" expr ")"
      | "null"                                -> null
      | "(" atom ("," atom)+ ")"              -> tuple
+     | "[" [list_items] "]"                  -> list
+
+list_items: expr ("," expr)*                 -> list_items
 
 
 call: NAME "(" [args] ")"                    -> call
@@ -238,9 +252,10 @@ class Interpreter:
                 return self.eval(c[0], env)
 
             if t == "print_func":
-                val = self.eval(c[0], env)
-                print(val, end="")
-                return val
+                args = self.eval(c[0], env)
+                # Print all arguments separated by spaces
+                print(*args)
+                return None
 
             if t == "func_def":
                 name = str(c[0])
@@ -309,6 +324,19 @@ class Interpreter:
             if t == "tuple":
                 # Evaluate all children and return as tuple
                 return tuple(self.eval(child, env) for child in c)
+
+            if t == "list":
+                # Empty list
+                if len(c) == 0:
+                    return []
+                # List with items
+                if isinstance(c[0], Tree) and c[0].data == "list_items":
+                    return self.eval(c[0], env)
+                return []
+
+            if t == "list_items":
+                # Evaluate all items and return as list
+                return [self.eval(child, env) for child in c]
 
             # comparisons (return 1/0 like you had)
             if t == "gt":
@@ -567,6 +595,67 @@ class Interpreter:
                 if isinstance(val, (tuple, list, str)):
                     return len(val)
                 raise Exception(f"len() requires a tuple, list, or string, got {type(val)}")
+
+            if t == "time_func":
+                return time.time()
+
+            if t == "shuffle_func":
+                val = self.eval(c[0], env)
+                if val is None:
+                    return tuple()
+                if isinstance(val, tuple):
+                    # Convert to list, shuffle, convert back to tuple
+                    lst = list(val)
+                    random.shuffle(lst)
+                    return tuple(lst)
+                elif isinstance(val, list):
+                    # Create a copy and shuffle it
+                    lst = val.copy()
+                    random.shuffle(lst)
+                    return lst
+                raise Exception(f"shuffle() requires a tuple or list, got {type(val)}")
+
+            if t == "get_pixel_at_func":
+                args = self.eval(c[0], env)
+                if len(args) != 2:
+                    raise Exception(f"get_pixel_at() takes exactly 2 arguments (x, y), got {len(args)}")
+                x = int(args[0])
+                y = int(args[1])
+                # Capture pixel color at the specified coordinates
+                screenshot = ImageGrab.grab(bbox=(x, y, x + 1, y + 1))
+                pixel = screenshot.getpixel((0, 0))
+                r, g, b = pixel[0], pixel[1], pixel[2]
+                return (r, g, b)
+
+            if t == "append_func":
+                args = self.eval(c[0], env)
+                if len(args) != 2:
+                    raise Exception(f"append() takes exactly 2 arguments (list, item), got {len(args)}")
+                lst = args[0]
+                item = args[1]
+                if not isinstance(lst, list):
+                    raise Exception(f"append() requires a list as first argument, got {type(lst)}")
+                # Append the item to the list (modifies in place)
+                lst.append(item)
+                return lst
+
+            if t == "pop_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 2:
+                    raise Exception(f"pop() takes 1 or 2 arguments (list [, index]), got {len(args)}")
+                lst = args[0]
+                if not isinstance(lst, list):
+                    raise Exception(f"pop() requires a list as first argument, got {type(lst)}")
+                if len(lst) == 0:
+                    raise Exception("pop() called on empty list")
+                # Pop from specific index or from end
+                if len(args) == 2:
+                    index = int(args[1])
+                    if index < 0 or index >= len(lst):
+                        raise Exception(f"pop() index {index} out of range for list of length {len(lst)}")
+                    return lst.pop(index)
+                else:
+                    return lst.pop()
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -1108,67 +1197,57 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
-    @print("starting in 5 seconds");
-    @wait(5000);
-    running = 1;
-    while running {
-        # check how much salvage there is
-        salvages = @find_templates("targetitem", 20);
-        if @len(salvages) > 18 {
-            i = 0;
-            @send_input("keyboard", "shift", "down");
-            while i < @len(salvages) {
-                salvage_x, salvage_y = salvages[i];
-                @mouse_move(salvage_x, salvage_y, 600, 1);
-                @wait(10, 25);
-                @left_click();
-                i = i + 1;
-            }
-            @send_input("keyboard", "shift", "up");
-        } else {
-            hook_x, hook_y = @find_template("salvage");
-            if hook_x != null {
-                @mouse_move(hook_x, hook_y, 1200, 1);
-                @wait(10,15);
-                @left_click();
-                @wait(2000, 3000);
-            }
-        }
+    # Get pixel color at specific coordinates
+  r, g, b = @get_pixel_at(0, 0);
+  @print("Color at (500, 300):", r, ",", g, ",", b);
 
-        @wait(1000);
-    }
-    
-# all_squares = @find_templates("square", 10);
-# if @len(all_squares) > 0 {
-#     @print("Found ");
-#     @print(@len(all_squares));
-#     @print(" squares\n");
-#     idx = 0;
-#     while idx < @len(all_squares) {
-#         square_x, square_y = all_squares[idx];
-#         @print("Square ");
-#         @print(idx);
-#         @print(" at: (");
-#         @print(square_x);
-#         @print(", ");
-#         @print(square_y);
-#         @print(")\n");
-#         idx = idx + 1;
-#     }
-# } else {
-#     @print("No squares found\n");
-# }
+  # Create a list
+  numbers = [1, 2, 3, 4, 5];
+  @print("Original list length:", @len(numbers));
 
-# @print("\n");
-# @print(5);
-# @print((@rand(5) + 15)%2);
+  # Append to list
+  @append(numbers, 6);
+  @append(numbers, 7);
+
+  # Shuffle the list
+  shuffled = @shuffle(numbers);
+  @print("Shuffled list length:", @len(shuffled));
+
+  # pop from list
+  last_item = @pop(shuffled);
+  @print("Popped item:", last_item);
+
+  # List of coordinates
+  coords = [];
+  @append(coords, (100, 200));
+  @append(coords, (300, 400));
+  @append(coords, (500, 600));
+
+  # Access list items
+  first_x, first_y = coords[0];
+  @print("First coordinate: (", first_x, ",", first_y, ")");
+
 """
 
-def main(): 
-    interp = Interpreter()
-    tree = calc_parser.parse(macroni_script())
-    interp.eval(tree)
+# @click.command()
+# @click.argument('filepath', type=click.Path(exists=True))
+# def main(filepath):
+#     """Run a macroni script from a file."""
+#     # Read the script from the file
+#     with open(filepath, 'r') as f:
+#         script_content = f.read()
+
+#     # Parse and execute the script
+#     interp = Interpreter()
+#     tree = calc_parser.parse(script_content)
+#     interp.eval(tree)
 
 
 if __name__ == "__main__":
-    main()
+    """Run a macroni script from a file."""
+    # Read the script from the file
+
+    # Parse and execute the script
+    interp = Interpreter()
+    tree = calc_parser.parse(macroni_script())
+    interp.eval(tree)
