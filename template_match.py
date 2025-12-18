@@ -33,12 +33,7 @@ def screenshot_bgr(region=None, downscale=1.0, debug=False):
             # region is (left, top, width, height) in screen points
             # MSS needs actual pixel coordinates, so scale by the display scaling factor
             # For retina displays, this is typically 2.0
-            monitor = {
-                "left": int(region[0]),
-                "top": int(region[1]),
-                "width": int(region[2]),
-                "height": int(region[3])
-            }
+            monitor =  region
 
         # MSS returns BGRA on all platforms (Windows, macOS, Linux)
         # Drop alpha channel to get BGR format for OpenCV
@@ -56,21 +51,6 @@ def screenshot_bgr(region=None, downscale=1.0, debug=False):
             bgr = bgr.copy()
 
         return bgr
-
-# def screenshot_bgr2(region=None, downscale=1.0, debug=False):
-#     """
-#     region: (left, top, width, height) in screen coords, or None for full screen.
-#     returns: BGR uint8 image (OpenCV format)
-#     """
-#     im = pyautogui.screenshot(region=None)
-#     rgb = np.array(im)  # RGB
-#     # scale down 50% for performance
-#     if downscale != 1.0:
-#         new_w = int(rgb.shape[1] * downscale)
-#         new_h = int(rgb.shape[0] * downscale)
-#         rgb = cv2.resize(rgb, (new_w, new_h), interpolation=cv2.INTER_AREA)
-    
-#     return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
 def get_template_examples(template_dir, template_name):
     """
