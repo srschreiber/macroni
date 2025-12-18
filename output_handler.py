@@ -142,7 +142,6 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
     events = attach_durations(events)
 
     print(f"Stopped. Final events: {len(events)}")
-    playback(events)
     return events
 
 def playback(events: list[RecordedEvent]):

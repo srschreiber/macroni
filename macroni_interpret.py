@@ -13,6 +13,7 @@ from input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
 from threading import Event
 import threading
+from ocr import region_capture, ocr_find_text
 
 calc_grammar = r'''
 start: program
@@ -55,6 +56,8 @@ built_in_calls: print_stmt
           | get_pixel_at_stmt
           | append_stmt
           | pop_stmt
+          | capture_region_stmt
+          | ocr_find_text_stmt
 
 print_stmt: "@print" "(" args ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -86,6 +89,10 @@ shuffle_stmt: "@shuffle" "(" expr ")"           -> shuffle_func
 get_pixel_at_stmt: "@get_pixel_at" "(" args ")" -> get_pixel_at_func
 append_stmt: "@append" "(" args ")"             -> append_func
 pop_stmt: "@pop" "(" args ")"                   -> pop_func
+# region_key, overwrite_cache
+capture_region_stmt: "@capture_region" "(" args ")" -> capture_region_func
+# region, min_conf, filter, upscale
+ocr_find_text_stmt: "@ocr_find_text" "(" args ")" -> ocr_find_text_func
 
 
 # ---------- function definition ----------
@@ -136,6 +143,8 @@ while_stmt: "while" expr block              -> loop_stmt
      | NAME                                  -> var
      | "(" expr ")"
      | "null"                                -> null
+     | "true"                                -> true
+     | "false"                               -> false
      | "(" atom ("," atom)+ ")"              -> tuple
      | "[" [list_items] "]"                  -> list
 
@@ -175,9 +184,10 @@ class Interpreter:
         # Tokens
         if isinstance(node, Token):
             if node.type == "NUMBER":
-                if float(node).is_integer():
-                    return int(node)
-                return float(node)
+                val = float(node)
+                if val.is_integer():
+                    return int(val)
+                return val
             if node.type == "STRING":
                 s = str(node)
                 return ast.literal_eval(str(node))
@@ -223,12 +233,12 @@ class Interpreter:
                 exprs = c[num_names:]
                 vals = [self.eval(e, env) for e in exprs]
 
-                # Only flatten tuples if we have multiple names (destructuring)
+                # Only flatten tuples/lists if we have multiple names (destructuring)
                 if num_names > 1:
-                    # if tuples, flatten
+                    # if tuples or lists, flatten
                     vals_flat = []
                     for v in vals:
-                        if isinstance(v, tuple):
+                        if isinstance(v, (tuple, list)):
                             vals_flat.extend(v)
                         else:
                             vals_flat.append(v)
@@ -320,6 +330,12 @@ class Interpreter:
                 return result
             if t == "null":
                 return None
+
+            if t == "true":
+                return 1
+
+            if t == "false":
+                return 0
 
             if t == "tuple":
                 # Evaluate all children and return as tuple
@@ -656,6 +672,33 @@ class Interpreter:
                     return lst.pop(index)
                 else:
                     return lst.pop()
+
+            if t == "capture_region_func":
+                args = self.eval(c[0], env)
+                if len(args) < 1 or len(args) > 2:
+                    raise Exception(f"capture_region() takes 1 or 2 arguments (region_key [, overwrite_cache]), got {len(args)}")
+                region_key = str(args[0])
+                overwrite_cache = bool(args[1]) if len(args) == 2 else False
+                region = region_capture(region_key, overwrite_cache)
+                return region
+
+            if t == "ocr_find_text_func":
+                args = self.eval(c[0], env)
+                if len(args) < 0 or len(args) > 4:
+                    raise Exception(f"ocr_find_text() takes 0 to 4 arguments (region, min_conf, filter, upscale), got {len(args)}")
+
+                # Parse arguments with defaults
+                region = args[0] if len(args) >= 1 and args[0] is not None else None
+                min_conf = float(args[1]) if len(args) >= 2 else 0.45
+                filter_text = str(args[2]) if len(args) >= 3 and args[2] is not None else None
+                upscale = float(args[3]) if len(args) >= 4 else 1.0
+
+                # Call OCR function
+                results = ocr_find_text(region=region, min_conf=min_conf, filter=filter_text, upscale=upscale)
+
+                # Convert OCRResult objects to tuples for macroni
+                # Format: [(text, conf, [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]), ...]
+                return [(r.text, r.conf, r.bbox) for r in results]
 
             # passthrough for inlined rules
             if len(c) == 1:
@@ -1197,35 +1240,36 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
-    # Get pixel color at specific coordinates
-  r, g, b = @get_pixel_at(0, 0);
-  @print("Color at (500, 300):", r, ",", g, ",", b);
+    # Example: OCR with region capture and caching
+    @print("=== OCR Demo ===");
 
-  # Create a list
-  numbers = [1, 2, 3, 4, 5];
-  @print("Original list length:", @len(numbers));
+    # Capture a region interactively (cached for future runs)
+    # Use false to use cache, true to recapture
+    region = @capture_region("search_area", true);
+    @print("Region captured:", region);
 
-  # Append to list
-  @append(numbers, 6);
-  @append(numbers, 7);
+    # Perform OCR on that region with filtering
+    # Args: region, min_conf, filter, upscale
+    results = @ocr_find_text(region, 0.7, "hello world", 1.0);
+    @print("Found", @len(results), "OCR results");
 
-  # Shuffle the list
-  shuffled = @shuffle(numbers);
-  @print("Shuffled list length:", @len(shuffled));
+    # Access first result if any
+    if @len(results) > 0 {
+        text, conf, bbox = results[0];
+        @print("First match:", text, "with confidence:", conf);
+    }
 
-  # pop from list
-  last_item = @pop(shuffled);
-  @print("Popped item:", last_item);
+    # move mouse to first result if found
+    if @len(results) > 0 {
+        text, conf, bbox = results[0];
+        # Calculate center of bounding box
+        x1, y1 = bbox[0];
+        @print("Moving mouse to:", x1, y1);
+        @mouse_move(x1, y1, 500, true);
+    }
 
-  # List of coordinates
-  coords = [];
-  @append(coords, (100, 200));
-  @append(coords, (300, 400));
-  @append(coords, (500, 600));
-
-  # Access list items
-  first_x, first_y = coords[0];
-  @print("First coordinate: (", first_x, ",", first_y, ")");
+    # Test boolean literals
+    @print("true =", true, ", false =", false);
 
 """
 
