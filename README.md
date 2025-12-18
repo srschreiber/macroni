@@ -1,213 +1,127 @@
 # Macroni
 
-A domain-specific language for GUI automation, macro recording, and screen interaction.
+DSL for GUI automation with OCR, template matching, and screen interaction.
 
-> **Note:** Must grant permission for VS Code to control computer and receive input (System Preferences → Security & Privacy → Accessibility)
+> **Permissions:** System Preferences → Security & Privacy → Accessibility
 
-## Features
-
-- **Template Matching** - Find UI elements on screen using image templates
-- **Mouse & Keyboard Control** - Automate clicks, movements, and key presses
-- **Interactive Setup** - Capture coordinates and colors with persistent caching
-- **Record & Playback** - Record complex interactions and replay them
-- **Human-Like Behavior** - Randomization and curved mouse movements
-- **Simple Syntax** - Easy to learn, powerful automation capabilities
-
-## Quick Start
-
-### Installation
+## Install
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Your First Script
+## OCR Text Search (Recommended)
 
-Create `hello.macroni`:
-
-```macroni
-# Print a message
-@print("Hello, Macroni!");
-
-# Wait 1 second
-@wait(1000);
-
-# Move mouse and click
-@mouse_move(500, 300, 1000, 1);
-@wait(100);
-@left_click();
-```
-
-### Run It
-
-```bash
-python macroni_interpret.py
-```
-
-## Basic Example: Click a Button
+Find and click text on screen without templates:
 
 ```macroni
-# Set template directory
-@set_template_dir("./templates");
+# Capture region once, reuse forever (cached)
+region = @capture_region("login_area", false);
 
-# Find button on screen
-x, y = @find_template("login_button");
+# Find text in region
+results = @ocr_find_text(region, 0.8, "Login", 1.0);
 
-if x != null {
-    # Move mouse to button
-    @mouse_move(x, y, 1000, 1);
-    @wait(100);
-
-    # Click it
+if @len(results) > 0 {
+    text, conf, bbox = results[0];
+    x1, y1 = bbox[0];
+    @mouse_move(x1, y1, 500, true);
     @left_click();
-    @print("Button clicked!");
 }
 ```
 
-## Template Matching Setup
+**OCR Functions:**
+- `@capture_region(key, overwrite)` - Interactive region capture with caching
+  - Hover top-left → Enter → bottom-right → Enter
+  - Returns `(x1, y1, x2, y2)` tuple
+- `@ocr_find_text(region, min_conf, filter, upscale)` - Find text via OCR
+  - `region`: From `@capture_region()` or `null` for full screen
+  - `min_conf`: 0.0-1.0 confidence threshold
+  - `filter`: Text substring to search for (case-insensitive)
+  - `upscale`: 1.0 = no scaling, 0.5 = faster, 2.0 = tiny text
+  - Returns `[(text, conf, [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]), ...]`
 
-1. Create a templates folder:
+## Template Matching (Alternative)
+
+```macroni
+@set_template_dir("./templates");
+x, y = @find_template("login_button");
+
+if x != null {
+    @mouse_move(x, y, 1000, true);
+    @left_click();
+}
+```
+
+Templates folder structure:
 ```
 templates/
   └── login_button/
       ├── ex1.png
-      ├── ex2.png
-      └── ex3.png
+      └── ex2.png
 ```
 
-2. Capture screenshots of the UI element you want to find
-3. Crop and save them in a folder (folder name = template identifier)
-4. Use `@find_template("login_button")` in your script
+## Language Basics
 
-## Language Features
-
-### Data Types
-- Numbers (int/float)
-- Strings
-- Tuples (immutable)
-- Lists (mutable)
-- null
-
-### Control Flow
 ```macroni
-# If statements
-if x > 10 {
-    @print("Greater");
-}
+# Variables & types
+x = 10;
+name = "test";
+coords = (100, 200);
+items = [1, 2, 3];
 
-# While loops
-counter = 0;
-while counter < 5 {
-    @print(counter);
-    counter = counter + 1;
-}
-```
+# Booleans
+enabled = true;   # true = 1
+disabled = false; # false = 0
 
-### Functions
-```macroni
-fn greet(name) {
-    @print("Hello,", name);
-}
-
-greet("Alice");
-```
-
-### Multiple Assignment
-```macroni
-# Tuples
+# Destructuring
 x, y = (100, 200);
+text, conf, bbox = results[0];
 
-# From functions
-coords_x, coords_y = @find_template("button");
-r, g, b = @get_pixel_at(500, 300);
+# Control flow
+if x > 10 {
+    @print("yes");
+} else {
+    @print("no");
+}
+
+while x < 100 {
+    x = x + 1;
+}
+
+# Functions
+fn click_button(x, y) {
+    @mouse_move(x, y, 500, true);
+    @left_click();
+}
 ```
 
-## Built-in Functions
+## Key Functions
 
-### Output
-- `@print(arg1, arg2, ...)` - Print to console
+**Mouse/Keyboard:**
+- `@mouse_move(x, y, speed, human_like)`
+- `@left_click()`
+- `@press_and_release(delay_ms, ...keys)`
 
-### Timing
-- `@wait(ms)` - Wait with optional randomization
-- `@time()` - Get current timestamp
+**Screen:**
+- `@get_coordinates(label, use_cache)` - Interactive coordinate capture
+- `@get_pixel_at(x, y)` - Returns `(r, g, b)`
+- `@check_pixel_color(x, y, radius, r, g, b, tolerance)`
 
-### Random
-- `@rand(min, max)` - Random float
-- `@rand_i(min, max)` - Random integer
+**Timing:**
+- `@wait(ms)` or `@wait(ms, random_range)`
+- `@time()`
 
-### Mouse
-- `@mouse_move(x, y, speed, human_like)` - Move mouse
-- `@left_click()` - Click mouse
+**Recording:**
+- `@record(name, start_btn, stop_btn)` - Record mouse/keyboard
+- `@playback(name, stop_btn)` - Replay recording
 
-### Keyboard
-- `@send_input(type, key, action)` - Send input
-- `@press_and_release(delay, ...keys)` - Press key combinations
-
-### Template Matching
-- `@set_template_dir(path)` - Set template directory
-- `@find_template(name)` - Find single template
-- `@find_templates(name, top_k)` - Find multiple templates
-
-### Interactive Capture
-- `@get_coordinates(label, use_cache)` - Capture coordinates
-- `@get_pixel_color(alias, use_cache)` - Capture pixel color
-
-### Pixel Operations
-- `@get_pixel_at(x, y)` - Get RGB at coordinates
-- `@check_pixel_color(x, y, radius, r, g, b, tolerance)` - Check for color
-
-### Recording
-- `@record(name, start_btn, stop_btn)` - Record macro
-- `@playback(name, stop_btn)` - Play macro
-- `@recording_exists(name)` - Check if recording exists
-
-### Collections
-- `@len(collection)` - Get length
-- `@append(list, item)` - Add to list
-- `@pop(list, index)` - Remove from list
-- `@shuffle(collection)` - Shuffle collection
-
-## Documentation
-
-- [Full Language Documentation](docs/LANGUAGE.md)
-- [Template Matching Guide](docs/TEMPLATE_MATCHING.md)
-- [Built-in Functions Reference](docs/FUNCTIONS.md)
-- [Examples](examples/)
-
-## Examples
-
-Check the `examples/` directory for complete scripts:
-
-- `click_button.macroni` - Basic template matching and clicking
-- `automated_login.macroni` - Multi-step automation
-- `pixel_monitor.macroni` - Color detection loop
-- `random_clicks.macroni` - Randomized behavior
-- `record_replay.macroni` - Recording and playback
-- `interactive_setup.macroni` - Using coordinate caching
+**Lists:**
+- `@len(list)`, `@append(list, item)`, `@pop(list, index)`, `@shuffle(list)`
 
 ## Cache Files
 
-Macroni creates cache files in the working directory:
-
-- `coordinates_cache.json` - Saved coordinates
-- `pixel_colors_cache.json` - Saved colors
-- `recordings_cache.json` - Saved macros
-
-These persist between runs for faster execution.
-
-## Best Practices
-
-1. **Always check for null** when using template matching
-2. **Add delays** between actions for reliability
-3. **Use caching** to avoid re-prompting for coordinates
-4. **Add randomization** for human-like behavior
-5. **Organize templates** with descriptive folder names
-6. **Create functions** for reusable logic
-
-## Contributing
-
-Contributions welcome! Feel free to open issues or submit pull requests.
-
-## License
-
-MIT
+Auto-created in working directory:
+- `regions_cache.json` - OCR regions
+- `coordinates_cache.json` - Captured coordinates
+- `pixel_colors_cache.json` - Captured colors
+- `recordings_cache.json` - Recorded macros
