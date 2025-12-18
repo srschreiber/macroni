@@ -5,3 +5,5 @@ pyscreeze
 pyautogui
 mss
 pynput
+click
+easyocr
