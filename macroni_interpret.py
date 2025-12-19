@@ -479,7 +479,7 @@ class Interpreter:
                 pos = locate_template_on_screen(
                     template_dir=self.template_dir,
                     template_name=template_name,
-                    downscale=0.5
+                    downscale=0.85
                 )
                 if pos is not None and len(pos) != 0:
                     return pos[0][0], pos[0][1]
@@ -1240,36 +1240,192 @@ def playback_interactive(recording_name, stop_button="esc"):
 
 def macroni_script():
     return r"""
-    # Example: OCR with region capture and caching
-    @print("=== OCR Demo ===");
+fn click_hook() {
+    hook_x, hook_y = @find_template("salvage");
+    if hook_x != null {
+        @mouse_move(hook_x, hook_y, 1200, 1);
+        @wait(10,15);
+        @left_click();
+        @wait(2000, 3000);
+    }
+}
 
-    # Capture a region interactively (cached for future runs)
-    # Use false to use cache, true to recapture
-    region = @capture_region("search_area", true);
-    @print("Region captured:", region);
+fn magic_tab() {
+    @press_and_release("50", "f6");
+}
 
-    # Perform OCR on that region with filtering
-    # Args: region, min_conf, filter, upscale
-    results = @ocr_find_text(region, 0.7, "hello world", 1.0);
-    @print("Found", @len(results), "OCR results");
+fn inv_tab() {
+    @press_and_release("50", "esc");
+}
 
-    # Access first result if any
-    if @len(results) > 0 {
-        text, conf, bbox = results[0];
-        @print("First match:", text, "with confidence:", conf);
+fn alch_item(item_to_alch) {
+    # switch to magic tab
+    magic_tab();
+    @wait(100);
+    ha_x, ha_y = @find_template("highalch");
+    if ha_x != null {
+        @mouse_move(ha_x, ha_y, 1200, 1);
+        @left_click();
+        @mouse_move(item_to_alch[0], item_to_alch[1], 1200, 1);
+        @left_click();
+        @wait(1000, 1200);
+    } else {
+        @print("HIGH ALCH NOT FOUND");
+    }
+    ensure_inv();
+}
+
+fn ensure_inv() {
+    magic_tab();
+    inv_tab();
+}
+
+fn pixels_equal(px1, px2) {
+    eq = 1;
+    it = 0;
+    while it < @len(px1) {
+        if px1[it] != px2[it] {
+            eq = 0;
+        }
+        it = it + 1;
+    }
+    eq;
+}
+
+fn alch_valuables(items_to_alch) {
+    overwrite_cache = false;
+    # this is where we will look for target text when hovering over items
+    item_text_region = @capture_region("item_text_region", overwrite_cache);
+    j = 0;
+    while j < @len(items_to_alch) {
+        item_to_alch = items_to_alch[j];
+        @mouse_move(item_to_alch[0], item_to_alch[1], 600, 1);
+        ocr_results = @ocr_find_text(item_text_region, 0.7, "helm", 1.0);
+        if @len(ocr_results) > 0 {
+            @print("Alching item at:");
+            @print(item_to_alch);
+            alch_item(item_to_alch);
+            ensure_inv();
+        }
+        j = j + 1;
+    }
+    
+}
+
+fn drop_items(items_to_drop) {
+    i = 0;
+    @send_input("keyboard", "shift", "down");
+    while i < @len(items_to_drop) {
+        salvage_x, salvage_y = items_to_drop[i];
+        @mouse_move(salvage_x, salvage_y, 600, 1);
+        @wait(10, 25);
+        @left_click();
+        i = i + 1;
+    }
+    @send_input("keyboard", "shift", "up");
+}
+
+@print("starting in 5 seconds");
+@wait(5000);
+ensure_inv();
+running = 1;
+inv_slots = @find_templates("targetitem", 20);
+
+total_slots = @len(inv_slots);
+@print("TOTAL: ");
+@print(total_slots);
+last_rec = @time();
+cur_num_salvages = 0;
+while running {
+    # check how much salvage there is
+    salvages = @find_templates("targetitem", 20);
+    if @len(salvages) != cur_num_salvages {
+        cur_num_salvages = @len(salvages);
+        # record salvage event
+        last_rec = @time();
+        @print("Salvage retrieved");
+    }
+    if @len(salvages) >= total_slots {
+        station_x, station_y = @find_template("station");
+
+        if station_x != null {
+            @mouse_move(station_x, station_y, 1200, 1);
+            @left_click();
+            @wait(10, 15);
+
+            # wait to finish salvaging
+            salvaging = 1;
+            while salvaging {
+                rem = @len(@find_templates("targetitem", total_slots));
+                @print("remaining salvage");
+                @print(rem);
+                @print("\n");
+                if rem < 3 {
+                    salvaging = 0;
+                }
+                @wait(3000);
+                sx, sy = @find_template("station");
+                if sx != null {
+                    @mouse_move(sx, sy, 1200, 1);
+                    @left_click();
+                }
+            }
+            
+            alch_cpy = inv_slots;
+            alch_valuables(alch_cpy);
+            # done salvaging, drop the junk
+            drop_cpy = inv_slots;
+            drop_items(drop_cpy);
+            # go back to hook
+            click_hook();
+            last_recv = @time();
+            cur_num_salvages = 0;
+        }
+    } else {
+        click_hook();
+        # if it's been 2 minutes without salvage, emergency drop
+        now = @time();
+        ellapsed = now - last_rec;
+        @print("time since last salvage", ellapsed);
+        if ellapsed >= 300 {
+            drop_items(inv_slots);
+            last_rec = @time();
+        }
     }
 
-    # move mouse to first result if found
-    if @len(results) > 0 {
-        text, conf, bbox = results[0];
-        # Calculate center of bounding box
-        x1, y1 = bbox[0];
-        @print("Moving mouse to:", x1, y1);
-        @mouse_move(x1, y1, 500, true);
-    }
+    @wait(1000);
+}
 
-    # Test boolean literals
-    @print("true =", true, ", false =", false);
+    # # Example: OCR with region capture and caching
+    # @print("=== OCR Demo ===");
+
+    # # Capture a region interactively (cached for future runs)
+    # # Use false to use cache, true to recapture
+    # region = @capture_region("search_area", true);
+    # @print("Region captured:", region);
+
+    # # Perform OCR on that region with filtering
+    # # Args: region, min_conf, filter, upscale
+    # results = @ocr_find_text(region, 0.7, "hello world", 1.0);
+    # @print("Found", @len(results), "OCR results");
+
+    # # Access first result if any
+    # if @len(results) > 0 {
+    #     text, conf, bbox = results[0];
+    #     @print("First match:", text, "with confidence:", conf);
+    # }
+
+    # # move mouse to first result if found
+    # if @len(results) > 0 {
+    #     text, conf, bbox = results[0];
+    #     # Calculate center of bounding box
+    #     x1, y1 = bbox[0];
+    #     @print("Moving mouse to:", x1, y1);
+    #     @mouse_move(x1, y1, 500, true);
+    # }
+
+    # # Test boolean literals
+    # @print("true =", true, ", false =", false);
 
 """
 
