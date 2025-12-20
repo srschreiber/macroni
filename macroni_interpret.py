@@ -479,7 +479,7 @@ class Interpreter:
                 pos = locate_template_on_screen(
                     template_dir=self.template_dir,
                     template_name=template_name,
-                    downscale=0.85
+                    downscale=1.0
                 )
                 if pos is not None and len(pos) != 0:
                     return pos[0][0], pos[0][1]
@@ -507,7 +507,7 @@ class Interpreter:
                 positions = locate_template_on_screen(
                     template_dir=self.template_dir,
                     template_name=template_name,
-                    downscale=0.5,
+                    downscale=1.0,
                     top_k=top_k
                 )
                 if positions is not None and len(positions) > 0:
@@ -1261,14 +1261,14 @@ fn inv_tab() {
 fn alch_item(item_to_alch) {
     # switch to magic tab
     magic_tab();
-    @wait(100);
+    @wait(400, 500);
     ha_x, ha_y = @find_template("highalch");
     if ha_x != null {
         @mouse_move(ha_x, ha_y, 1200, 1);
         @left_click();
         @mouse_move(item_to_alch[0], item_to_alch[1], 1200, 1);
         @left_click();
-        @wait(1000, 1200);
+        @wait(1200, 1300);
     } else {
         @print("HIGH ALCH NOT FOUND");
     }
@@ -1299,8 +1299,8 @@ fn alch_valuables(items_to_alch) {
     j = 0;
     while j < @len(items_to_alch) {
         item_to_alch = items_to_alch[j];
-        @mouse_move(item_to_alch[0], item_to_alch[1], 600, 1);
-        ocr_results = @ocr_find_text(item_text_region, 0.7, "helm", 1.0);
+        @mouse_move(item_to_alch[0], item_to_alch[1], 400, true);
+        ocr_results = @ocr_find_text(item_text_region, 0.7, "helm", 2.0);
         if @len(ocr_results) > 0 {
             @print("Alching item at:");
             @print(item_to_alch);
@@ -1314,11 +1314,28 @@ fn alch_valuables(items_to_alch) {
 
 fn drop_items(items_to_drop) {
     i = 0;
+    overwrite_cache = false;
+    # this is where we will look for target text when hovering over items
+    item_text_region = @capture_region("item_text_region5", overwrite_cache);
+
     @send_input("keyboard", "shift", "down");
+    first_x, first_y = items_to_drop[0];
+    # quickly move to first item
+    @mouse_move(first_x, first_y, 2000, true);
     while i < @len(items_to_drop) {
+        item = items_to_drop[i];
         salvage_x, salvage_y = items_to_drop[i];
-        @mouse_move(salvage_x, salvage_y, 600, 1);
-        @wait(10, 25);
+        @mouse_move(salvage_x, salvage_y, 800, true);
+        @wait(250, 260);
+        ocr_results_helm = @ocr_find_text(item_text_region, 0.7, "helm", 2.0);
+        l = @len(ocr_results_helm);
+        if l > 0 {
+            @send_input("keyboard", "shift", "up");
+            @print("Alching item at:");
+            alch_item(item);
+            ensure_inv();
+            @send_input("keyboard", "shift", "down");
+        }
         @left_click();
         i = i + 1;
     }
@@ -1331,7 +1348,7 @@ ensure_inv();
 running = 1;
 inv_slots = @find_templates("targetitem", 20);
 
-total_slots = @len(inv_slots);
+total_slots = @len(inv_slots) - 1;
 @print("TOTAL: ");
 @print(total_slots);
 last_rec = @time();
@@ -1360,10 +1377,10 @@ while running {
                 @print("remaining salvage");
                 @print(rem);
                 @print("\n");
-                if rem < 3 {
+                if rem == 0 {
                     salvaging = 0;
                 }
-                @wait(3000);
+                @wait(500);
                 sx, sy = @find_template("station");
                 if sx != null {
                     @mouse_move(sx, sy, 1200, 1);
@@ -1371,8 +1388,8 @@ while running {
                 }
             }
             
-            alch_cpy = inv_slots;
-            alch_valuables(alch_cpy);
+            # alch_cpy = inv_slots;
+            # alch_valuables(alch_cpy);
             # done salvaging, drop the junk
             drop_cpy = inv_slots;
             drop_items(drop_cpy);
