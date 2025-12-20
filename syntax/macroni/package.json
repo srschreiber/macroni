@@ -1,0 +1,40 @@
+{
+  "name": "macroni",
+  "displayName": "Macroni Language Support",
+  "description": "Language support for Macroni automation scripting language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "macroni",
+        "aliases": [
+          "Macroni",
+          "macroni"
+        ],
+        "extensions": [
+          ".macroni"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "macroni",
+        "scopeName": "source.macroni",
+        "path": "./syntaxes/macroni.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "macroni",
+        "path": "./snippets/macroni.json"
+      }
+    ]
+  }
+}

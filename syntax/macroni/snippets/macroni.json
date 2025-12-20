@@ -1,0 +1,195 @@
+{
+  "Function Definition": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:function_name}(${2:params}) {",
+      "\t${3:// function body}",
+      "}"
+    ],
+    "description": "Define a new function"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition} {",
+      "\t${2:// loop body}",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} {",
+      "\t${2:// if body}",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-Else Statement": {
+    "prefix": "ifelse",
+    "body": [
+      "if ${1:condition} {",
+      "\t${2:// if body}",
+      "} else {",
+      "\t${3:// else body}",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "Print": {
+    "prefix": "@print",
+    "body": "@print(${1:value});",
+    "description": "Print value(s)"
+  },
+  "Wait": {
+    "prefix": "@wait",
+    "body": "@wait(${1:duration}${2:, ${3:min_random}, ${4:max_random}});",
+    "description": "Wait for specified duration with optional randomization"
+  },
+  "Mouse Move": {
+    "prefix": "@mouse_move",
+    "body": "@mouse_move(${1:x}, ${2:y}, ${3:speed}${4:, ${5:humanLike}});",
+    "description": "Move mouse to coordinates"
+  },
+  "Left Click": {
+    "prefix": "@left_click",
+    "body": "@left_click();",
+    "description": "Perform left click"
+  },
+  "Find Template": {
+    "prefix": "@find_template",
+    "body": "${1:x}, ${2:y} = @find_template(\"${3:template_name}\");",
+    "description": "Find template on screen"
+  },
+  "Find Templates": {
+    "prefix": "@find_templates",
+    "body": "${1:positions} = @find_templates(\"${2:template_name}\", ${3:top_k});",
+    "description": "Find multiple templates on screen"
+  },
+  "Get Coordinates": {
+    "prefix": "@get_coordinates",
+    "body": "${1:x}, ${2:y} = @get_coordinates(\"${3:message}\"${4:, ${5:use_cache}});",
+    "description": "Get coordinates interactively"
+  },
+  "Check Pixel Color": {
+    "prefix": "@check_pixel_color",
+    "body": "${1:found} = @check_pixel_color(${2:x}, ${3:y}, ${4:radius}, ${5:r}, ${6:g}, ${7:b}${8:, ${9:tolerance}});",
+    "description": "Check if pixel color exists in radius"
+  },
+  "Get Pixel Color": {
+    "prefix": "@get_pixel_color",
+    "body": "${1:r}, ${2:g}, ${3:b} = @get_pixel_color(\"${4:alias}\"${5:, ${6:use_cache}});",
+    "description": "Get pixel color interactively"
+  },
+  "Get Pixel At": {
+    "prefix": "@get_pixel_at",
+    "body": "${1:r}, ${2:g}, ${3:b} = @get_pixel_at(${4:x}, ${5:y});",
+    "description": "Get pixel color at coordinates"
+  },
+  "Send Input": {
+    "prefix": "@send_input",
+    "body": "@send_input(\"${1|keyboard,mouse|}\", \"${2:key}\", \"${3|up,down|}\");",
+    "description": "Send keyboard/mouse input"
+  },
+  "Press and Release": {
+    "prefix": "@press_and_release",
+    "body": "@press_and_release(${1:delay_ms}, \"${2:key1}\"${3:, \"${4:key2}\"});",
+    "description": "Press and release keys with delay"
+  },
+  "Random Float": {
+    "prefix": "@rand",
+    "body": "${1:value} = @rand(${2:min}${3:, ${4:max}});",
+    "description": "Generate random float"
+  },
+  "Random Integer": {
+    "prefix": "@rand_i",
+    "body": "${1:value} = @rand_i(${2:min}${3:, ${4:max}});",
+    "description": "Generate random integer"
+  },
+  "Length": {
+    "prefix": "@len",
+    "body": "${1:length} = @len(${2:container});",
+    "description": "Get length of tuple/list/string"
+  },
+  "Time": {
+    "prefix": "@time",
+    "body": "${1:timestamp} = @time();",
+    "description": "Get current timestamp"
+  },
+  "Shuffle": {
+    "prefix": "@shuffle",
+    "body": "${1:shuffled} = @shuffle(${2:container});",
+    "description": "Shuffle tuple or list"
+  },
+  "Append": {
+    "prefix": "@append",
+    "body": "@append(${1:list}, ${2:item});",
+    "description": "Append item to list"
+  },
+  "Pop": {
+    "prefix": "@pop",
+    "body": "${1:item} = @pop(${2:list}${3:, ${4:index}});",
+    "description": "Pop item from list"
+  },
+  "Swap": {
+    "prefix": "@swap",
+    "body": "@swap(${1:list}, ${2:index1}, ${3:index2});",
+    "description": "Swap two elements in a list"
+  },
+  "Copy": {
+    "prefix": "@copy",
+    "body": "${1:copy} = @copy(${2:list});",
+    "description": "Create a copy of a list or tuple"
+  },
+  "Record": {
+    "prefix": "@record",
+    "body": "@record(\"${1:recording_name}\"${2:, \"${3:start_button}\", \"${4:stop_button}\"});",
+    "description": "Record mouse and keyboard actions"
+  },
+  "Playback": {
+    "prefix": "@playback",
+    "body": "@playback(\"${1:recording_name}\"${2:, \"${3:stop_button}\"});",
+    "description": "Playback recorded actions"
+  },
+  "Recording Exists": {
+    "prefix": "@recording_exists",
+    "body": "${1:exists} = @recording_exists(\"${2:recording_name}\");",
+    "description": "Check if recording exists"
+  },
+  "Capture Region": {
+    "prefix": "@capture_region",
+    "body": "${1:region} = @capture_region(\"${2:region_key}\"${3:, ${4:overwrite_cache}});",
+    "description": "Capture a screen region"
+  },
+  "OCR Find Text": {
+    "prefix": "@ocr_find_text",
+    "body": "${1:results} = @ocr_find_text(${2:region}${3:, ${4:min_conf}, ${5:filter}, ${6:upscale}});",
+    "description": "Find text using OCR"
+  },
+  "Set Template Dir": {
+    "prefix": "@set_template_dir",
+    "body": "@set_template_dir(\"${1:directory}\");",
+    "description": "Set template directory"
+  },
+  "List": {
+    "prefix": "list",
+    "body": "${1:list} = [${2:item1}${3:, ${4:item2}}];",
+    "description": "Create a list"
+  },
+  "Tuple": {
+    "prefix": "tuple",
+    "body": "${1:tuple} = (${2:item1}, ${3:item2});",
+    "description": "Create a tuple"
+  },
+  "Assignment": {
+    "prefix": "var",
+    "body": "${1:variable} = ${2:value};",
+    "description": "Variable assignment"
+  },
+  "Multiple Assignment": {
+    "prefix": "vars",
+    "body": "${1:var1}, ${2:var2} = ${3:value};",
+    "description": "Multiple variable assignment (destructuring)"
+  }
+}
