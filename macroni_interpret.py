@@ -58,6 +58,8 @@ built_in_calls: print_stmt
           | pop_stmt
           | capture_region_stmt
           | ocr_find_text_stmt
+          | swap_stmt
+          | copy_stmt
 
 print_stmt: "@print" "(" args ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -93,6 +95,8 @@ pop_stmt: "@pop" "(" args ")"                   -> pop_func
 capture_region_stmt: "@capture_region" "(" args ")" -> capture_region_func
 # region, min_conf, filter, upscale
 ocr_find_text_stmt: "@ocr_find_text" "(" args ")" -> ocr_find_text_func
+swap_stmt: "@swap" "(" args ")"                 -> swap_func
+copy_stmt: "@copy" "(" expr ")"                 -> copy_func
 
 
 # ---------- function definition ----------
@@ -266,6 +270,30 @@ class Interpreter:
                 # Print all arguments separated by spaces
                 print(*args)
                 return None
+            
+            if t == "swap_func":
+                args = self.eval(c[0], env)
+                # make sure first arg is list
+                if len(args) != 3:
+                    raise Exception(f"swap() takes exactly 3 arguments, got {len(args)}")
+                lst = args[0]
+                idx1 = int(args[1])
+                idx2 = int(args[2])
+                if not isinstance(lst, list):
+                    raise Exception("First argument to swap() must be a list")
+                if idx1 < 0 or idx1 >= len(lst) or idx2 < 0 or idx2 >= len(lst):
+                    raise Exception("swap() index out of range")
+                lst[idx1], lst[idx2] = lst[idx2], lst[idx1]
+                # return the modified list
+                return lst
+            
+            if t == "copy_func":
+                val = self.eval(c[0], env)
+                if isinstance(val, list):
+                    return val.copy()
+                if isinstance(val, tuple):
+                    return tuple(val)
+                return val  # for other types, just return as is
 
             if t == "func_def":
                 name = str(c[0])
@@ -1351,7 +1379,7 @@ fn drop_items(items_to_drop) {
 @print("starting in 5 seconds");
 @wait(5000);
 ensure_inv();
-running = 1;
+running = true;
 inv_slots = @find_templates("targetitem", 20);
 
 total_slots = @len(inv_slots) - 1;
