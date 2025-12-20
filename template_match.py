@@ -7,7 +7,7 @@ import time
 import os
 from vision import Vision
 import sys
-
+import concurrent.futures
 
 def screenshot_scale(screen_bgr, region=None):
     img_h, img_w = screen_bgr.shape[:2]          # screenshot pixels
@@ -66,6 +66,9 @@ def get_template_examples(template_dir, template_name):
             files.append(os.path.join(target_dir, fname))
     return files
 
+template_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+
+# just return center points of found templates
 def locate_template_on_screen(
     template_dir: str = "./templates",
     template_name: str = "default",
@@ -95,8 +98,7 @@ def locate_template_on_screen(
     if sys.platform == 'darwin':
         template_scale *= 0.5  # Compensate for retina resolution difference
 
-    ret = []
-    for template_path in template_paths:
+    def find_in_template(template_path) -> list[Vision.VisionHit]:
         # Create Vision instance for this template
         # Scale template to match the screenshot resolution
         template_img = cv2.imread(template_path)
@@ -112,14 +114,53 @@ def locate_template_on_screen(
 
         # Find matches using multiscale
         points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray, find_one=False, debug_mode=debug)
+        return points
+    
+    # Collect all VisionHit results from parallel searches
+    all_hits: list[Vision.VisionHit] = []
+    futures = [template_thread_pool.submit(find_in_template, template_path) for template_path in template_paths]
+    for future in concurrent.futures.as_completed(futures):
+        hits = future.result()
+        all_hits.extend(hits)
 
-        if points:
-            # Take first match
-            
-            print(f"Templates found image coords: {len(points)}")
-            # Convert to screen coordinates
-            ret = [img_xy_to_screen_xy(cx, cy, sx, sy) for cx, cy in points[:top_k]]
-            break
+    # Dedupe results using groupRectangles
+    if len(all_hits) == 0:
+        print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")
+        print(f"Total time: {time.perf_counter() - total_perf_counter:.3f} seconds")
+        return []
+
+    if len(all_hits) > 1:
+        # Convert VisionHit bboxes to rectangles for grouping
+        rectangles = []
+        for hit in all_hits:
+            x, y, w, h = hit.bbox
+            rect = [int(x), int(y), int(w), int(h)]
+            rectangles.append(rect)
+            rectangles.append(rect)  # Add twice for groupRectangles to keep single boxes
+
+        # Group overlapping rectangles
+        grouped_rects, weights = cv2.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
+
+        # Extract deduplicated center points
+        deduped_hits = []
+        for (x, y, w, h) in grouped_rects:
+            center_x = x + w // 2
+            center_y = y + h // 2
+            deduped_hits.append(Vision.VisionHit(
+                bbox=(x, y, w, h),
+                center=(center_x, center_y)
+            ))
+
+        print(f"Templates found: {len(all_hits)} -> {len(deduped_hits)} after dedup")
+    else:
+        deduped_hits = all_hits
+
+    # Convert to screen coordinates and return top_k center points only
+    ret = []
+    for hit in deduped_hits[:top_k]:
+        x_img, y_img = hit.center
+        x_screen, y_screen = img_xy_to_screen_xy(x_img, y_img, sx, sy)
+        ret.append((int(x_screen), int(y_screen)))
 
     print(f"Locating took {time.perf_counter() - perf_counter:.3f} seconds")
     print(f"Total time: {time.perf_counter() - total_perf_counter:.3f} seconds")

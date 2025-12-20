@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import dataclasses
 
 
 class Vision:
@@ -92,7 +93,12 @@ class Vision:
 
         return points
 
-    def find_multiscale(self, haystack_img, scales=None, threshold=0.5, use_gray=True, find_one=False, debug_mode=None):
+    @dataclasses.dataclass
+    class VisionHit:
+        bbox: tuple[int, int, int, int]  # (x, y, w, h)
+        center: tuple[int, int]  # (center_x, center_y)
+
+    def find_multiscale(self, haystack_img, scales=None, threshold=0.5, use_gray=True, find_one=False, debug_mode=None) -> list[VisionHit]:
         """
         Find needle in haystack at multiple scales.
         Returns list of (x, y) center points for matches found.
@@ -160,7 +166,10 @@ class Vision:
                                     markerSize=40, thickness=2)
                         cv.imshow('Multiscale Matches', haystack_img)
 
-                    return [(center_x, center_y)]
+                    return [Vision.VisionHit(
+                        bbox=(x, y, scaled_w, scaled_h),
+                        center=(center_x, center_y),
+                    )]
 
             return []
 
@@ -203,7 +212,7 @@ class Vision:
 
         rectangles, weights = cv.groupRectangles(all_rectangles, groupThreshold=1, eps=0.5)
 
-        points = []
+        points: list[Vision.VisionHit] = []
         if len(rectangles):
             line_color = (0, 255, 0)
             line_type = cv.LINE_4
@@ -213,7 +222,11 @@ class Vision:
             for (x, y, w, h) in rectangles:
                 center_x = x + int(w/2)
                 center_y = y + int(h/2)
-                points.append((center_x, center_y))
+                # points.append((center_x, center_y))
+                points.append(Vision.VisionHit(
+                    bbox=(x, y, w, h),
+                    center=(center_x, center_y),
+                ))
 
                 if debug_mode == 'rectangles':
                     top_left = (x, y)
