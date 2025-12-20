@@ -104,7 +104,7 @@ class OCRResult:
 def ocr_find_text(
     region: tuple[int, int, int, int] | None = None,
     min_conf: float = 0.45,
-    filter: str | None = None,
+    filter: str | list | tuple | None = None,
     upscale: float = 1.0
 ) -> list[OCRResult]:
     """
@@ -153,7 +153,13 @@ def ocr_find_text(
     output: list[OCRResult] = []
     for bbox, t, c in filtered_results:
         # Check if this text matches our search
-        if filter and filter.lower() not in t.lower():
+        if filter:
+            if isinstance(filter, (list, tuple)):
+                if not any(f.lower() in t.lower() for f in filter):
+                    continue
+            else:
+                if filter.lower() not in t.lower():
+                    continue
             continue
 
         # Scale bbox coordinates back down by upscale factor

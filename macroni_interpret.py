@@ -690,7 +690,13 @@ class Interpreter:
                 # Parse arguments with defaults
                 region = args[0] if len(args) >= 1 and args[0] is not None else None
                 min_conf = float(args[1]) if len(args) >= 2 else 0.45
-                filter_text = str(args[2]) if len(args) >= 3 and args[2] is not None else None
+                if len(args) >= 3 and args[2] is not None:
+                    if isinstance(args[2], (list, tuple)):
+                        filter_text = [str(f) for f in args[2]]
+                    else:
+                        filter_text = [str(args[2])]
+                else:
+                    filter_text = None
                 upscale = float(args[3]) if len(args) >= 4 else 1.0
 
                 # Call OCR function
