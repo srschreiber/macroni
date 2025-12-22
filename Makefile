@@ -16,3 +16,7 @@ publish-dist:
 	twine upload dist/*
 
 build-and-publish: build-dist publish-dist
+
+publish-extension:
+	vsce login srschreiber
+	cd macroni/extension/macroni && vsce publish

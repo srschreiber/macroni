@@ -1,8 +1,9 @@
-click==8.3.1
-easyocr==1.7.2
-lark==1.3.1
-mss==10.1.0
-opencv-python==4.12.0.88
-pillow==12.0.0
-PyAutoGUI==0.9.54
-PyScreeze==1.0.1
+lark
+opencv-python
+pillow 
+pyscreeze 
+pyautogui
+mss
+pynput
+click
+easyocr 

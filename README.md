@@ -28,6 +28,13 @@ For syntax highlighting, please add the extension to vscode: Macroni Language Su
 
 ### Basic Command
 
+#### Interactive
+```bash
+macroni
+```
+
+#### Execute file
+
 ```bash
 macroni --file script.macroni
 ```
