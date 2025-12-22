@@ -1,4 +1,4 @@
-install:
+install: build-extension
 	./scripts/bootstrap.sh
 
 build-extension:
