@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 import pyautogui
 import mss
-from mouse_utils import move_mouse_to
+from macroni.util.mouse_utils import move_mouse_to
 import time
 import os
-from vision import Vision
+from macroni.util.vision import Vision
 import sys
 import concurrent.futures
 

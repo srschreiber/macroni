@@ -2,7 +2,7 @@ import re
 import cv2
 import numpy as np
 import easyocr
-from template_match import screenshot_bgr
+from macroni.util.template_match import screenshot_bgr
 import dataclasses
 import time
 import json

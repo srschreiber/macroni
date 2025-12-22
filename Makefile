@@ -1,6 +1,5 @@
 install:
-	python -m venv .venv
-	.venv/bin/pip install -r requirements.txt
+	./scripts/bootstrap.sh
 
 add-extension:
 	code --install-extension extension/macroni/macroni-*.vsix

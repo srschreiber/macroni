@@ -2,4 +2,9 @@ fn printHello() {
     @print("Hello, World!");
 }
 
+fn printGoodbye() {
+    @print("Goodbye, World!");
+}
+
 printHello();
+printGoodbye();

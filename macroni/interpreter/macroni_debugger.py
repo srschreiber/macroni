@@ -1,5 +1,5 @@
 import enum
-from collections.abc import iterable
+from collections.abc import Iterable
 
 class StepMode(enum.Enum):
     RUN = "run"
@@ -14,7 +14,7 @@ class Debugger:
         self.target_depth = None
         self.last_line = None 
 
-    def set_breakpoints(self, breakpoints: iterable[int]):
+    def set_breakpoints(self, breakpoints: Iterable[int]):
         self.breakpoints = set(breakpoints)
     
     def maybe_pause(self, node, call_depth):

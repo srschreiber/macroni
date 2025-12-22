@@ -1,7 +1,7 @@
 from pynput import mouse, keyboard
 import time, threading, queue, dataclasses
 from typing import Optional
-from mouse_utils import move_mouse_to, distance
+from macroni.util.mouse_utils import move_mouse_to, distance
 import pyautogui
 
 event_queue: "queue.Queue[RecordedEvent]" = queue.Queue()

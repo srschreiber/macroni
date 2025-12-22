@@ -7,14 +7,14 @@ import json
 import os
 import click
 from PIL import ImageGrab
-from util.mouse_utils import move_mouse_to
-from util.template_match import locate_template_on_screen
-from util.input_handler import send_input, left_click, press_and_release
+from macroni.util.mouse_utils import move_mouse_to
+from macroni.util.template_match import locate_template_on_screen
+from macroni.util.input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
 from threading import Event
 import threading
-from util.ocr import region_capture, ocr_find_text
-from macroni_debugger import Debugger
+from macroni.util.ocr import region_capture, ocr_find_text
+from macroni.interpreter.macroni_debugger import Debugger
 
 calc_grammar = r'''
 start: program
@@ -1326,27 +1326,3 @@ def playback_interactive(recording_name, stop_button="esc"):
 
     if not stop_playback.is_set():
         print(f"✓ Playback completed! Executed {len(events)} events.\n")
-
-@click.command()
-@click.option('-f', '--file', 'filepath', required=True, help='Path to the macroni script file to execute.', type=click.Path(exists=True))
-@click.option('-d', '--debug', is_flag=True, help='Enable debug mode with verbose output.')
-# list of breakpoints
-@click.option('-b', '--breakpoints', multiple=True, help='List of breakpoints to set in the script (by line number).')
-def main(filepath, debug, breakpoints: list):
-    """Run a macroni script from a file."""
-    # Read the script from the file
-    with open(filepath, 'r') as f:
-        script_content = f.read()
-    
-    dbg = Debugger()
-    if debug:
-        dbg.set_breakpoints(list(breakpoints))
-
-    # Parse and execute the script
-    interp = Interpreter()
-    tree = calc_parser.parse(script_content)
-    interp.eval(tree)
-
-
-if __name__ == "__main__":
-    main()
