@@ -18,12 +18,12 @@ class ExecutionContext:
     def create_sibling_context(self, node: any = None):
         """
         Create a sibling context at the same depth.
-        Copies current vars and funcs.
+        Shares vars and funcs references (not copies) so changes are visible across siblings.
 
         Returns:
             ExecutionContext: New sibling context
         """
-        return ExecutionContext(vars=dict(self.vars), funcs=dict(self.funcs), depth=self.depth, node=node, debug=self.debug, eval_cback=self.eval_cback)
+        return ExecutionContext(vars=self.vars, funcs=self.funcs, depth=self.depth, node=node, debug=self.debug, eval_cback=self.eval_cback)
 
     def create_child_context(self, local_vars=None, node: any = None):
         """
