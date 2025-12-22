@@ -883,30 +883,17 @@ def record_interactive(recording_name, start_button="space", stop_button="esc"):
     print(f"{'='*60}\n")
 
     # Use output_handler's record function which compresses mouse movements
-    events = output_handler.record(bucket_size_ms=50)
+    events = output_handler.record(bucket_size_ms=50, start_button=start_button, stop_button=stop_button)
 
-    # Convert RecordedEvent objects to dict format for caching
-    events_dict = []
-    for e in events:
-        event_data = {
-            'timestamp': e.timestamp,
-            'kind': e.kind,
-            'key': e.key,
-            'action': e.action,
-        }
-        if e.to_coordinates:
-            event_data['to_coordinates'] = e.to_coordinates
-        if e.from_coordinates:
-            event_data['from_coordinates'] = e.from_coordinates
-        if e.duration_ms is not None:
-            event_data['duration_ms'] = e.duration_ms
-        events_dict.append(event_data)
+    # Convert RecordedEvent dataclasses to dicts for JSON serialization
+    import dataclasses
+    events_dict = [dataclasses.asdict(e) for e in events]
 
     # Save to cache
     cache = load_recordings_cache(cache_file)
     cache[recording_name] = events_dict
     save_recordings_cache(cache, cache_file)
-    print(f"✓ Saved recording '{recording_name}' to cache with {len(events)} events.")
+    print(f"✓ Saved recording '{recording_name}' to cache.")
 
 def playback_interactive(recording_name, stop_button="esc"):
     """
@@ -954,4 +941,4 @@ def playback_interactive(recording_name, stop_button="esc"):
         ))
 
     # Use output_handler's playback which uses smooth, randomized mouse movement
-    output_handler.playback(events)
+    output_handler.playback(events, stop_button=stop_button)

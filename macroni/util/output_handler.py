@@ -68,15 +68,23 @@ def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     events[-1].duration_ms = 0
     return events
 
-def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
+def record(bucket_size_ms: int = 50, start_button=None, stop_button=None) -> list[RecordedEvent]:
+    # load corresponding key for start/stop
+    start_key = keyboard.Key.space if start_button is None else getattr(keyboard.Key, start_button, start_button)
+    stop_key = keyboard.Key.esc if stop_button is None else getattr(keyboard.Key, stop_button, stop_button)
+
     global event_queue
     event_queue = queue.Queue()
     stop_event.clear()
+    start_event = threading.Event()
+    recording_started = {'flag': False}
 
     # Track last mouse position for from_coordinates
     last_pos = {'x': None, 'y': None}
 
     def on_move(x, y):
+        if not recording_started['flag']:
+            return
         from_x, from_y = last_pos['x'], last_pos['y']
         from_coords = (int(from_x), int(from_y)) if from_x is not None and from_y is not None else None
         event_queue.put(RecordedEvent(
@@ -90,6 +98,8 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
         last_pos['x'], last_pos['y'] = x, y
 
     def on_click(x, y, button, pressed):
+        if not recording_started['flag']:
+            return
         event_queue.put(RecordedEvent(
             now(),
             "mouse_click",
@@ -99,19 +109,35 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
         ))
 
     def on_press(key):
-        if key == keyboard.Key.esc:
+        if not recording_started['flag'] and key == start_key:
+            recording_started['flag'] = True
+            start_event.set()
+            print(f"\n✓ Recording started! Press {stop_button or 'ESC'} to stop.\n")
+            return
+
+        if recording_started['flag'] and key == stop_key:
             stop_event.set()
             return False
-        event_queue.put(RecordedEvent(now(), "key_down", str(key), "down"))
+
+        if recording_started['flag']:
+            event_queue.put(RecordedEvent(now(), "key_down", str(key), "down"))
 
     def on_release(key):
-        event_queue.put(RecordedEvent(now(), "key_up", str(key), "up"))
+        if recording_started['flag']:
+            event_queue.put(RecordedEvent(now(), "key_up", str(key), "up"))
+
+    print(f"Press {start_button or 'SPACE'} to start recording...")
 
     mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click)
     keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 
-    print("Recording... press Esc to stop.")
-    # Initialize last_pos to current mouse position
+    mouse_listener.start()
+    keyboard_listener.start()
+
+    # Wait for start button
+    start_event.wait()
+
+    # Initialize last_pos to current mouse position after starting
     x, y = pyautogui.position()
     last_pos['x'], last_pos['y'] = x, y
     event_queue.put(RecordedEvent(
@@ -122,9 +148,8 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
         to_coordinates=(int(x), int(y)),
         from_coordinates=None
     ))
-    mouse_listener.start()
-    keyboard_listener.start()
 
+    # Wait for stop button
     while not stop_event.is_set():
         time.sleep(0.01)
 
@@ -141,10 +166,26 @@ def record(bucket_size_ms: int = 50) -> list[RecordedEvent]:
     events = squash_moves(events, bucket_size_ms=bucket_size_ms)
     events = attach_durations(events)
 
-    print(f"Stopped. Final events: {len(events)}")
+    print(f"✓ Recording stopped! Captured {len(events)} events (compressed).\n")
     return events
 
-def playback(events: list[RecordedEvent]):
+def parse_key_string(key_str: str):
+    """Parse key string like 'Key.space' or \"'a'\" into pynput key object."""
+    try:
+        if key_str.startswith("Key."):
+            # Special key like "Key.space", "Key.esc"
+            key_name = key_str.replace("Key.", "")
+            return getattr(keyboard.Key, key_name, None)
+        elif key_str.startswith("'") and key_str.endswith("'"):
+            # Character key like "'a'"
+            return key_str[1:-1]  # Strip quotes
+        else:
+            # Fallback: return as-is
+            return key_str
+    except Exception:
+        return None
+
+def playback(events: list[RecordedEvent], stop_button: str = "esc"):
     print("Playing back...")
     mouse_controller = mouse.Controller()
     keyboard_controller = keyboard.Controller()
@@ -152,6 +193,19 @@ def playback(events: list[RecordedEvent]):
     if not events:
         print("No events to play back.")
         return
+
+    # Setup stop button listener
+    stop_key = getattr(keyboard.Key, stop_button, keyboard.Key.esc) if stop_button else keyboard.Key.esc
+    stop_playback = threading.Event()
+
+    def on_press(key):
+        if key == stop_key:
+            print(f"\n✓ Playback stopped by user.\n")
+            stop_playback.set()
+            return False
+
+    keyboard_listener = keyboard.Listener(on_press=on_press)
+    keyboard_listener.start()
 
     # first, move the mouse quickly to the start position
     first_move = next((e for e in events if e.kind == "mouse_move" and e.to_coordinates), None)
@@ -171,6 +225,10 @@ def playback(events: list[RecordedEvent]):
     playback_start_time = now()
 
     for e in events:
+        # Check if user requested stop
+        if stop_playback.is_set():
+            break
+
         # Calculate when this event should occur relative to playback start
         event_should_occur_at = (e.timestamp - first_event_timestamp)
         actual_elapsed = now() - playback_start_time
@@ -191,12 +249,17 @@ def playback(events: list[RecordedEvent]):
             else:
                 mouse_controller.release(button)
         elif e.kind == "key_down":
-            key = eval(e.key)
-            keyboard_controller.press(key)
+            key = parse_key_string(e.key)
+            if key:
+                keyboard_controller.press(key)
         elif e.kind == "key_up":
-            key = eval(e.key)
-            keyboard_controller.release(key)
+            key = parse_key_string(e.key)
+            if key:
+                keyboard_controller.release(key)
 
-    print("Playback finished.")
+    keyboard_listener.stop()
 
-events = record(bucket_size_ms=50)
+    if not stop_playback.is_set():
+        print("Playback finished.")
+    else:
+        print("Playback interrupted.")
