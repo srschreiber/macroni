@@ -7,13 +7,3 @@ mss
 pynput
 click
 easyocr
-
-lark
-opencv-python
-pillow
-pyscreeze
-pyautogui
-mss
-pynput
-click
-easyocr

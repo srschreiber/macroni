@@ -1,0 +1,5 @@
+fn printHello() {
+    @print("Hello, World!");
+}
+
+printHello();
