@@ -8,5 +8,11 @@ build-extension:
 
 # build and check distribution package
 build-dist:
+	rm -rf dist
 	python3 -m build
 	twine check dist/*
+
+publish-dist:
+	twine upload dist/*
+
+build-and-publish: build-dist publish-dist
