@@ -160,7 +160,6 @@ def ocr_find_text(
             else:
                 if filter.lower() not in t.lower():
                     continue
-            continue
 
         # Scale bbox coordinates back down by upscale factor
         pts = np.array(bbox, np.float32) / upscale
