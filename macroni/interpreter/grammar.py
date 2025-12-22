@@ -13,7 +13,7 @@ program: stmt*                              -> stmt_block
 # ---------- statements ----------
 
 assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
-expr_stmt: expr ";"                         -> expr_stmt
+expr_stmt: expr (";")+                         -> expr_stmt
             | conditional_expr        -> expr_stmt
 
 # ---------- built-ins ----------
@@ -91,7 +91,7 @@ params: NAME ("," NAME)*                    -> params
 
 # ---------- blocks ----------
 
-block: "{" stmt* "}"                        -> stmt_block
+block: "{" stmt* "}" (";")*                        -> stmt_block
 
 # ---------- while loop ----------
 
