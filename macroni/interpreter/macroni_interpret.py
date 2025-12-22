@@ -10,6 +10,7 @@ from macroni.util.mouse_utils import move_mouse_to
 from macroni.util.template_match import locate_template_on_screen
 from macroni.util.input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
+from macroni.util import output_handler
 from threading import Event
 import threading
 from macroni.util.ocr import region_capture, ocr_find_text
@@ -878,140 +879,32 @@ def record_interactive(recording_name, start_button="space", stop_button="esc"):
     print(f"\n{'='*60}")
     print(f"RECORD MODE: {recording_name}")
     print(f"{'='*60}")
-    print(f"Start button: {start_button.upper()}")
-    print(f"Stop button: {stop_button.upper()}")
-    print(f"{'='*60}")
-    print(f"Press {start_button.upper()} to start recording...")
+    print(f"Recording will compress mouse movements for natural playback")
     print(f"{'='*60}\n")
 
-    events = []
-    recording = False
-    start_time = None
-    stop_event = Event()
+    # Use output_handler's record function which compresses mouse movements
+    events = output_handler.record(bucket_size_ms=50)
 
-    # Convert button names to pynput keys
-    def get_key(button_name):
-        button_name = button_name.lower()
-        if button_name == "esc" or button_name == "escape":
-            return keyboard.Key.esc
-        elif button_name == "space":
-            return keyboard.Key.space
-        elif button_name == "enter":
-            return keyboard.Key.enter
-        elif button_name == "shift":
-            return keyboard.Key.shift
-        elif button_name == "ctrl":
-            return keyboard.Key.ctrl
-        elif button_name == "alt":
-            return keyboard.Key.alt
-        else:
-            return button_name
-
-    start_key = get_key(start_button)
-    stop_key = get_key(stop_button)
-
-    def on_move(x, y):
-        if recording:
-            timestamp = time.time() - start_time
-            events.append({
-                'type': 'mouse_move',
-                'x': x,
-                'y': y,
-                'timestamp': timestamp
-            })
-
-    def on_click(x, y, button, pressed):
-        if recording:
-            timestamp = time.time() - start_time
-            events.append({
-                'type': 'mouse_click',
-                'x': x,
-                'y': y,
-                'button': str(button),
-                'pressed': pressed,
-                'timestamp': timestamp
-            })
-
-    def on_scroll(x, y, dx, dy):
-        if recording:
-            timestamp = time.time() - start_time
-            events.append({
-                'type': 'mouse_scroll',
-                'x': x,
-                'y': y,
-                'dx': dx,
-                'dy': dy,
-                'timestamp': timestamp
-            })
-
-    def on_press(key):
-        nonlocal recording, start_time
-
-        try:
-            key_str = key.char if hasattr(key, 'char') else str(key)
-        except:
-            key_str = str(key)
-
-        # Check for start button
-        if not recording and key == start_key:
-            recording = True
-            start_time = time.time()
-            print(f"\n✓ Recording started! Press {stop_button.upper()} to stop.\n")
-            return
-
-        # Check for stop button
-        if recording and key == stop_key:
-            print(f"\n✓ Recording stopped! Captured {len(events)} events.\n")
-            stop_event.set()
-            return False  # Stop listener
-
-        # Record other key presses
-        if recording:
-            timestamp = time.time() - start_time
-            events.append({
-                'type': 'key_press',
-                'key': key_str,
-                'timestamp': timestamp
-            })
-
-    def on_release(key):
-        if recording:
-            try:
-                key_str = key.char if hasattr(key, 'char') else str(key)
-            except:
-                key_str = str(key)
-
-            timestamp = time.time() - start_time
-            events.append({
-                'type': 'key_release',
-                'key': key_str,
-                'timestamp': timestamp
-            })
-
-    # Start listeners
-    mouse_listener = mouse.Listener(
-        on_move=on_move,
-        on_click=on_click,
-        on_scroll=on_scroll
-    )
-    keyboard_listener = keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release
-    )
-
-    mouse_listener.start()
-    keyboard_listener.start()
-
-    # Wait for recording to stop
-    stop_event.wait()
-
-    # Stop listeners
-    mouse_listener.stop()
-    keyboard_listener.stop()
+    # Convert RecordedEvent objects to dict format for caching
+    events_dict = []
+    for e in events:
+        event_data = {
+            'timestamp': e.timestamp,
+            'kind': e.kind,
+            'key': e.key,
+            'action': e.action,
+        }
+        if e.to_coordinates:
+            event_data['to_coordinates'] = e.to_coordinates
+        if e.from_coordinates:
+            event_data['from_coordinates'] = e.from_coordinates
+        if e.duration_ms is not None:
+            event_data['duration_ms'] = e.duration_ms
+        events_dict.append(event_data)
 
     # Save to cache
     cache = load_recordings_cache(cache_file)
-    cache[recording_name] = events
+    cache[recording_name] = events_dict
     save_recordings_cache(cache, cache_file)
     print(f"✓ Saved recording '{recording_name}' to cache with {len(events)} events.")
 
@@ -1034,129 +927,31 @@ def playback_interactive(recording_name, stop_button="esc"):
         print(f"✗ Error: No recording found with name '{recording_name}'")
         return
 
-    events = cache[recording_name]
+    events_dict = cache[recording_name]
 
     print(f"\n{'='*60}")
     print(f"PLAYBACK MODE: {recording_name}")
     print(f"{'='*60}")
-    print(f"Stop button: {stop_button.upper()}")
-    print(f"Total events: {len(events)}")
+    print(f"Total events: {len(events_dict)}")
+    print(f"Mouse movements will use randomized human-like curves")
     print(f"{'='*60}")
     print(f"Playback will start in 3 seconds...")
-    print(f"Press {stop_button.upper()} at any time to stop playback.")
     print(f"{'='*60}\n")
 
     time.sleep(3)
 
-    stop_playback = Event()
+    # Convert dict format back to RecordedEvent objects
+    events = []
+    for event_data in events_dict:
+        events.append(output_handler.RecordedEvent(
+            timestamp=event_data['timestamp'],
+            kind=event_data['kind'],
+            key=event_data['key'],
+            action=event_data['action'],
+            to_coordinates=tuple(event_data['to_coordinates']) if 'to_coordinates' in event_data and event_data['to_coordinates'] else None,
+            from_coordinates=tuple(event_data['from_coordinates']) if 'from_coordinates' in event_data and event_data['from_coordinates'] else None,
+            duration_ms=event_data.get('duration_ms')
+        ))
 
-    # Convert button name to pynput key
-    def get_key(button_name):
-        button_name = button_name.lower()
-        if button_name == "esc" or button_name == "escape":
-            return keyboard.Key.esc
-        elif button_name == "space":
-            return keyboard.Key.space
-        elif button_name == "enter":
-            return keyboard.Key.enter
-        elif button_name == "shift":
-            return keyboard.Key.shift
-        elif button_name == "ctrl":
-            return keyboard.Key.ctrl
-        elif button_name == "alt":
-            return keyboard.Key.alt
-        else:
-            return button_name
-
-    stop_key = get_key(stop_button)
-
-    def on_press(key):
-        if key == stop_key:
-            print(f"\n✓ Playback stopped by user.\n")
-            stop_playback.set()
-            return False  # Stop listener
-
-    # Start keyboard listener for stop button
-    keyboard_listener = keyboard.Listener(on_press=on_press)
-    keyboard_listener.start()
-
-    # Playback events
-    start_time = time.time()
-    mouse_controller = mouse.Controller()
-    keyboard_controller = keyboard.Controller()
-
-    print("✓ Playback started!\n")
-
-    for i, event in enumerate(events):
-        if stop_playback.is_set():
-            break
-
-        # Wait for the correct timestamp
-        target_time = event['timestamp']
-        elapsed = time.time() - start_time
-        wait_time = target_time - elapsed
-        if wait_time > 0:
-            time.sleep(wait_time)
-
-        # Execute event
-        try:
-            if event['type'] == 'mouse_move':
-                mouse_controller.position = (event['x'], event['y'])
-
-            elif event['type'] == 'mouse_click':
-                button_str = event['button']
-                pressed = event['pressed']
-
-                # Convert button string to pynput button
-                if 'left' in button_str.lower():
-                    btn = mouse.Button.left
-                elif 'right' in button_str.lower():
-                    btn = mouse.Button.right
-                elif 'middle' in button_str.lower():
-                    btn = mouse.Button.middle
-                else:
-                    continue
-
-                if pressed:
-                    mouse_controller.press(btn)
-                else:
-                    mouse_controller.release(btn)
-
-            elif event['type'] == 'mouse_scroll':
-                mouse_controller.scroll(event['dx'], event['dy'])
-
-            elif event['type'] == 'key_press':
-                key_str = event['key']
-                # Try to parse the key
-                try:
-                    if key_str.startswith('Key.'):
-                        key_name = key_str.replace('Key.', '')
-                        key_obj = getattr(keyboard.Key, key_name, None)
-                        if key_obj:
-                            keyboard_controller.press(key_obj)
-                    else:
-                        keyboard_controller.press(key_str)
-                except Exception as e:
-                    print(f"Warning: Could not press key '{key_str}': {e}")
-
-            elif event['type'] == 'key_release':
-                key_str = event['key']
-                # Try to parse the key
-                try:
-                    if key_str.startswith('Key.'):
-                        key_name = key_str.replace('Key.', '')
-                        key_obj = getattr(keyboard.Key, key_name, None)
-                        if key_obj:
-                            keyboard_controller.release(key_obj)
-                    else:
-                        keyboard_controller.release(key_str)
-                except Exception as e:
-                    print(f"Warning: Could not release key '{key_str}': {e}")
-
-        except Exception as e:
-            print(f"Warning: Error executing event {i}: {e}")
-
-    keyboard_listener.stop()
-
-    if not stop_playback.is_set():
-        print(f"✓ Playback completed! Executed {len(events)} events.\n")
+    # Use output_handler's playback which uses smooth, randomized mouse movement
+    output_handler.playback(events)

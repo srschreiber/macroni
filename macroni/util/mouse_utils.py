@@ -36,6 +36,9 @@ def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.
     peak = arc_dir * arc_strength * L
     peak = max(-60, min(60, peak))
 
+    # Randomize bulge peak position between 25% and 75% of path
+    peak_pos = random.uniform(0.25, 0.75)
+
     cycles = random.uniform(1.0, 4.0)
     wobble_dir = random.choice([-1, 1])
 
@@ -47,13 +50,17 @@ def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.
 
         t = i / steps
 
-        # smoothstep along the line
+        # smoothstep along the line. this just controls base speed
         tt = t*t*(3 - 2*t)
         x = x1 + dx * tt
         y = y1 + dy * tt
 
-        # big arc (0 at ends)
-        bulge = peak * (4 * t * (1 - t))
+        # big arc with random peak position (0 at ends, 1 at peak_pos)
+        if t <= peak_pos:
+            bulge_factor = (t / peak_pos) ** 2 if peak_pos > 0 else 0
+        else:
+            bulge_factor = ((1 - t) / (1 - peak_pos)) ** 2 if peak_pos < 1 else 0
+        bulge = peak * bulge_factor
 
         # mini-arc wobble (also 0 at ends)
         env = 4 * t * (1 - t)

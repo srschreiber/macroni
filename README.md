@@ -171,6 +171,32 @@ fn click_button(x, y) {
 **Lists:**
 - `@len(list)`, `@append(list, item)`, `@pop(list, index)`, `@shuffle(list)`
 
+## Human-Like Randomness
+
+Macroni incorporates randomness to avoid detection and mimic natural user behavior:
+
+**Mouse Movement:**
+```macroni
+@mouse_move(x, y, 1000, true);  # human_like=true enables randomness
+```
+- Uses smoothstep for natural acceleration/deceleration
+- Adds big random arcs (bulge peaks randomly between 25-75% of path)
+- Mixes in sin wave wobble with random phase drift
+- Each movement takes a unique path, even to the same destination
+
+**Wait Times:**
+```macroni
+@wait(1000, (100, 300));  # Base delay + random 100-300ms
+```
+- Optional random range parameter adds variability to timing
+- Prevents predictable patterns in automation
+
+**Recording Playback:**
+- Mouse coordinates are compressed during recording (50ms buckets)
+- Playback connects positions using smoothstep with randomized arcs and sin waves
+- Each playback generates a different mouse path, never the exact same trajectory
+- Maintains original timing while applying human-like movement between recorded points
+
 ## Cache Files
 
 Auto-created in working directory:
