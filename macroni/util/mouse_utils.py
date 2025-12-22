@@ -162,10 +162,19 @@ def move_mouse_offset(x_offset: int, y_offset: int, pps: int, humanLike: bool) -
     new_y = current_y + y_offset
     move_mouse_to(new_x, new_y, pps, humanLike)
 
-def move_mouse_to(x: int, y: int, pps: int, humanLike: bool) -> None:
+def move_mouse_to(x: int, y: int, pps: int, humanLike: bool, within_pixels: int = 1) -> None:
     """Move the mouse cursor to the specified coordinates at a rate of pps pixels per second."""
     current_x, current_y = pyautogui.position()
     duration = calc_duration(current_x, current_y, x, y, pps)
+    
+    r = within_pixels * math.sqrt(random.random())
+    theta = random.uniform(0, 2 * math.pi)
+
+    dx = int(r * math.cos(theta))
+    dy = int(r * math.sin(theta))
+
+    x += dx
+    y += dy
     if not humanLike:
         pyautogui.moveTo(x, y, duration=duration)
     else:
