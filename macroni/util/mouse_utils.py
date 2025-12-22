@@ -18,59 +18,76 @@ import math
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
 
-def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.04, accuracy_pixels=1):
-    desired_time = total_time*.90 # encourage moving faster because easier to sleep than to catch up
+def smooth_move_to(x2, y2, total_time=0.25, hz=200, jitter_px=9, arc_strength=0.1, accuracy_pixels=1):
+    desired_time = total_time * 0.90
     x1, y1 = pyautogui.position()
-    x1 += random.randint(-accuracy_pixels, accuracy_pixels)
-    y1 += random.randint(-accuracy_pixels, accuracy_pixels)
-    dx, dy = x2 - x1, y2 - y1
-    L = math.hypot(dx, dy) or 1.0
 
-    ux, uy = dx / L, dy / L
+    dx, dy = x2 - x1, y2 - y1
+    L = math.hypot(dx, dy)
+
+    ux, uy = dx / (L or 1.0), dy / (L or 1.0)
     px, py = -uy, ux
 
-    steps = max(1, int(desired_time * hz))
+    # distance-aware steps (cap both ways)
+    steps_time = max(1, int(desired_time * hz))
+    steps_dist = int(max(8, min(steps_time, L * 0.6)))  # ~0.6 steps per px, capped
+    steps = max(1, min(steps_time, steps_dist))
+
     dt = desired_time / steps
 
-    arc_dir = random.choice([-1, 1])
-    peak = arc_dir * arc_strength * L
-    peak = max(-60, min(60, peak))
+    # target scatter
+    x2j = x2 + random.randint(-accuracy_pixels, accuracy_pixels)
+    y2j = y2 + random.randint(-accuracy_pixels, accuracy_pixels)
 
-    # Randomize bulge peak position between 25% and 75% of path
+    dx, dy = x2j - x1, y2j - y1
+    L = math.hypot(dx, dy) or 1.0
+
+    # arc setup
+    arc_dir = random.choice([-1, 1])
+    strength_rand = random.uniform(0.7, 1.3)
+    peak = arc_dir * arc_strength*strength_rand * L
+    peak = max(-100, min(100, peak))
+
     peak_pos = random.uniform(0.25, 0.75)
 
-    cycles = random.uniform(1.0, 4.0)
-    wobble_dir = random.choice([-1, 1])
+    # wobble setup
+    cycles = random.uniform(.5, 1.0)
+    if L < 20:
+        cycles = random.uniform(0.25, .5)
 
+    wobble_dir = random.choice([-1, 1])
     phase = random.uniform(0, 2 * math.pi)
-    omega = 2 * math.pi * cycles / max(desired_time, 0.001)  # rad/s
+    omega0 = 2 * math.pi * cycles / max(desired_time, 0.001)
 
     start = time.perf_counter()
     for i in range(1, steps + 1):
-
         t = i / steps
 
-        # smoothstep along the line. this just controls base speed
-        tt = t*t*(3 - 2*t)
+        # if distance remaining is very small like < 5 pixels, move directly to target
+        cx, cy = pyautogui.position()
+        rem = math.hypot(x2j - cx, y2j - cy)
+        if rem <= accuracy_pixels:
+            break
+
+        # smoothstep base motion
+        tt = t * t * (3 - 2 * t)
         x = x1 + dx * tt
         y = y1 + dy * tt
 
-        # big arc with random peak position (0 at ends, 1 at peak_pos)
-        if t <= peak_pos:
-            bulge_factor = (t / peak_pos) ** 2 if peak_pos > 0 else 0
-        else:
-            bulge_factor = ((1 - t) / (1 - peak_pos)) ** 2 if peak_pos < 1 else 0
+        # smooth bump for the bulge (C1-ish, no cusp): bell-shaped around peak_pos
+        # width controls how wide the bulge is; randomize slightly
+        width = random.uniform(0.25, 0.45)
+        z = (t - peak_pos) / max(width, 1e-6)
+        bulge_factor = math.exp(-z * z * 3.0)  # gaussian-ish bump
         bulge = peak * bulge_factor
 
-        # mini-arc wobble (also 0 at ends)
+        # Wobble envelope and amplitude
         env = 4 * t * (1 - t)
-
-        # scale wobble to distance and fade near end
         base_amp = min(jitter_px, 0.03 * L)
-        wobble_amp = base_amp * (1 - t)**1.2
+        wobble_amp = base_amp * (1 - t) ** 1.2
 
-        # phase drift (relative)
-        omega += random.uniform(-0.15, 0.15) * omega * dt
+        # Bounded omega noise (no random-walk drift)
+        omega = omega0 * (1.0 + random.uniform(-0.08, 0.08))
         phase += omega * dt
 
         wobble = wobble_dir * wobble_amp * env * math.sin(phase)
@@ -78,22 +95,23 @@ def smooth_move_to(x2, y2, total_time=0.25, hz=150, jitter_px=7, arc_strength=0.
         x += px * (bulge + wobble)
         y += py * (bulge + wobble)
 
-        pyautogui.moveTo(round(x), round(y), duration=0, _pause=False)
+        pyautogui.moveTo(int(x), int(y), duration=0, _pause=False)
+
         target = start + i * dt
         now = time.perf_counter()
         if target > now:
             time.sleep(target - now)
-        
-        # # if we're running late or within 2% of desired time, break
-        # if time.perf_counter() - start >= desired_time:
-        #     break
 
-    print("done move")
+    # Final correction only if still noticeably off
+    cx, cy = pyautogui.position()
+    rem = math.hypot(x2 - cx, y2 - cy)
     elapsed = time.perf_counter() - start
-    time_remaining = max(total_time - elapsed, 0.05)
+    time_remaining = max(total_time - elapsed, 0.0)
 
-    # final_dur = max(0.01, min(0.05, time_remaining))
-    pyautogui.moveTo(x2, y2, duration=time_remaining, _pause=False)
+    if rem > 2:
+        pyautogui.moveTo(x2, y2, duration=min(0.06, max(0.01, time_remaining)), _pause=False)
+    else:
+        pyautogui.moveTo(x2, y2, duration=0, _pause=False)
 
 
 def move_mouse_offset(x_offset: int, y_offset: int, pps: int, humanLike: bool) -> None:

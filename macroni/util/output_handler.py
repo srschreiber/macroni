@@ -3,6 +3,7 @@ import time, threading, queue, dataclasses
 from typing import Optional
 from macroni.util.mouse_utils import move_mouse_to, distance
 import pyautogui
+import random
 
 event_queue: "queue.Queue[RecordedEvent]" = queue.Queue()
 stop_event = threading.Event()
@@ -68,7 +69,7 @@ def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     events[-1].duration_ms = 0
     return events
 
-def record(bucket_size_ms: int = 50, start_button=None, stop_button=None) -> list[RecordedEvent]:
+def record(bucket_size_ms: int = 250, start_button=None, stop_button=None) -> list[RecordedEvent]:
     # load corresponding key for start/stop
     start_key = keyboard.Key.space if start_button is None else getattr(keyboard.Key, start_button, start_button)
     stop_key = keyboard.Key.esc if stop_button is None else getattr(keyboard.Key, stop_button, stop_button)
@@ -185,7 +186,7 @@ def parse_key_string(key_str: str):
     except Exception:
         return None
 
-def playback(events: list[RecordedEvent], stop_button: str = "esc"):
+def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
     print("Playing back...")
     mouse_controller = mouse.Controller()
     keyboard_controller = keyboard.Controller()
@@ -210,13 +211,11 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc"):
     # first, move the mouse quickly to the start position
     first_move = next((e for e in events if e.kind == "mouse_move" and e.to_coordinates), None)
     if first_move and first_move.to_coordinates:
-        current_pos = pyautogui.position()
-        dist = distance(
-            current_pos[0], current_pos[1],
-            first_move.to_coordinates[0], first_move.to_coordinates[1]
-        )
-        pps = 3000
-        move_mouse_to(first_move.to_coordinates[0], first_move.to_coordinates[1], pps, True)
+        pps = 400
+        new_first = first_move.to_coordinates[0] + random.uniform(-jitter, jitter), first_move.to_coordinates[1] + random.uniform(-5, 5)
+        # overwrite first_move to include scatter
+        first_move.to_coordinates = new_first
+        move_mouse_to(first_move.to_coordinates[0] + random.uniform(-jitter, jitter), first_move.to_coordinates[1] + random.uniform(-10, 10), pps, True)
 
     print("Starting playback...")
 
@@ -241,7 +240,8 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc"):
         # Execute the event
         if e.kind == "mouse_move" and e.to_coordinates:
             # For mouse moves, use fast movement since we've already waited
-            move_mouse_to(e.to_coordinates[0], e.to_coordinates[1], 3000, True)
+            # splice in a few fake points to make movement slightly more random
+            move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)
         elif e.kind == "mouse_click" and e.to_coordinates:
             button = getattr(mouse.Button, e.key.split(".")[-1])
             if e.action == "down":
