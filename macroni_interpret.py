@@ -7,13 +7,14 @@ import json
 import os
 import click
 from PIL import ImageGrab
-from mouse_utils import move_mouse_to
-from template_match import locate_template_on_screen
-from input_handler import send_input, left_click, press_and_release
+from util.mouse_utils import move_mouse_to
+from util.template_match import locate_template_on_screen
+from util.input_handler import send_input, left_click, press_and_release
 from pynput import mouse, keyboard
 from threading import Event
 import threading
-from ocr import region_capture, ocr_find_text
+from util.ocr import region_capture, ocr_find_text
+from macroni_debugger import Debugger
 
 calc_grammar = r'''
 start: program
@@ -167,9 +168,8 @@ COMMENT: /\#[^\n]*/
 %ignore WS
 '''
 
-calc_parser = Lark(calc_grammar, parser="lalr")
+calc_parser = Lark(calc_grammar, parser="lalr", propagate_positions=True, maybe_placeholders=False)
 EXIT_SIGNAL = 1
-
 
 class Interpreter:
     def __init__(self):
@@ -186,559 +186,576 @@ class Interpreter:
             env = self.vars
 
         # Tokens
-        if isinstance(node, Token):
-            if node.type == "NUMBER":
+        match node:
+            case Token(type="NUMBER"):
                 val = float(node)
                 if val.is_integer():
                     return int(val)
                 return val
-            if node.type == "STRING":
+            case Token(type="STRING"):
                 s = str(node)
                 return ast.literal_eval(str(node))
-            if node.type == "NAME":
+            case Token(type="NAME"):
                 name = str(node)
                 if name in env:
                     return env[name]
                 raise Exception(f"Variable not found: {name}")
-            return str(node)
+            case Token():
+                return str(node)
 
         # Trees
         if isinstance(node, Tree):
             t = node.data
             c = node.children
 
-            if t == "stmt_block":
-                last = 0
-                for stmt in c:
-                    last = self.eval(stmt, env)
-                return last
+            match t:
+                case "stmt_block":
+                    last = 0
+                    for stmt in c:
+                        last = self.eval(stmt, env)
+                    return last
 
-            if t == "params":
-                return [str(x) for x in c]
-            
-            if t == "index":
-                container = self.eval(c[0], env)
-                idx = self.eval(c[1], env)
+                case "params":
+                    return [str(x) for x in c]
 
-                if not isinstance(idx, int):
-                    raise Exception("Index must be an integer")
+                case "index":
+                    container = self.eval(c[0], env)
+                    idx = self.eval(c[1], env)
 
-                try:
-                    return container[idx] if container and len(container) > idx else None
-                except Exception as e:
-                    raise Exception(f"Index error: {e}")
+                    if not isinstance(idx, int):
+                        raise Exception("Index must be an integer")
 
-            if t == "store_val":
-                num_names = 0
-                for i in range(len(c) - 1):
-                    if isinstance(c[i], Token) and c[i].type == "NAME":
-                        num_names += 1
-                # now eval all exprs
-                exprs = c[num_names:]
-                vals = [self.eval(e, env) for e in exprs]
+                    try:
+                        return container[idx] if container and len(container) > idx else None
+                    except Exception as e:
+                        raise Exception(f"Index error: {e}")
 
-                # Only flatten tuples/lists if we have multiple names (destructuring)
-                if num_names > 1:
-                    # if tuples or lists, flatten
-                    vals_flat = []
-                    for v in vals:
-                        if isinstance(v, (tuple, list)):
-                            vals_flat.extend(v)
-                        else:
-                            vals_flat.append(v)
-                    vals = vals_flat
-                    if len(vals) != num_names:
-                        raise Exception("Arity mismatch in multiple assignment")
-                else:
-                    # Single name assignment - don't flatten, just assign the value directly
-                    if len(vals) != 1:
-                        raise Exception(f"Expected 1 value for single assignment, got {len(vals)}")
-                    vals = [vals[0]]
+                case "store_val":
+                    num_names = 0
+                    for i in range(len(c) - 1):
+                        if isinstance(c[i], Token) and c[i].type == "NAME":
+                            num_names += 1
+                    # now eval all exprs
+                    exprs = c[num_names:]
+                    vals = [self.eval(e, env) for e in exprs]
 
-                for i in range(num_names):
-                    name = str(c[i])
-                    val = vals[i]
-                    env[name] = val
-                return None
-                 
-
-            if t == "expr_stmt":
-                return self.eval(c[0], env)
-
-            if t == "print_func":
-                args = self.eval(c[0], env)
-                # Print all arguments separated by spaces
-                print(*args)
-                return None
-            
-            if t == "swap_func":
-                args = self.eval(c[0], env)
-                # make sure first arg is list
-                if len(args) != 3:
-                    raise Exception(f"swap() takes exactly 3 arguments, got {len(args)}")
-                lst = args[0]
-                idx1 = int(args[1])
-                idx2 = int(args[2])
-                if not isinstance(lst, list):
-                    raise Exception("First argument to swap() must be a list")
-                if idx1 < 0 or idx1 >= len(lst) or idx2 < 0 or idx2 >= len(lst):
-                    raise Exception("swap() index out of range")
-                lst[idx1], lst[idx2] = lst[idx2], lst[idx1]
-                # return the modified list
-                return lst
-            
-            if t == "copy_func":
-                val = self.eval(c[0], env)
-                if isinstance(val, list):
-                    return val.copy()
-                if isinstance(val, tuple):
-                    return tuple(val)
-                return val  # for other types, just return as is
-
-            if t == "func_def":
-                name = str(c[0])
-
-                # Find the block/tree child (stmt_block)
-                body = None
-                params = []
-
-                for child in c[1:]:
-                    if isinstance(child, Tree) and child.data == "params":
-                        params = self.eval(child, env)
-                    elif isinstance(child, Tree) and child.data == "stmt_block":
-                        body = child
-
-                if body is None:
-                    raise Exception(f"Function body missing for {name}")
-
-                self.funcs[name] = (params, body)
-                return f"Defined {name}({', '.join(params)})"
-
-
-            if t == "args":
-                return [self.eval(x, env) for x in c]
-
-            if t == "call":
-                name = str(c[0])
-                arg_values = []
-                if len(c) == 2 and isinstance(c[1], Tree) and c[1].data == "args":
-                    arg_values = self.eval(c[1], env)
-
-                if name not in self.funcs:
-                    raise Exception(f"Function not found: {name}")
-
-                params, body = self.funcs[name]
-                if len(arg_values) != len(params):
-                    raise Exception(f"Arity mismatch: {name} expects {len(params)} args")
-
-                local_env = dict(env)  # allow read-through to globals
-                local_env.update(dict(zip(params, arg_values)))
-                return self.eval(body, local_env)
-
-            # arithmetic
-            if t == "add":
-                a = self.eval(c[0], env)
-                b = self.eval(c[1], env)
-                if isinstance(a, str) or isinstance(b, str):
-                    return str(a) + str(b)
-                return a + b
-            if t == "sub":
-                return self.eval(c[0], env) - self.eval(c[1], env)
-            if t == "neg":
-                return -self.eval(c[0], env)
-            if t == "mul":
-                return self.eval(c[0], env) * self.eval(c[1], env)
-            if t == "div":
-                return self.eval(c[0], env) / self.eval(c[1], env)
-            if t == "mod":
-                result = self.eval(c[0], env) % self.eval(c[1], env)
-                # Convert to int if result is a whole number
-                if isinstance(result, float) and result.is_integer():
-                    return int(result)
-                return result
-            if t == "null":
-                return None
-
-            if t == "true":
-                return 1
-
-            if t == "false":
-                return 0
-
-            if t == "tuple":
-                # Evaluate all children and return as tuple
-                return tuple(self.eval(child, env) for child in c)
-
-            if t == "list":
-                # Empty list
-                if len(c) == 0:
-                    return []
-                # List with items
-                if isinstance(c[0], Tree) and c[0].data == "list_items":
-                    return self.eval(c[0], env)
-                return []
-
-            if t == "list_items":
-                # Evaluate all items and return as list
-                return [self.eval(child, env) for child in c]
-
-            # comparisons (return 1/0 like you had)
-            if t == "gt":
-                return 1 if self.eval(c[0], env) > self.eval(c[1], env) else 0
-            if t == "lt":
-                return 1 if self.eval(c[0], env) < self.eval(c[1], env) else 0
-            if t == "ge":
-                return 1 if self.eval(c[0], env) >= self.eval(c[1], env) else 0
-            if t == "le":
-                return 1 if self.eval(c[0], env) <= self.eval(c[1], env) else 0
-            if t == "eq":
-                # check if comparing to null
-                first_eval = self.eval(c[0], env)
-                second_eval = self.eval(c[1], env)
-                # check for null comparison
-                if first_eval is None:
-                    return 1 if second_eval is None else 0
-                if second_eval is None:
-                    return 1 if first_eval is None else 0
-                return 1 if first_eval == second_eval else 0
-            if t == "ne":
-                first_eval = self.eval(c[0], env)
-                second_eval = self.eval(c[1], env)
-                # check for null comparison
-                if first_eval is None:
-                    return 0 if second_eval is None else 1
-                if second_eval is None:
-                    return 0 if first_eval is None else 1
-                
-                return 1 if self.eval(c[0], env) != self.eval(c[1], env) else 0
-
-            if t == "loop_stmt":
-                while self.eval(c[0], env) != 0:
-                    self.eval(c[1], env)  # block
-                return 0
-            
-            if t == "wait_func":
-                args = self.eval(c[0], env)
-                if len(args) >= 1 and len(args) <= 3:
-                    duration = args[0]
-                    # if second arg is scalar, make it (0, scalar)
-                    random_range = (0, 0)
-
-                    if len(args) == 3:
-                        random_range = (args[1], args[2])
-                    elif len(args) == 2:
-                        random_range = (0, args[1])
-                else:
-                    raise Exception(f"wait() takes 1 - 3 arguments, got {len(args)}")
-                return wait_func(duration, random_range)
-            
-            if t == "rand_func":
-                args = self.eval(c[0], env)
-                if len(args) == 1:
-                    low = 0
-                    high = args[0]
-                elif len(args) == 2:
-                    low = args[0]
-                    high = args[1]
-                else:
-                    raise Exception(f"rand() takes 1 or 2 arguments, got {len(args)}")
-                return random.uniform(low, high)
-            if t == "rand_i_func":
-                args = self.eval(c[0], env)
-                if len(args) == 1:
-                    low = 0
-                    high = args[0]
-                elif len(args) == 2:
-                    low = args[0]
-                    high = args[1]
-                else:
-                    raise Exception(f"rand_i() takes 1 or 2 arguments, got {len(args)}")
-                return random.randint(low, high)
-            if t == "foreach_tick_func":
-                while True:
-                    tick_provider_name = str(c[0])
-                    func_name = str(c[1])
-
-                    if tick_provider_name not in self.funcs:
-                        raise Exception(f"Tick provider func not found: {tick_provider_name}")
-                    _, tick_provider_body = self.funcs[tick_provider_name]
-
-
-                    # controls timeout
-                    results = self.eval(tick_provider_body, env)
-                    if results == EXIT_SIGNAL:
-                        break
-                    # call the function
-                    if func_name not in self.funcs:
-                        raise Exception(f"Function not found: {func_name}")
-                    _, body = self.funcs[func_name]
-                   # local_env = dict(env)  # allow read-through to globals
-                    results = self.eval(body, env)
-                return results
-            if t == "mouse_move_func":
-                args = self.eval(c[0], env)
-                if len(args) < 3:
-                    raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
-                x_offset = args[0]
-                y_offset = args[1]
-                if x_offset is None or y_offset is None:
-                    return None
-                pps = args[2]
-                humanLike = bool(args[3]) if len(args) >= 4 else True
-                move_mouse_to(x_offset, y_offset, pps, humanLike)
-                return 0
-            if t == "set_template_dir_func":
-                args = self.eval(c[0], env)
-                if len(args) == 0:
-                    raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
-                self.template_dir = str(args)
-                print(f"Template directory set to: {self.template_dir}")
-                return self.template_dir
-                # Here you would set the template directory in your application
-            if t == "find_template_func":
-                args = self.eval(c[0], env)
-                if len(args) != 1 and len(args) != 5:
-                    raise Exception(f"find_template() takes 1 or 5 arguments (template_name [, left, top, width, height]), got {len(args)}")
-                template_name = str(args[0])
-                region = None
-                if len(args) == 5:
-                    # region format: (left, top, width, height)
-                    region = (args[1], args[2], args[3], args[4])
-                pos = locate_template_on_screen(
-                    template_dir=self.template_dir,
-                    template_name=template_name,
-                    downscale=1.0
-                )
-                if pos is not None and len(pos) != 0:
-                    return pos[0][0], pos[0][1]
-                return None, None  # not found
-
-            if t == "find_templates_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 6:
-                    raise Exception(f"find_templates() takes 1 to 6 arguments (template_name [, left, top, width, height, top_k]), got {len(args)}")
-                template_name = str(args[0])
-                region = None
-                top_k = 10  # default to finding up to 10 matches
-
-                if len(args) == 2:
-                    # Just template_name and top_k
-                    top_k = int(args[1])
-                elif len(args) == 6:
-                    # region format: (left, top, width, height) and top_k
-                    region = (args[1], args[2], args[3], args[4])
-                    top_k = int(args[5])
-                elif len(args) == 5:
-                    # region format: (left, top, width, height), no top_k
-                    region = (args[1], args[2], args[3], args[4])
-
-                positions = locate_template_on_screen(
-                    template_dir=self.template_dir,
-                    template_name=template_name,
-                    downscale=1.0,
-                    top_k=top_k
-                )
-                if positions is not None and len(positions) > 0:
-                    # Return tuple of tuples
-                    return tuple(positions)
-                return tuple()  # empty tuple if not found
-
-            if t == "get_coordinates_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 2:
-                    raise Exception(f"get_coordinates() takes 1 or 2 arguments (message [, use_cache]), got {len(args)}")
-                message = str(args[0])
-                use_cache = bool(args[1]) if len(args) == 2 else False
-                x, y = get_coordinates_interactive(message, use_cache)
-                return (x, y)
-
-            if t == "check_pixel_color_func":
-                args = self.eval(c[0], env)
-                if len(args) < 6 or len(args) > 7:
-                    raise Exception(f"check_pixel_color() takes 6 or 7 arguments (x, y, radius, r, g, b [, tolerance]), got {len(args)}")
-                x = int(args[0])
-                y = int(args[1])
-                radius = int(args[2])
-                target_r = int(args[3])
-                target_g = int(args[4])
-                target_b = int(args[5])
-                tolerance = int(args[6]) if len(args) == 7 else 0
-                found = check_pixel_color_in_radius(x, y, radius, target_r, target_g, target_b, tolerance)
-                return 1 if found else 0
-
-            if t == "get_pixel_color_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 2:
-                    raise Exception(f"get_pixel_color() takes 1 or 2 arguments (alias [, use_cache]), got {len(args)}")
-                alias = str(args[0])
-                use_cache = bool(args[1]) if len(args) == 2 else False
-                r, g, b = get_pixel_color_interactive(alias, use_cache)
-                return (r, g, b)
-            
-            if t == "conditional_expr":
-                condition = self.eval(c[0], env)
-                t_block = c[1]
-                f_block = c[2] if len(c) == 3 else None
-
-                if condition:
-                    return self.eval(t_block, env)
-                elif f_block is not None:
-                    return self.eval(f_block, env)
-                return None
-            
-            if t == "left_click_func":
-                left_click()
-                return 0
-            
-            if t == "send_input_func":
-                args = self.eval(c[0], env)
-                if len(args) != 3:
-                    raise Exception(f"send_input() takes exactly 3 arguments (type, key, action), got {len(args)}")
-                t = str(args[0])
-                key = str(args[1])
-                action = str(args[2])
-                send_input(t, key, action)
-                return 0
-
-            if t == "press_and_release_func":
-                args = self.eval(c[0], env)
-                if len(args) < 2:
-                    raise Exception(f"press_and_release() takes at least 2 arguments (delay_ms, key1, [key2, ...]), got {len(args)}")
-                delay_ms = int(args[0])
-                keys = [str(k) for k in args[1:]]
-                press_and_release(delay_ms, *keys)
-                return 0
-
-            if t == "record_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 3:
-                    raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
-                recording_name = str(args[0])
-                start_button = str(args[1]) if len(args) >= 2 else "space"
-                stop_button = str(args[2]) if len(args) == 3 else "esc"
-                record_interactive(recording_name, start_button, stop_button)
-                return 0
-
-            if t == "playback_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 2:
-                    raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
-                recording_name = str(args[0])
-                stop_button = str(args[1]) if len(args) == 2 else "esc"
-                playback_interactive(recording_name, stop_button)
-                return 0
-
-            if t == "recording_exists_func":
-                recording_name = str(self.eval(c[0], env))
-                return 1 if recording_exists(recording_name) else 0
-
-            if t == "len_func":
-                val = self.eval(c[0], env)
-                if val is None:
-                    return 0
-                if isinstance(val, (tuple, list, str)):
-                    return len(val)
-                raise Exception(f"len() requires a tuple, list, or string, got {type(val)}")
-
-            if t == "time_func":
-                return time.time()
-
-            if t == "shuffle_func":
-                val = self.eval(c[0], env)
-                if val is None:
-                    return tuple()
-                if isinstance(val, tuple):
-                    # Convert to list, shuffle, convert back to tuple
-                    lst = list(val)
-                    random.shuffle(lst)
-                    return tuple(lst)
-                elif isinstance(val, list):
-                    # Create a copy and shuffle it
-                    lst = val.copy()
-                    random.shuffle(lst)
-                    return lst
-                raise Exception(f"shuffle() requires a tuple or list, got {type(val)}")
-
-            if t == "get_pixel_at_func":
-                args = self.eval(c[0], env)
-                if len(args) != 2:
-                    raise Exception(f"get_pixel_at() takes exactly 2 arguments (x, y), got {len(args)}")
-                x = int(args[0])
-                y = int(args[1])
-                # Capture pixel color at the specified coordinates
-                screenshot = ImageGrab.grab(bbox=(x, y, x + 1, y + 1))
-                pixel = screenshot.getpixel((0, 0))
-                r, g, b = pixel[0], pixel[1], pixel[2]
-                return (r, g, b)
-
-            if t == "append_func":
-                args = self.eval(c[0], env)
-                if len(args) != 2:
-                    raise Exception(f"append() takes exactly 2 arguments (list, item), got {len(args)}")
-                lst = args[0]
-                item = args[1]
-                if not isinstance(lst, list):
-                    raise Exception(f"append() requires a list as first argument, got {type(lst)}")
-                # Append the item to the list (modifies in place)
-                lst.append(item)
-                return lst
-
-            if t == "pop_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 2:
-                    raise Exception(f"pop() takes 1 or 2 arguments (list [, index]), got {len(args)}")
-                lst = args[0]
-                if not isinstance(lst, list):
-                    raise Exception(f"pop() requires a list as first argument, got {type(lst)}")
-                if len(lst) == 0:
-                    raise Exception("pop() called on empty list")
-                # Pop from specific index or from end
-                if len(args) == 2:
-                    index = int(args[1])
-                    if index < 0 or index >= len(lst):
-                        raise Exception(f"pop() index {index} out of range for list of length {len(lst)}")
-                    return lst.pop(index)
-                else:
-                    return lst.pop()
-
-            if t == "capture_region_func":
-                args = self.eval(c[0], env)
-                if len(args) < 1 or len(args) > 2:
-                    raise Exception(f"capture_region() takes 1 or 2 arguments (region_key [, overwrite_cache]), got {len(args)}")
-                region_key = str(args[0])
-                overwrite_cache = bool(args[1]) if len(args) == 2 else False
-                region = region_capture(region_key, overwrite_cache)
-                return region
-
-            if t == "ocr_find_text_func":
-                args = self.eval(c[0], env)
-                if len(args) < 0 or len(args) > 4:
-                    raise Exception(f"ocr_find_text() takes 0 to 4 arguments (region, min_conf, filter, upscale), got {len(args)}")
-
-                # Parse arguments with defaults
-                region = args[0] if len(args) >= 1 and args[0] is not None else None
-                min_conf = float(args[1]) if len(args) >= 2 else 0.45
-                if len(args) >= 3 and args[2] is not None:
-                    if isinstance(args[2], (list, tuple)):
-                        filter_text = [str(f) for f in args[2]]
+                    # Only flatten tuples/lists if we have multiple names (destructuring)
+                    if num_names > 1:
+                        # if tuples or lists, flatten
+                        vals_flat = []
+                        for v in vals:
+                            if isinstance(v, (tuple, list)):
+                                vals_flat.extend(v)
+                            else:
+                                vals_flat.append(v)
+                        vals = vals_flat
+                        if len(vals) != num_names:
+                            raise Exception("Arity mismatch in multiple assignment")
                     else:
-                        filter_text = [str(args[2])]
-                else:
-                    filter_text = None
-                upscale = float(args[3]) if len(args) >= 4 else 1.0
+                        # Single name assignment - don't flatten, just assign the value directly
+                        if len(vals) != 1:
+                            raise Exception(f"Expected 1 value for single assignment, got {len(vals)}")
+                        vals = [vals[0]]
 
-                # Call OCR function
-                results = ocr_find_text(region=region, min_conf=min_conf, filter=filter_text, upscale=upscale)
+                    for i in range(num_names):
+                        name = str(c[i])
+                        val = vals[i]
+                        env[name] = val
+                    return None
 
-                # Convert OCRResult objects to tuples for macroni
-                # Format: [(text, conf, [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]), ...]
-                return [(r.text, r.conf, r.bbox) for r in results]
+                case "expr_stmt":
+                    return self.eval(c[0], env)
 
-            # passthrough for inlined rules
-            if len(c) == 1:
-                return self.eval(c[0], env)
+                case "print_func":
+                    args = self.eval(c[0], env)
+                    # Print all arguments separated by spaces
+                    print(*args)
+                    return None
 
-            raise Exception(f"Unknown tree node: {t}")
+                case "swap_func":
+                    args = self.eval(c[0], env)
+                    # make sure first arg is list
+                    if len(args) != 3:
+                        raise Exception(f"swap() takes exactly 3 arguments, got {len(args)}")
+                    lst = args[0]
+                    idx1 = int(args[1])
+                    idx2 = int(args[2])
+                    if not isinstance(lst, list):
+                        raise Exception("First argument to swap() must be a list")
+                    if idx1 < 0 or idx1 >= len(lst) or idx2 < 0 or idx2 >= len(lst):
+                        raise Exception("swap() index out of range")
+                    lst[idx1], lst[idx2] = lst[idx2], lst[idx1]
+                    # return the modified list
+                    return lst
+
+                case "copy_func":
+                    val = self.eval(c[0], env)
+                    if isinstance(val, list):
+                        return val.copy()
+                    if isinstance(val, tuple):
+                        return tuple(val)
+                    return val  # for other types, just return as is
+
+                case "func_def":
+                    name = str(c[0])
+
+                    # Find the block/tree child (stmt_block)
+                    body = None
+                    params = []
+
+                    for child in c[1:]:
+                        if isinstance(child, Tree) and child.data == "params":
+                            params = self.eval(child, env)
+                        elif isinstance(child, Tree) and child.data == "stmt_block":
+                            body = child
+
+                    if body is None:
+                        raise Exception(f"Function body missing for {name}")
+
+                    self.funcs[name] = (params, body)
+                    return f"Defined {name}({', '.join(params)})"
+
+                case "args":
+                    return [self.eval(x, env) for x in c]
+
+                case "call":
+                    name = str(c[0])
+                    arg_values = []
+                    if len(c) == 2 and isinstance(c[1], Tree) and c[1].data == "args":
+                        arg_values = self.eval(c[1], env)
+
+                    if name not in self.funcs:
+                        raise Exception(f"Function not found: {name}")
+
+                    params, body = self.funcs[name]
+                    if len(arg_values) != len(params):
+                        raise Exception(f"Arity mismatch: {name} expects {len(params)} args")
+
+                    local_env = dict(env)  # allow read-through to globals
+                    local_env.update(dict(zip(params, arg_values)))
+                    return self.eval(body, local_env)
+
+                # arithmetic
+                case "add":
+                    a = self.eval(c[0], env)
+                    b = self.eval(c[1], env)
+                    if isinstance(a, str) or isinstance(b, str):
+                        return str(a) + str(b)
+                    return a + b
+
+                case "sub":
+                    return self.eval(c[0], env) - self.eval(c[1], env)
+
+                case "neg":
+                    return -self.eval(c[0], env)
+
+                case "mul":
+                    return self.eval(c[0], env) * self.eval(c[1], env)
+
+                case "div":
+                    return self.eval(c[0], env) / self.eval(c[1], env)
+
+                case "mod":
+                    result = self.eval(c[0], env) % self.eval(c[1], env)
+                    # Convert to int if result is a whole number
+                    if isinstance(result, float) and result.is_integer():
+                        return int(result)
+                    return result
+
+                case "null":
+                    return None
+
+                case "true":
+                    return 1
+
+                case "false":
+                    return 0
+
+                case "tuple":
+                    # Evaluate all children and return as tuple
+                    return tuple(self.eval(child, env) for child in c)
+
+                case "list":
+                    # Empty list
+                    if len(c) == 0:
+                        return []
+                    # List with items
+                    if isinstance(c[0], Tree) and c[0].data == "list_items":
+                        return self.eval(c[0], env)
+                    return []
+
+                case "list_items":
+                    # Evaluate all items and return as list
+                    return [self.eval(child, env) for child in c]
+
+                # comparisons (return 1/0 like you had)
+                case "gt":
+                    return 1 if self.eval(c[0], env) > self.eval(c[1], env) else 0
+
+                case "lt":
+                    return 1 if self.eval(c[0], env) < self.eval(c[1], env) else 0
+
+                case "ge":
+                    return 1 if self.eval(c[0], env) >= self.eval(c[1], env) else 0
+
+                case "le":
+                    return 1 if self.eval(c[0], env) <= self.eval(c[1], env) else 0
+
+                case "eq":
+                    # check if comparing to null
+                    first_eval = self.eval(c[0], env)
+                    second_eval = self.eval(c[1], env)
+                    # check for null comparison
+                    if first_eval is None:
+                        return 1 if second_eval is None else 0
+                    if second_eval is None:
+                        return 1 if first_eval is None else 0
+                    return 1 if first_eval == second_eval else 0
+
+                case "ne":
+                    first_eval = self.eval(c[0], env)
+                    second_eval = self.eval(c[1], env)
+                    # check for null comparison
+                    if first_eval is None:
+                        return 0 if second_eval is None else 1
+                    if second_eval is None:
+                        return 0 if first_eval is None else 1
+
+                    return 1 if self.eval(c[0], env) != self.eval(c[1], env) else 0
+
+                case "loop_stmt":
+                    while self.eval(c[0], env) != 0:
+                        self.eval(c[1], env)  # block
+                    return 0
+
+                case "wait_func":
+                    args = self.eval(c[0], env)
+                    if len(args) >= 1 and len(args) <= 3:
+                        duration = args[0]
+                        # if second arg is scalar, make it (0, scalar)
+                        random_range = (0, 0)
+
+                        if len(args) == 3:
+                            random_range = (args[1], args[2])
+                        elif len(args) == 2:
+                            random_range = (0, args[1])
+                    else:
+                        raise Exception(f"wait() takes 1 - 3 arguments, got {len(args)}")
+                    return wait_func(duration, random_range)
+
+                case "rand_func":
+                    args = self.eval(c[0], env)
+                    if len(args) == 1:
+                        low = 0
+                        high = args[0]
+                    elif len(args) == 2:
+                        low = args[0]
+                        high = args[1]
+                    else:
+                        raise Exception(f"rand() takes 1 or 2 arguments, got {len(args)}")
+                    return random.uniform(low, high)
+
+                case "rand_i_func":
+                    args = self.eval(c[0], env)
+                    if len(args) == 1:
+                        low = 0
+                        high = args[0]
+                    elif len(args) == 2:
+                        low = args[0]
+                        high = args[1]
+                    else:
+                        raise Exception(f"rand_i() takes 1 or 2 arguments, got {len(args)}")
+                    return random.randint(low, high)
+
+                case "foreach_tick_func":
+                    while True:
+                        tick_provider_name = str(c[0])
+                        func_name = str(c[1])
+
+                        if tick_provider_name not in self.funcs:
+                            raise Exception(f"Tick provider func not found: {tick_provider_name}")
+                        _, tick_provider_body = self.funcs[tick_provider_name]
+
+
+                        # controls timeout
+                        results = self.eval(tick_provider_body, env)
+                        if results == EXIT_SIGNAL:
+                            break
+                        # call the function
+                        if func_name not in self.funcs:
+                            raise Exception(f"Function not found: {func_name}")
+                        _, body = self.funcs[func_name]
+                       # local_env = dict(env)  # allow read-through to globals
+                        results = self.eval(body, env)
+                    return results
+
+                case "mouse_move_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 3:
+                        raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
+                    x_offset = args[0]
+                    y_offset = args[1]
+                    if x_offset is None or y_offset is None:
+                        return None
+                    pps = args[2]
+                    humanLike = bool(args[3]) if len(args) >= 4 else True
+                    move_mouse_to(x_offset, y_offset, pps, humanLike)
+                    return 0
+
+                case "set_template_dir_func":
+                    args = self.eval(c[0], env)
+                    if len(args) == 0:
+                        raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
+                    self.template_dir = str(args)
+                    print(f"Template directory set to: {self.template_dir}")
+                    return self.template_dir
+                    # Here you would set the template directory in your application
+
+                case "find_template_func":
+                    args = self.eval(c[0], env)
+                    if len(args) != 1 and len(args) != 5:
+                        raise Exception(f"find_template() takes 1 or 5 arguments (template_name [, left, top, width, height]), got {len(args)}")
+                    template_name = str(args[0])
+                    region = None
+                    if len(args) == 5:
+                        # region format: (left, top, width, height)
+                        region = (args[1], args[2], args[3], args[4])
+                    pos = locate_template_on_screen(
+                        template_dir=self.template_dir,
+                        template_name=template_name,
+                        downscale=1.0
+                    )
+                    if pos is not None and len(pos) != 0:
+                        return pos[0][0], pos[0][1]
+                    return None, None  # not found
+
+                case "find_templates_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 6:
+                        raise Exception(f"find_templates() takes 1 to 6 arguments (template_name [, left, top, width, height, top_k]), got {len(args)}")
+                    template_name = str(args[0])
+                    region = None
+                    top_k = 10  # default to finding up to 10 matches
+
+                    if len(args) == 2:
+                        # Just template_name and top_k
+                        top_k = int(args[1])
+                    elif len(args) == 6:
+                        # region format: (left, top, width, height) and top_k
+                        region = (args[1], args[2], args[3], args[4])
+                        top_k = int(args[5])
+                    elif len(args) == 5:
+                        # region format: (left, top, width, height), no top_k
+                        region = (args[1], args[2], args[3], args[4])
+
+                    positions = locate_template_on_screen(
+                        template_dir=self.template_dir,
+                        template_name=template_name,
+                        downscale=1.0,
+                        top_k=top_k
+                    )
+                    if positions is not None and len(positions) > 0:
+                        # Return tuple of tuples
+                        return tuple(positions)
+                    return tuple()  # empty tuple if not found
+
+                case "get_coordinates_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 2:
+                        raise Exception(f"get_coordinates() takes 1 or 2 arguments (message [, use_cache]), got {len(args)}")
+                    message = str(args[0])
+                    use_cache = bool(args[1]) if len(args) == 2 else False
+                    x, y = get_coordinates_interactive(message, use_cache)
+                    return (x, y)
+
+                case "check_pixel_color_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 6 or len(args) > 7:
+                        raise Exception(f"check_pixel_color() takes 6 or 7 arguments (x, y, radius, r, g, b [, tolerance]), got {len(args)}")
+                    x = int(args[0])
+                    y = int(args[1])
+                    radius = int(args[2])
+                    target_r = int(args[3])
+                    target_g = int(args[4])
+                    target_b = int(args[5])
+                    tolerance = int(args[6]) if len(args) == 7 else 0
+                    found = check_pixel_color_in_radius(x, y, radius, target_r, target_g, target_b, tolerance)
+                    return 1 if found else 0
+
+                case "get_pixel_color_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 2:
+                        raise Exception(f"get_pixel_color() takes 1 or 2 arguments (alias [, use_cache]), got {len(args)}")
+                    alias = str(args[0])
+                    use_cache = bool(args[1]) if len(args) == 2 else False
+                    r, g, b = get_pixel_color_interactive(alias, use_cache)
+                    return (r, g, b)
+
+                case "conditional_expr":
+                    condition = self.eval(c[0], env)
+                    t_block = c[1]
+                    f_block = c[2] if len(c) == 3 else None
+
+                    if condition:
+                        return self.eval(t_block, env)
+                    elif f_block is not None:
+                        return self.eval(f_block, env)
+                    return None
+
+                case "left_click_func":
+                    left_click()
+                    return 0
+
+                case "send_input_func":
+                    args = self.eval(c[0], env)
+                    if len(args) != 3:
+                        raise Exception(f"send_input() takes exactly 3 arguments (type, key, action), got {len(args)}")
+                    t = str(args[0])
+                    key = str(args[1])
+                    action = str(args[2])
+                    send_input(t, key, action)
+                    return 0
+
+                case "press_and_release_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 2:
+                        raise Exception(f"press_and_release() takes at least 2 arguments (delay_ms, key1, [key2, ...]), got {len(args)}")
+                    delay_ms = int(args[0])
+                    keys = [str(k) for k in args[1:]]
+                    press_and_release(delay_ms, *keys)
+                    return 0
+
+                case "record_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 3:
+                        raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
+                    recording_name = str(args[0])
+                    start_button = str(args[1]) if len(args) >= 2 else "space"
+                    stop_button = str(args[2]) if len(args) == 3 else "esc"
+                    record_interactive(recording_name, start_button, stop_button)
+                    return 0
+
+                case "playback_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 2:
+                        raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
+                    recording_name = str(args[0])
+                    stop_button = str(args[1]) if len(args) == 2 else "esc"
+                    playback_interactive(recording_name, stop_button)
+                    return 0
+
+                case "recording_exists_func":
+                    recording_name = str(self.eval(c[0], env))
+                    return 1 if recording_exists(recording_name) else 0
+
+                case "len_func":
+                    val = self.eval(c[0], env)
+                    if val is None:
+                        return 0
+                    if isinstance(val, (tuple, list, str)):
+                        return len(val)
+                    raise Exception(f"len() requires a tuple, list, or string, got {type(val)}")
+
+                case "time_func":
+                    return time.time()
+
+                case "shuffle_func":
+                    val = self.eval(c[0], env)
+                    if val is None:
+                        return tuple()
+                    if isinstance(val, tuple):
+                        # Convert to list, shuffle, convert back to tuple
+                        lst = list(val)
+                        random.shuffle(lst)
+                        return tuple(lst)
+                    elif isinstance(val, list):
+                        # Create a copy and shuffle it
+                        lst = val.copy()
+                        random.shuffle(lst)
+                        return lst
+                    raise Exception(f"shuffle() requires a tuple or list, got {type(val)}")
+
+                case "get_pixel_at_func":
+                    args = self.eval(c[0], env)
+                    if len(args) != 2:
+                        raise Exception(f"get_pixel_at() takes exactly 2 arguments (x, y), got {len(args)}")
+                    x = int(args[0])
+                    y = int(args[1])
+                    # Capture pixel color at the specified coordinates
+                    screenshot = ImageGrab.grab(bbox=(x, y, x + 1, y + 1))
+                    pixel = screenshot.getpixel((0, 0))
+                    r, g, b = pixel[0], pixel[1], pixel[2]
+                    return (r, g, b)
+
+                case "append_func":
+                    args = self.eval(c[0], env)
+                    if len(args) != 2:
+                        raise Exception(f"append() takes exactly 2 arguments (list, item), got {len(args)}")
+                    lst = args[0]
+                    item = args[1]
+                    if not isinstance(lst, list):
+                        raise Exception(f"append() requires a list as first argument, got {type(lst)}")
+                    # Append the item to the list (modifies in place)
+                    lst.append(item)
+                    return lst
+
+                case "pop_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 2:
+                        raise Exception(f"pop() takes 1 or 2 arguments (list [, index]), got {len(args)}")
+                    lst = args[0]
+                    if not isinstance(lst, list):
+                        raise Exception(f"pop() requires a list as first argument, got {type(lst)}")
+                    if len(lst) == 0:
+                        raise Exception("pop() called on empty list")
+                    # Pop from specific index or from end
+                    if len(args) == 2:
+                        index = int(args[1])
+                        if index < 0 or index >= len(lst):
+                            raise Exception(f"pop() index {index} out of range for list of length {len(lst)}")
+                        return lst.pop(index)
+                    else:
+                        return lst.pop()
+
+                case "capture_region_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 1 or len(args) > 2:
+                        raise Exception(f"capture_region() takes 1 or 2 arguments (region_key [, overwrite_cache]), got {len(args)}")
+                    region_key = str(args[0])
+                    overwrite_cache = bool(args[1]) if len(args) == 2 else False
+                    region = region_capture(region_key, overwrite_cache)
+                    return region
+
+                case "ocr_find_text_func":
+                    args = self.eval(c[0], env)
+                    if len(args) < 0 or len(args) > 4:
+                        raise Exception(f"ocr_find_text() takes 0 to 4 arguments (region, min_conf, filter, upscale), got {len(args)}")
+
+                    # Parse arguments with defaults
+                    region = args[0] if len(args) >= 1 and args[0] is not None else None
+                    min_conf = float(args[1]) if len(args) >= 2 else 0.45
+                    if len(args) >= 3 and args[2] is not None:
+                        if isinstance(args[2], (list, tuple)):
+                            filter_text = [str(f) for f in args[2]]
+                        else:
+                            filter_text = [str(args[2])]
+                    else:
+                        filter_text = None
+                    upscale = float(args[3]) if len(args) >= 4 else 1.0
+
+                    # Call OCR function
+                    results = ocr_find_text(region=region, min_conf=min_conf, filter=filter_text, upscale=upscale)
+
+                    # Convert OCRResult objects to tuples for macroni
+                    # Format: [(text, conf, [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]), ...]
+                    return [(r.text, r.conf, r.bbox) for r in results]
+
+                # passthrough for inlined rules
+                case _ if len(c) == 1:
+                    return self.eval(c[0], env)
+
+                case _:
+                    raise Exception(f"Unknown tree node: {t}")
 
         raise Exception(f"Unknown node type: {type(node)}")
 
@@ -1273,12 +1290,19 @@ def playback_interactive(recording_name, stop_button="esc"):
         print(f"✓ Playback completed! Executed {len(events)} events.\n")
 
 @click.command()
-@click.argument('filepath', type=click.Path(exists=True))
-def main(filepath):
+@click.option('-f', '--file', 'filepath', required=True, help='Path to the macroni script file to execute.', type=click.Path(exists=True))
+@click.option('-d', '--debug', is_flag=True, help='Enable debug mode with verbose output.')
+# list of breakpoints
+@click.option('-b', '--breakpoints', multiple=True, help='List of breakpoints to set in the script (by line number).')
+def main(filepath, debug, breakpoints: list):
     """Run a macroni script from a file."""
     # Read the script from the file
     with open(filepath, 'r') as f:
         script_content = f.read()
+    
+    dbg = Debugger()
+    if debug:
+        dbg.set_breakpoints(list(breakpoints))
 
     # Parse and execute the script
     interp = Interpreter()
