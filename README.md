@@ -1,6 +1,6 @@
 # Macroni
 
-DSL for GUI automation with OCR, template matching, and screen interaction.
+DSL for GUI automation with OCR, template matching, and screen interaction. Randomness is baked into all operations, such as mouse movement and playback. 
 
 ## Installation
 
@@ -63,9 +63,9 @@ macroni -f script.macroni -d -b 10 -b 25
 - `q` (quit) - Exit debugger
 - `eval <expression>` - Evaluate expression
 
-## OCR Text Search (Recommended)
+## OCR Text Search 
 
-Find and click text on screen without templates:
+Find and click text on screen:
 
 ```macroni
 # Capture region once, reuse forever (cached)
@@ -82,6 +82,8 @@ if @len(results) > 0 {
 }
 ```
 
+Note: This operation is fairly slow without CUDA. If using a CPU, keeping the region as small as possible will improve performance greatly. 
+
 **OCR Functions:**
 - `@capture_region(key, overwrite)` - Interactive region capture with caching
   - Hover top-left → Enter → bottom-right → Enter
@@ -93,7 +95,7 @@ if @len(results) > 0 {
   - `upscale`: 1.0 = no scaling, 0.5 = faster, 2.0 = tiny text
   - Returns `[(text, conf, [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]), ...]`
 
-## Template Matching (Alternative)
+## Template Matching
 
 ```macroni
 @set_template_dir("./templates");
