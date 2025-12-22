@@ -18,93 +18,133 @@ import math
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
 
-def smooth_move_to(x2, y2, total_time=0.25, hz=200, jitter_px=9, arc_strength=0.1, accuracy_pixels=1):
+def smooth_move_to_bezier_deterministic(x2, y2, total_time=0.25, hz=240):
     desired_time = total_time * 0.90
     x1, y1 = pyautogui.position()
 
     dx, dy = x2 - x1, y2 - y1
-    L = math.hypot(dx, dy)
-
-    ux, uy = dx / (L or 1.0), dy / (L or 1.0)
+    L = math.hypot(dx, dy) or 1.0
+    ux, uy = dx / L, dy / L
     px, py = -uy, ux
 
-    # distance-aware steps (cap both ways)
     steps_time = max(1, int(desired_time * hz))
-    steps_dist = int(max(8, min(steps_time, L * 0.6)))  # ~0.6 steps per px, capped
+    steps_dist = int(max(8, min(steps_time, L * 0.35)))
     steps = max(1, min(steps_time, steps_dist))
-
     dt = desired_time / steps
 
-    # target scatter
-    x2j = x2 + random.randint(-accuracy_pixels, accuracy_pixels)
-    y2j = y2 + random.randint(-accuracy_pixels, accuracy_pixels)
-
-    dx, dy = x2j - x1, y2j - y1
-    L = math.hypot(dx, dy) or 1.0
-
-    # arc setup
-    arc_dir = random.choice([-1, 1])
-    strength_rand = random.uniform(0.7, 1.3)
-    peak = arc_dir * arc_strength*strength_rand * L
-    peak = max(-100, min(100, peak))
-
-    peak_pos = random.uniform(0.25, 0.75)
-
-    # wobble setup
-    cycles = random.uniform(.5, 1.0)
-    if L < 20:
-        cycles = random.uniform(0.25, .5)
-
-    wobble_dir = random.choice([-1, 1])
-    phase = random.uniform(0, 2 * math.pi)
-    omega0 = 2 * math.pi * cycles / max(desired_time, 0.001)
+    # deterministic control point (straight line)
+    apex_t = 0.5
+    arc_px = 0.0
+    cx = x1 + dx * apex_t + px * arc_px
+    cy = y1 + dy * apex_t + py * arc_px
 
     start = time.perf_counter()
     for i in range(1, steps + 1):
         t = i / steps
-
-        # if distance remaining is very small like < 5 pixels, move directly to target
-        cx, cy = pyautogui.position()
-        rem = math.hypot(x2j - cx, y2j - cy)
-        if rem <= accuracy_pixels:
-            break
-
-        # smoothstep base motion
-        tt = t * t * (3 - 2 * t)
-        x = x1 + dx * tt
-        y = y1 + dy * tt
-
-        # smooth bump for the bulge (C1-ish, no cusp): bell-shaped around peak_pos
-        # width controls how wide the bulge is; randomize slightly
-        width = random.uniform(0.25, 0.45)
-        z = (t - peak_pos) / max(width, 1e-6)
-        bulge_factor = math.exp(-z * z * 3.0)  # gaussian-ish bump
-        bulge = peak * bulge_factor
-
-        # Wobble envelope and amplitude
-        env = 4 * t * (1 - t)
-        base_amp = min(jitter_px, 0.03 * L)
-        wobble_amp = base_amp * (1 - t) ** 1.2
-
-        # Bounded omega noise (no random-walk drift)
-        omega = omega0 * (1.0 + random.uniform(-0.08, 0.08))
-        phase += omega * dt
-
-        wobble = wobble_dir * wobble_amp * env * math.sin(phase)
-
-        x += px * (bulge + wobble)
-        y += py * (bulge + wobble)
-
-        pyautogui.moveTo(int(x), int(y), duration=0, _pause=False)
+        omt = 1 - t
+        bx = (omt * omt) * x1 + 2 * omt * t * cx + (t * t) * x2
+        by = (omt * omt) * y1 + 2 * omt * t * cy + (t * t) * y2
+        pyautogui.moveTo(int(bx), int(by), duration=0, _pause=False)
 
         target = start + i * dt
         now = time.perf_counter()
         if target > now:
             time.sleep(target - now)
 
-    # Final correction only if still noticeably off
-    cx, cy = pyautogui.position()
-    rem = math.hypot(x2 - cx, y2 - cy)
+    pyautogui.moveTo(x2, y2, duration=0, _pause=False)
+
+
+# TODO: PLAYBACK MAKE END POINT MORE RANDOM
+def smooth_move_to_bezier(
+    x2, y2,
+    total_time=0.25,
+    hz=240,
+    accuracy_pixels=1,
+    arc_px=None,               # if None, chosen from distance
+    arc_px_cap=80,
+    wobble_px=2,             # max wobble amplitude in pixels
+):
+    desired_time = total_time * 0.8
+    x1, y1 = pyautogui.position()
+
+    dx, dy = x2 - x1, y2 - y1
+    L = math.hypot(dx, dy) or 1.0
+
+    if L*.1 < arc_px_cap:
+        arc_px_cap = L * 0.1
+
+    # Unit direction + perpendicular
+    ux, uy = dx / L, dy / L
+    px, py = -uy, ux
+
+    # Steps (don’t oversample small moves)
+    steps_time = max(1, int(desired_time * hz))
+    steps_dist = int(max(8, min(steps_time, L * 0.35)))
+    steps = max(1, min(steps_time, steps_dist))
+    dt = desired_time / steps
+
+    # --- Choose Bezier control point ---
+    # Pick a random point along the straight line, then push it sideways.
+    apex_t = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
+    arc_dir = random.choice([-1, 1])
+
+    if arc_px is None:
+        # Sublinear arc scaling: grows with distance, but not crazy on long moves
+        arc_px = (math.sqrt(L) * 5.0) * random.uniform(0.25, 1.0)
+    arc_px = arc_dir * min(arc_px_cap, arc_px)
+
+    cx = x1 + dx * apex_t + px * arc_px
+    cy = y1 + dy * apex_t + py * arc_px
+
+    # --- Wobble setup (tiny and damped) ---
+    # allow max of one wobble per 100 pixels
+    wobble_cycles_min = 0.0
+    wobble_cycles_max = L / 100.0
+    cycles = random.uniform(wobble_cycles_min, wobble_cycles_max)
+    if L < 40:
+        cycles = 0.0  # no wobble for tiny moves
+
+    phase = random.uniform(0, 2 * math.pi)
+    omega = 2 * math.pi * cycles / max(desired_time, 1e-3)
+
+    start = time.perf_counter()
+    for i in range(1, steps + 1):
+        t = i / steps
+
+        # stop early if close enough
+        cxp, cyp = pyautogui.position()
+        if math.hypot(x2 - cxp, y2 - cyp) <= accuracy_pixels:
+            break
+
+        # Quadratic Bezier point
+        # B(t) = (1-t)^2 P0 + 2(1-t)t C + t^2 P1
+        omt = (1 - t)
+        bx = (omt * omt) * x1 + 2 * omt * t * cx + (t * t) * x2
+        by = (omt * omt) * y1 + 2 * omt * t * cy + (t * t) * y2
+
+        # Perpendicular wobble (damped at ends, stronger mid-path)
+        env = (4 * t * (1 - t)) ** 1.4  # near-zero at start/end
+        # also fade out near the end more, so we "settle"
+        settle = (1 - t) ** 1.6
+
+        wob = 0.0
+        if cycles > 0:
+            wob = wobble_px * env * settle * math.sin(phase + omega * (t * desired_time))
+
+        bx += px * wob
+        by += py * wob
+
+        pyautogui.moveTo(int(bx), int(by), duration=0, _pause=False)
+
+        # timing
+        target = start + i * dt
+        now = time.perf_counter()
+        if target > now:
+            time.sleep(target - now)
+
+    # Final correction (gentle settle)
+    cxp, cyp = pyautogui.position()
+    rem = math.hypot(x2 - cxp, y2 - cyp)
     elapsed = time.perf_counter() - start
     time_remaining = max(total_time - elapsed, 0.0)
 
@@ -129,5 +169,5 @@ def move_mouse_to(x: int, y: int, pps: int, humanLike: bool) -> None:
     if not humanLike:
         pyautogui.moveTo(x, y, duration=duration)
     else:
-        smooth_move_to(x, y, total_time=duration)
+            smooth_move_to_bezier(x, y, total_time=duration)
     

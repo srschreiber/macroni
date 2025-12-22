@@ -883,7 +883,7 @@ def record_interactive(recording_name, start_button="space", stop_button="esc"):
     print(f"{'='*60}\n")
 
     # Use output_handler's record function which compresses mouse movements
-    events = output_handler.record(bucket_size_ms=50, start_button=start_button, stop_button=stop_button)
+    events = output_handler.record(start_button=start_button, stop_button=stop_button)
 
     # Convert RecordedEvent dataclasses to dicts for JSON serialization
     import dataclasses

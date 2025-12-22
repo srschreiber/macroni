@@ -30,24 +30,34 @@ def drain_queue(q: "queue.Queue[RecordedEvent]") -> list[RecordedEvent]:
             break
     return out
 
-def squash_moves(events: list[RecordedEvent], bucket_size_ms: int = 50) -> list[RecordedEvent]:
-    """Keep only the last mouse_move within each bucket window, preserving from_coordinates from first move."""
+def squash_moves(events: list[RecordedEvent], distance_threshold: int = 50) -> list[RecordedEvent]:
+    """Squash consecutive mouse moves based on pixel distance from start of sequence.
+    Preserves last move positions before non-move events (clicks, key presses, etc.)."""
     out: list[RecordedEvent] = []
-    bucket_s = bucket_size_ms / 1000.0
 
     i = 0
     n = len(events)
     while i < n:
         e = events[i]
         if e.kind == "mouse_move":
-            bucket_end = e.timestamp + bucket_s
             first = e
+            start_pos = first.to_coordinates
             last = e
             j = i + 1
-            while j < n and events[j].kind == "mouse_move" and events[j].timestamp <= bucket_end:
+
+            # Collect moves until distance threshold exceeded or non-move event
+            while j < n and events[j].kind == "mouse_move":
+                current_pos = events[j].to_coordinates
+                if start_pos and current_pos:
+                    dist = distance(start_pos[0], start_pos[1], current_pos[0], current_pos[1])
+                    if dist > distance_threshold:
+                        # Distance exceeded - stop here and start new sequence
+                        break
+
                 last = events[j]
                 j += 1
-            # Create a new event with from_coordinates from first and to_coordinates from last
+
+            # Create squashed event from first to last (preserving final position)
             squashed = dataclasses.replace(
                 last,
                 from_coordinates=first.from_coordinates if first.from_coordinates else first.to_coordinates
@@ -69,7 +79,7 @@ def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     events[-1].duration_ms = 0
     return events
 
-def record(bucket_size_ms: int = 250, start_button=None, stop_button=None) -> list[RecordedEvent]:
+def record(distance_threshold: int = 50, start_button=None, stop_button=None) -> list[RecordedEvent]:
     # load corresponding key for start/stop
     start_key = keyboard.Key.space if start_button is None else getattr(keyboard.Key, start_button, start_button)
     stop_key = keyboard.Key.esc if stop_button is None else getattr(keyboard.Key, stop_button, stop_button)
@@ -164,7 +174,7 @@ def record(bucket_size_ms: int = 250, start_button=None, stop_button=None) -> li
     events.sort(key=lambda e: e.timestamp)
 
     # squash move spam, then compute timing for replay
-    events = squash_moves(events, bucket_size_ms=bucket_size_ms)
+    events = squash_moves(events, distance_threshold=distance_threshold)
     events = attach_durations(events)
 
     print(f"✓ Recording stopped! Captured {len(events)} events (compressed).\n")
@@ -185,6 +195,17 @@ def parse_key_string(key_str: str):
             return key_str
     except Exception:
         return None
+    
+def hallucinate_points(x1, y1, x2, y2, num_points):
+    # randomly select n points between (x1, y1) and (x2, y2)
+    points = []
+    for _ in range(num_points):
+        t = random.uniform(0, 1)
+        x = x1 + t * (x2 - x1) + random.uniform(-3, 3)
+        y = y1 + t * (y2 - y1) + random.uniform(-3, 3)
+        points.append((x, y))
+    points.sort(key=lambda p: ((p[0] - x1) ** 2 + (p[1] - y1) ** 2))
+    return points
 
 def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
     print("Playing back...")
@@ -211,11 +232,10 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
     # first, move the mouse quickly to the start position
     first_move = next((e for e in events if e.kind == "mouse_move" and e.to_coordinates), None)
     if first_move and first_move.to_coordinates:
-        pps = 400
         new_first = first_move.to_coordinates[0] + random.uniform(-jitter, jitter), first_move.to_coordinates[1] + random.uniform(-5, 5)
         # overwrite first_move to include scatter
         first_move.to_coordinates = new_first
-        move_mouse_to(first_move.to_coordinates[0] + random.uniform(-jitter, jitter), first_move.to_coordinates[1] + random.uniform(-10, 10), pps, True)
+        move_mouse_to(new_first[0], new_first[1], pps=800, humanLike=True)
 
     print("Starting playback...")
 
@@ -241,7 +261,22 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
         if e.kind == "mouse_move" and e.to_coordinates:
             # For mouse moves, use fast movement since we've already waited
             # splice in a few fake points to make movement slightly more random
-            move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)
+            dist = distance(
+                mouse_controller.position[0], mouse_controller.position[1],
+                e.to_coordinates[0], e.to_coordinates[1]
+            )
+            # all_points = hallucinate_points(
+            #     mouse_controller.position[0], mouse_controller.position[1],
+            #     e.to_coordinates[0], e.to_coordinates[1],
+            #     num_points = int(dist) // 10 # approximately one point every 10 pixels
+            # )
+            all_points = []
+            all_points.append(e.to_coordinates)
+            # calc pps to keep timing roughly correct
+            pps = int(dist / (e.duration_ms / 1000.0)) if e.duration_ms and e.duration_ms > 0 else 3000
+            for pt in all_points:
+                move_mouse_to(pt[0], pt[1], pps, True)
+            #move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)
         elif e.kind == "mouse_click" and e.to_coordinates:
             button = getattr(mouse.Button, e.key.split(".")[-1])
             if e.action == "down":
