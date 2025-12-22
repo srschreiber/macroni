@@ -9,9 +9,10 @@ program: stmt*                              -> stmt_block
      | while_stmt
      | assign_stmt
      | expr_stmt
+     | outer_stmt
 
 # ---------- statements ----------
-
+outer_stmt: "outer" NAME ";"                    -> outer_stmt
 assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
 expr_stmt: expr (";")+                         -> expr_stmt
             | conditional_expr        -> expr_stmt

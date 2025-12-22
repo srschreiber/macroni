@@ -1,10 +1,29 @@
-fn printHello() {
-    @print("Hello, World!");
+# fn printHello() {
+#     @print("Hello, World!");
+# }
+
+# fn printGoodbye() {
+#     @print("Goodbye, World!");
+# }
+
+# x = 5;
+
+# printHello();
+# printGoodbye();
+
+# test variable scoping: function uses i, caller users i
+fn test_scope() {
+    i = 5;
 }
 
-fn printGoodbye() {
-    @print("Goodbye, World!");
+fn test_outer() {
+    outer i;
+    i = i + 10;
 }
 
-printHello();
-printGoodbye();
+i = 10;
+test_scope();
+@print(i);
+test_outer();
+@print(i);
+

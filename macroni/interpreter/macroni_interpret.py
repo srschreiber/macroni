@@ -28,6 +28,8 @@ class Interpreter:
             Each file will be: target/ex1.png target/ex2.png etc.
         """
         self.template_dir = "./templates"
+        # outer_vars may point to different ExecutionContext instances
+        self.outer_vars: dict[str, ExecutionContext] = {}
 
     def eval(self, context: ExecutionContext) -> Any:
         node = context.node
@@ -44,6 +46,11 @@ class Interpreter:
                 return ast.literal_eval(str(node))
             case Token(type="NAME"):
                 name = str(node)
+                # outer?
+                if name in self.outer_vars:
+                    outer_ctx = self.outer_vars[name]
+                    return outer_ctx.vars.get(name, None)
+                
                 if name in context.vars:
                     return context.vars[name]
                 raise Exception(f"Variable not found: {name}")
@@ -56,6 +63,16 @@ class Interpreter:
             c = node.children
 
             match t:
+                case "outer_stmt":
+                    name = str(c[0])
+                    # search parents until found
+                    ctx = context.parent
+                    while ctx is not None:
+                        if name in ctx.vars:
+                            self.outer_vars[name] = ctx
+                            return None
+                        ctx = ctx.parent
+                    return None
                 case "stmt_block":
                     last = 0
                     for stmt in c:
@@ -109,7 +126,12 @@ class Interpreter:
                     for i in range(num_names):
                         name = str(c[i])
                         val = vals[i]
-                        context.vars[name] = val
+                        # check if outer
+                        if name in self.outer_vars:
+                            outer_ctx = self.outer_vars[name]
+                            outer_ctx.vars[name] = val
+                        else:
+                            context.vars[name] = val
                     return None
 
                 case "expr_stmt":
