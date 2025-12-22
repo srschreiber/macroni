@@ -1,5 +1,7 @@
 install:
 	./scripts/bootstrap.sh
 
-add-extension:
-	code --install-extension extension/macroni/macroni-*.vsix
+build-extension:
+	cd macroni/extension/macroni && vsce package
+	mv macroni/extension/macroni/*.vsix .
+	code --install-extension macroni-*.vsix
