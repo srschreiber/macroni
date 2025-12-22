@@ -171,19 +171,55 @@ COMMENT: /\#[^\n]*/
 calc_parser = Lark(calc_grammar, parser="lalr", propagate_positions=True, maybe_placeholders=False)
 EXIT_SIGNAL = 1
 
-class Interpreter:
-    def __init__(self):
-        self.vars = {}
-        self.funcs = {}  # name -> (param_names, body_tree)
+class ExecutionContext:
+    def __init__(self, vars=None, funcs=None, depth=0):
         """
-            TEMPLATE DIR: 
+        Initialize execution context.
+
+        Args:
+            vars: Dictionary of variables (if None, creates empty dict)
+            funcs: Dictionary of functions (if None, creates empty dict)
+            depth: Current recursion depth
+        """
+        self.vars = vars if vars is not None else {}
+        self.funcs = funcs if funcs is not None else {}
+        self.depth = depth
+
+    def create_child_context(self, local_vars=None):
+        """
+        Create a child context for function calls.
+        Copies current vars and funcs, layers local vars on top.
+        Increments depth.
+
+        Args:
+            local_vars: Dictionary of local variables to layer on top
+
+        Returns:
+            ExecutionContext: New child context with incremented depth
+        """
+        # Copy vars and funcs from parent (global scope)
+        child_vars = dict(self.vars)
+        child_funcs = dict(self.funcs)
+
+        # Layer local vars on top
+        if local_vars:
+            child_vars.update(local_vars)
+
+        return ExecutionContext(vars=child_vars, funcs=child_funcs, depth=self.depth + 1)
+
+class Interpreter:
+    def __init__(self, dbg: Debugger = None):
+        self.global_context = ExecutionContext()
+        """
+            TEMPLATE DIR:
             Each file will be: target/ex1.png target/ex2.png etc.
         """
         self.template_dir = "./templates"
+        self.dbg: Debugger = Debugger() if dbg is None else dbg
 
-    def eval(self, node, env=None):
-        if env is None:
-            env = self.vars
+    def eval(self, node, context=None):
+        if context is None:
+            context = self.global_context
 
         # Tokens
         match node:
@@ -197,8 +233,8 @@ class Interpreter:
                 return ast.literal_eval(str(node))
             case Token(type="NAME"):
                 name = str(node)
-                if name in env:
-                    return env[name]
+                if name in context.vars:
+                    return context.vars[name]
                 raise Exception(f"Variable not found: {name}")
             case Token():
                 return str(node)
@@ -212,15 +248,16 @@ class Interpreter:
                 case "stmt_block":
                     last = 0
                     for stmt in c:
-                        last = self.eval(stmt, env)
+                        self.dbg.maybe_pause(stmt, call_depth=context.depth)
+                        last = self.eval(stmt, context)
                     return last
 
                 case "params":
                     return [str(x) for x in c]
 
                 case "index":
-                    container = self.eval(c[0], env)
-                    idx = self.eval(c[1], env)
+                    container = self.eval(c[0], context)
+                    idx = self.eval(c[1], context)
 
                     if not isinstance(idx, int):
                         raise Exception("Index must be an integer")
@@ -237,7 +274,7 @@ class Interpreter:
                             num_names += 1
                     # now eval all exprs
                     exprs = c[num_names:]
-                    vals = [self.eval(e, env) for e in exprs]
+                    vals = [self.eval(e, context) for e in exprs]
 
                     # Only flatten tuples/lists if we have multiple names (destructuring)
                     if num_names > 1:
@@ -260,20 +297,20 @@ class Interpreter:
                     for i in range(num_names):
                         name = str(c[i])
                         val = vals[i]
-                        env[name] = val
+                        context.vars[name] = val
                     return None
 
                 case "expr_stmt":
-                    return self.eval(c[0], env)
+                    return self.eval(c[0], context)
 
                 case "print_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     # Print all arguments separated by spaces
                     print(*args)
                     return None
 
                 case "swap_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     # make sure first arg is list
                     if len(args) != 3:
                         raise Exception(f"swap() takes exactly 3 arguments, got {len(args)}")
@@ -289,7 +326,7 @@ class Interpreter:
                     return lst
 
                 case "copy_func":
-                    val = self.eval(c[0], env)
+                    val = self.eval(c[0], context)
                     if isinstance(val, list):
                         return val.copy()
                     if isinstance(val, tuple):
@@ -305,58 +342,59 @@ class Interpreter:
 
                     for child in c[1:]:
                         if isinstance(child, Tree) and child.data == "params":
-                            params = self.eval(child, env)
+                            params = self.eval(child, context)
                         elif isinstance(child, Tree) and child.data == "stmt_block":
                             body = child
 
                     if body is None:
                         raise Exception(f"Function body missing for {name}")
 
-                    self.funcs[name] = (params, body)
+                    context.funcs[name] = (params, body)
                     return f"Defined {name}({', '.join(params)})"
 
                 case "args":
-                    return [self.eval(x, env) for x in c]
+                    return [self.eval(x, context) for x in c]
 
                 case "call":
                     name = str(c[0])
                     arg_values = []
                     if len(c) == 2 and isinstance(c[1], Tree) and c[1].data == "args":
-                        arg_values = self.eval(c[1], env)
+                        arg_values = self.eval(c[1], context)
 
-                    if name not in self.funcs:
+                    if name not in context.funcs:
                         raise Exception(f"Function not found: {name}")
 
-                    params, body = self.funcs[name]
+                    params, body = context.funcs[name]
                     if len(arg_values) != len(params):
                         raise Exception(f"Arity mismatch: {name} expects {len(params)} args")
 
-                    local_env = dict(env)  # allow read-through to globals
-                    local_env.update(dict(zip(params, arg_values)))
-                    return self.eval(body, local_env)
+                    # Create child context: copy global scope and layer local scope on top
+                    local_vars = dict(zip(params, arg_values))
+                    child_context = context.create_child_context(local_vars)
+                    return self.eval(body, child_context)
 
                 # arithmetic
                 case "add":
-                    a = self.eval(c[0], env)
-                    b = self.eval(c[1], env)
+                    a = self.eval(c[0], context)
+                    b = self.eval(c[1], context)
                     if isinstance(a, str) or isinstance(b, str):
                         return str(a) + str(b)
                     return a + b
 
                 case "sub":
-                    return self.eval(c[0], env) - self.eval(c[1], env)
+                    return self.eval(c[0], context) - self.eval(c[1], context)
 
                 case "neg":
-                    return -self.eval(c[0], env)
+                    return -self.eval(c[0], context)
 
                 case "mul":
-                    return self.eval(c[0], env) * self.eval(c[1], env)
+                    return self.eval(c[0], context) * self.eval(c[1], context)
 
                 case "div":
-                    return self.eval(c[0], env) / self.eval(c[1], env)
+                    return self.eval(c[0], context) / self.eval(c[1], context)
 
                 case "mod":
-                    result = self.eval(c[0], env) % self.eval(c[1], env)
+                    result = self.eval(c[0], context) % self.eval(c[1], context)
                     # Convert to int if result is a whole number
                     if isinstance(result, float) and result.is_integer():
                         return int(result)
@@ -373,7 +411,7 @@ class Interpreter:
 
                 case "tuple":
                     # Evaluate all children and return as tuple
-                    return tuple(self.eval(child, env) for child in c)
+                    return tuple(self.eval(child, context) for child in c)
 
                 case "list":
                     # Empty list
@@ -381,30 +419,30 @@ class Interpreter:
                         return []
                     # List with items
                     if isinstance(c[0], Tree) and c[0].data == "list_items":
-                        return self.eval(c[0], env)
+                        return self.eval(c[0], context)
                     return []
 
                 case "list_items":
                     # Evaluate all items and return as list
-                    return [self.eval(child, env) for child in c]
+                    return [self.eval(child, context) for child in c]
 
                 # comparisons (return 1/0 like you had)
                 case "gt":
-                    return 1 if self.eval(c[0], env) > self.eval(c[1], env) else 0
+                    return 1 if self.eval(c[0], context) > self.eval(c[1], context) else 0
 
                 case "lt":
-                    return 1 if self.eval(c[0], env) < self.eval(c[1], env) else 0
+                    return 1 if self.eval(c[0], context) < self.eval(c[1], context) else 0
 
                 case "ge":
-                    return 1 if self.eval(c[0], env) >= self.eval(c[1], env) else 0
+                    return 1 if self.eval(c[0], context) >= self.eval(c[1], context) else 0
 
                 case "le":
-                    return 1 if self.eval(c[0], env) <= self.eval(c[1], env) else 0
+                    return 1 if self.eval(c[0], context) <= self.eval(c[1], context) else 0
 
                 case "eq":
                     # check if comparing to null
-                    first_eval = self.eval(c[0], env)
-                    second_eval = self.eval(c[1], env)
+                    first_eval = self.eval(c[0], context)
+                    second_eval = self.eval(c[1], context)
                     # check for null comparison
                     if first_eval is None:
                         return 1 if second_eval is None else 0
@@ -413,23 +451,23 @@ class Interpreter:
                     return 1 if first_eval == second_eval else 0
 
                 case "ne":
-                    first_eval = self.eval(c[0], env)
-                    second_eval = self.eval(c[1], env)
+                    first_eval = self.eval(c[0], context)
+                    second_eval = self.eval(c[1], context)
                     # check for null comparison
                     if first_eval is None:
                         return 0 if second_eval is None else 1
                     if second_eval is None:
                         return 0 if first_eval is None else 1
 
-                    return 1 if self.eval(c[0], env) != self.eval(c[1], env) else 0
+                    return 1 if self.eval(c[0], context) != self.eval(c[1], context) else 0
 
                 case "loop_stmt":
-                    while self.eval(c[0], env) != 0:
-                        self.eval(c[1], env)  # block
+                    while self.eval(c[0], context) != 0:
+                        self.eval(c[1], context)  # block
                     return 0
 
                 case "wait_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) >= 1 and len(args) <= 3:
                         duration = args[0]
                         # if second arg is scalar, make it (0, scalar)
@@ -444,7 +482,7 @@ class Interpreter:
                     return wait_func(duration, random_range)
 
                 case "rand_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) == 1:
                         low = 0
                         high = args[0]
@@ -456,7 +494,7 @@ class Interpreter:
                     return random.uniform(low, high)
 
                 case "rand_i_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) == 1:
                         low = 0
                         high = args[0]
@@ -472,25 +510,25 @@ class Interpreter:
                         tick_provider_name = str(c[0])
                         func_name = str(c[1])
 
-                        if tick_provider_name not in self.funcs:
+                        if tick_provider_name not in context.funcs:
                             raise Exception(f"Tick provider func not found: {tick_provider_name}")
-                        _, tick_provider_body = self.funcs[tick_provider_name]
+                        _, tick_provider_body = context.funcs[tick_provider_name]
 
 
                         # controls timeout
-                        results = self.eval(tick_provider_body, env)
+                        results = self.eval(tick_provider_body, context)
                         if results == EXIT_SIGNAL:
                             break
                         # call the function
-                        if func_name not in self.funcs:
+                        if func_name not in context.funcs:
                             raise Exception(f"Function not found: {func_name}")
-                        _, body = self.funcs[func_name]
-                       # local_env = dict(env)  # allow read-through to globals
-                        results = self.eval(body, env)
+                        _, body = context.funcs[func_name]
+                        # Evaluate function body in current context
+                        results = self.eval(body, context)
                     return results
 
                 case "mouse_move_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 3:
                         raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
                     x_offset = args[0]
@@ -503,7 +541,7 @@ class Interpreter:
                     return 0
 
                 case "set_template_dir_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) == 0:
                         raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
                     self.template_dir = str(args)
@@ -512,7 +550,7 @@ class Interpreter:
                     # Here you would set the template directory in your application
 
                 case "find_template_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) != 1 and len(args) != 5:
                         raise Exception(f"find_template() takes 1 or 5 arguments (template_name [, left, top, width, height]), got {len(args)}")
                     template_name = str(args[0])
@@ -530,7 +568,7 @@ class Interpreter:
                     return None, None  # not found
 
                 case "find_templates_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 6:
                         raise Exception(f"find_templates() takes 1 to 6 arguments (template_name [, left, top, width, height, top_k]), got {len(args)}")
                     template_name = str(args[0])
@@ -560,7 +598,7 @@ class Interpreter:
                     return tuple()  # empty tuple if not found
 
                 case "get_coordinates_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"get_coordinates() takes 1 or 2 arguments (message [, use_cache]), got {len(args)}")
                     message = str(args[0])
@@ -569,7 +607,7 @@ class Interpreter:
                     return (x, y)
 
                 case "check_pixel_color_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 6 or len(args) > 7:
                         raise Exception(f"check_pixel_color() takes 6 or 7 arguments (x, y, radius, r, g, b [, tolerance]), got {len(args)}")
                     x = int(args[0])
@@ -583,7 +621,7 @@ class Interpreter:
                     return 1 if found else 0
 
                 case "get_pixel_color_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"get_pixel_color() takes 1 or 2 arguments (alias [, use_cache]), got {len(args)}")
                     alias = str(args[0])
@@ -592,14 +630,14 @@ class Interpreter:
                     return (r, g, b)
 
                 case "conditional_expr":
-                    condition = self.eval(c[0], env)
+                    condition = self.eval(c[0], context)
                     t_block = c[1]
                     f_block = c[2] if len(c) == 3 else None
 
                     if condition:
-                        return self.eval(t_block, env)
+                        return self.eval(t_block, context)
                     elif f_block is not None:
-                        return self.eval(f_block, env)
+                        return self.eval(f_block, context)
                     return None
 
                 case "left_click_func":
@@ -607,7 +645,7 @@ class Interpreter:
                     return 0
 
                 case "send_input_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) != 3:
                         raise Exception(f"send_input() takes exactly 3 arguments (type, key, action), got {len(args)}")
                     t = str(args[0])
@@ -617,7 +655,7 @@ class Interpreter:
                     return 0
 
                 case "press_and_release_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 2:
                         raise Exception(f"press_and_release() takes at least 2 arguments (delay_ms, key1, [key2, ...]), got {len(args)}")
                     delay_ms = int(args[0])
@@ -626,7 +664,7 @@ class Interpreter:
                     return 0
 
                 case "record_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 3:
                         raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
@@ -636,7 +674,7 @@ class Interpreter:
                     return 0
 
                 case "playback_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
@@ -645,11 +683,11 @@ class Interpreter:
                     return 0
 
                 case "recording_exists_func":
-                    recording_name = str(self.eval(c[0], env))
+                    recording_name = str(self.eval(c[0], context))
                     return 1 if recording_exists(recording_name) else 0
 
                 case "len_func":
-                    val = self.eval(c[0], env)
+                    val = self.eval(c[0], context)
                     if val is None:
                         return 0
                     if isinstance(val, (tuple, list, str)):
@@ -660,7 +698,7 @@ class Interpreter:
                     return time.time()
 
                 case "shuffle_func":
-                    val = self.eval(c[0], env)
+                    val = self.eval(c[0], context)
                     if val is None:
                         return tuple()
                     if isinstance(val, tuple):
@@ -676,7 +714,7 @@ class Interpreter:
                     raise Exception(f"shuffle() requires a tuple or list, got {type(val)}")
 
                 case "get_pixel_at_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) != 2:
                         raise Exception(f"get_pixel_at() takes exactly 2 arguments (x, y), got {len(args)}")
                     x = int(args[0])
@@ -688,7 +726,7 @@ class Interpreter:
                     return (r, g, b)
 
                 case "append_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) != 2:
                         raise Exception(f"append() takes exactly 2 arguments (list, item), got {len(args)}")
                     lst = args[0]
@@ -700,7 +738,7 @@ class Interpreter:
                     return lst
 
                 case "pop_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"pop() takes 1 or 2 arguments (list [, index]), got {len(args)}")
                     lst = args[0]
@@ -718,7 +756,7 @@ class Interpreter:
                         return lst.pop()
 
                 case "capture_region_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"capture_region() takes 1 or 2 arguments (region_key [, overwrite_cache]), got {len(args)}")
                     region_key = str(args[0])
@@ -727,7 +765,7 @@ class Interpreter:
                     return region
 
                 case "ocr_find_text_func":
-                    args = self.eval(c[0], env)
+                    args = self.eval(c[0], context)
                     if len(args) < 0 or len(args) > 4:
                         raise Exception(f"ocr_find_text() takes 0 to 4 arguments (region, min_conf, filter, upscale), got {len(args)}")
 
@@ -752,7 +790,7 @@ class Interpreter:
 
                 # passthrough for inlined rules
                 case _ if len(c) == 1:
-                    return self.eval(c[0], env)
+                    return self.eval(c[0], context)
 
                 case _:
                     raise Exception(f"Unknown tree node: {t}")
