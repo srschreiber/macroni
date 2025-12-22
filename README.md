@@ -6,12 +6,13 @@ DSL for GUI automation with OCR, template matching, and screen interaction.
 
 ### 1. Install Python Dependencies
 
-This will install python dependencies (see requirements.txt) and the macroni vscode extension. Note that pytorch for CPU is installed by default. If your NVIDIA GPU supports CUDA, you will have to manually reinstall pytorch for GPU.
-
 
 ```bash
-make install
+pip install macroni
 ```
+
+Note that pytorch for CPU is installed by default. If your NVIDIA GPU supports CUDA, you will have to manually reinstall pytorch for GPU.
+
 
 ### 2. System Permissions
 
@@ -19,13 +20,19 @@ make install
 >
 > Grant permission to Terminal/Python to control your computer
 
-## Usage
+### 3. VSCode Extension
+
+For syntax highlighting, please add the extension to vscode: Macroni Language Support
+
+## 4. Usage
 
 ### Basic Command
 
 ```bash
-python macroni_interpret.py --file script.macroni
+macroni --file script.macroni
 ```
+
+Note: the first time running will take time because pytorch is a massive library. 
 
 ### Debug Mode
 
@@ -33,13 +40,13 @@ Enable interactive debugging with breakpoints:
 
 ```bash
 # Enable debug mode
-python macroni_interpret.py --file script.macroni --debug
+macroni --file script.macroni --debug
 
 # Set breakpoints at specific lines
-python macroni_interpret.py --file script.macroni --debug --breakpoints 10 --breakpoints 25
+macroni --file script.macroni --debug --breakpoints 10 --breakpoints 25
 
 # Or use short flags
-python macroni_interpret.py -f script.macroni -d -b 10 -b 25
+macroni -f script.macroni -d -b 10 -b 25
 ```
 
 **Debug Commands:**
