@@ -1,11 +1,10 @@
-from lark import Lark, Tree, Token
+from lark import Tree, Token
 import ast
 import time
 import random
 import pyautogui
 import json
 import os
-import click
 from PIL import ImageGrab
 from macroni.util.mouse_utils import move_mouse_to
 from macroni.util.template_match import locate_template_on_screen
@@ -15,211 +14,23 @@ from threading import Event
 import threading
 from macroni.util.ocr import region_capture, ocr_find_text
 from macroni.interpreter.macroni_debugger import Debugger
-
-calc_grammar = r'''
-start: program
-
-program: stmt*                              -> stmt_block
-
-?stmt: func_def
-     | while_stmt
-     | assign_stmt
-     | expr_stmt
-
-# ---------- statements ----------
-
-assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
-expr_stmt: expr ";"                         -> expr_stmt
-            | conditional_expr        -> expr_stmt
-
-# ---------- built-ins ----------
-built_in_calls: print_stmt
-          | wait_stmt
-          | rand_stmt
-          | foreach_tick_stmt
-          | mouse_move_stmt
-          | set_template_dir_stmt
-          | find_template_stmt
-          | find_templates_stmt
-          | get_coordinates_stmt
-          | check_pixel_color_stmt
-          | get_pixel_color_stmt
-          | left_click_stmt
-          | send_input_stmt
-          | press_and_release_stmt
-          | record_stmt
-          | playback_stmt
-          | recording_exists_stmt
-          | len_stmt
-          | rand_i_stmt
-          | time_stmt
-          | shuffle_stmt
-          | get_pixel_at_stmt
-          | append_stmt
-          | pop_stmt
-          | capture_region_stmt
-          | ocr_find_text_stmt
-          | swap_stmt
-          | copy_stmt
-
-print_stmt: "@print" "(" args ")"           -> print_func
-wait_stmt: "@wait" "(" args ")"             -> wait_func
-rand_stmt: "@rand" "(" args ")"             -> rand_func
-foreach_tick_stmt: "@foreach_tick" "(" NAME "," NAME ")" -> foreach_tick_func
-mouse_move_stmt: "@mouse_move" "(" args ")" -> mouse_move_func
-set_template_dir_stmt: "@set_template_dir" "(" expr ")" -> set_template_dir_func
-find_template_stmt: "@find_template" "(" args ")" -> find_template_func
-find_templates_stmt: "@find_templates" "(" args ")" -> find_templates_func
-get_coordinates_stmt: "@get_coordinates" "(" args ")" -> get_coordinates_func
-# params: x, y, radius, r, g, b, [tolerance]
-check_pixel_color_stmt: "@check_pixel_color" "(" args ")" -> check_pixel_color_func
-get_pixel_color_stmt: "@get_pixel_color" "(" args ")" -> get_pixel_color_func
-left_click_stmt: "@left_click" "(" ")"               -> left_click_func
-# type, key, action
-send_input_stmt: "@send_input" "(" args ")"         -> send_input_func
-# delay_ms, *keys
-press_and_release_stmt: "@press_and_release" "(" args ")" -> press_and_release_func
-# recording_name, start_button, stop_button
-record_stmt: "@record" "(" args ")"                 -> record_func
-# recording_name, stop_button
-playback_stmt: "@playback" "(" args ")"             -> playback_func
-# recording_name
-recording_exists_stmt: "@recording_exists" "(" expr ")" -> recording_exists_func
-len_stmt: "@len" "(" expr ")"                   -> len_func
-rand_i_stmt: "@rand_i" "(" args ")"             -> rand_i_func
-time_stmt: "@time" "(" ")"                      -> time_func
-shuffle_stmt: "@shuffle" "(" expr ")"           -> shuffle_func
-get_pixel_at_stmt: "@get_pixel_at" "(" args ")" -> get_pixel_at_func
-append_stmt: "@append" "(" args ")"             -> append_func
-pop_stmt: "@pop" "(" args ")"                   -> pop_func
-# region_key, overwrite_cache
-capture_region_stmt: "@capture_region" "(" args ")" -> capture_region_func
-# region, min_conf, filter, upscale
-ocr_find_text_stmt: "@ocr_find_text" "(" args ")" -> ocr_find_text_func
-swap_stmt: "@swap" "(" args ")"                 -> swap_func
-copy_stmt: "@copy" "(" expr ")"                 -> copy_func
+from .types import ExecutionContext
+from typing import Any
 
 
-# ---------- function definition ----------
-
-func_def: "fn" NAME "(" [params] ")" block  -> func_def
-params: NAME ("," NAME)*                    -> params
-
-# ---------- blocks ----------
-
-block: "{" stmt* "}"                        -> stmt_block
-
-# ---------- while loop ----------
-
-while_stmt: "while" expr block              -> loop_stmt
-
-# ---------- expressions ----------
-
-?expr: comparison
-     | conditional_expr
-
-?conditional_expr: "if" comparison block ["else" block]  -> conditional_expr
-
-?comparison: sum
-           | sum ">" sum   -> gt
-           | sum "<" sum   -> lt
-           | sum ">=" sum  -> ge
-           | sum "<=" sum  -> le
-           | sum "==" sum  -> eq
-           | sum "!=" sum  -> ne
-
-?sum: sum "+" product                        -> add
-    | sum "-" product                        -> sub
-    | "-" sum                                -> neg
-    | product
-
-?product: product "*" atom                   -> mul
-        | product "/" atom                   -> div
-        | product "%" atom                   -> mod
-        | atom
-
-# ---------- ATOMS (IMPORTANT PART) ----------
-
-?atom: atom "[" expr "]"                    -> index
-     | NUMBER                                -> number
-     | STRING                                -> string
-     | call
-     | built_in_calls
-     | NAME                                  -> var
-     | "(" expr ")"
-     | "null"                                -> null
-     | "true"                                -> true
-     | "false"                               -> false
-     | "(" atom ("," atom)+ ")"              -> tuple
-     | "[" [list_items] "]"                  -> list
-
-list_items: expr ("," expr)*                 -> list_items
-
-
-call: NAME "(" [args] ")"                    -> call
-args: expr ("," expr)*                       -> args
-
-COMMENT: /\#[^\n]*/
-%ignore COMMENT
-%import common.CNAME -> NAME
-%import common.NUMBER
-%import common.ESCAPED_STRING -> STRING
-%import common.WS
-%ignore WS
-'''
-
-calc_parser = Lark(calc_grammar, parser="lalr", propagate_positions=True, maybe_placeholders=False)
 EXIT_SIGNAL = 1
 
-class ExecutionContext:
-    def __init__(self, vars=None, funcs=None, depth=0):
-        """
-        Initialize execution context.
-
-        Args:
-            vars: Dictionary of variables (if None, creates empty dict)
-            funcs: Dictionary of functions (if None, creates empty dict)
-            depth: Current recursion depth
-        """
-        self.vars = vars if vars is not None else {}
-        self.funcs = funcs if funcs is not None else {}
-        self.depth = depth
-
-    def create_child_context(self, local_vars=None):
-        """
-        Create a child context for function calls.
-        Copies current vars and funcs, layers local vars on top.
-        Increments depth.
-
-        Args:
-            local_vars: Dictionary of local variables to layer on top
-
-        Returns:
-            ExecutionContext: New child context with incremented depth
-        """
-        # Copy vars and funcs from parent (global scope)
-        child_vars = dict(self.vars)
-        child_funcs = dict(self.funcs)
-
-        # Layer local vars on top
-        if local_vars:
-            child_vars.update(local_vars)
-
-        return ExecutionContext(vars=child_vars, funcs=child_funcs, depth=self.depth + 1)
-
+DBG = Debugger()
 class Interpreter:
-    def __init__(self, dbg: Debugger = None):
-        self.global_context = ExecutionContext()
+    def __init__(self):
         """
             TEMPLATE DIR:
             Each file will be: target/ex1.png target/ex2.png etc.
         """
         self.template_dir = "./templates"
-        self.dbg: Debugger = Debugger() if dbg is None else dbg
 
-    def eval(self, node, context=None):
-        if context is None:
-            context = self.global_context
+    def eval(self, context: ExecutionContext) -> Any:
+        node = context.node
 
         # Tokens
         match node:
@@ -248,16 +59,17 @@ class Interpreter:
                 case "stmt_block":
                     last = 0
                     for stmt in c:
-                        self.dbg.maybe_pause(stmt, call_depth=context.depth)
-                        last = self.eval(stmt, context)
+                        stmt_ctx = context.create_sibling_context(node=stmt)
+                        DBG.maybe_pause(ctx=stmt_ctx)
+                        last = self.eval(stmt_ctx)
                     return last
 
                 case "params":
                     return [str(x) for x in c]
 
                 case "index":
-                    container = self.eval(c[0], context)
-                    idx = self.eval(c[1], context)
+                    container = self.eval(context.create_sibling_context(node=c[0]))
+                    idx = self.eval(context.create_sibling_context(node=c[1]))
 
                     if not isinstance(idx, int):
                         raise Exception("Index must be an integer")
@@ -274,7 +86,7 @@ class Interpreter:
                             num_names += 1
                     # now eval all exprs
                     exprs = c[num_names:]
-                    vals = [self.eval(e, context) for e in exprs]
+                    vals = [self.eval(context.create_sibling_context(node=e)) for e in exprs]
 
                     # Only flatten tuples/lists if we have multiple names (destructuring)
                     if num_names > 1:
@@ -301,16 +113,16 @@ class Interpreter:
                     return None
 
                 case "expr_stmt":
-                    return self.eval(c[0], context)
+                    return self.eval(context.create_sibling_context(node=c[0]))
 
                 case "print_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     # Print all arguments separated by spaces
                     print(*args)
                     return None
 
                 case "swap_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     # make sure first arg is list
                     if len(args) != 3:
                         raise Exception(f"swap() takes exactly 3 arguments, got {len(args)}")
@@ -326,7 +138,7 @@ class Interpreter:
                     return lst
 
                 case "copy_func":
-                    val = self.eval(c[0], context)
+                    val = self.eval(context.create_sibling_context(node=c[0]))
                     if isinstance(val, list):
                         return val.copy()
                     if isinstance(val, tuple):
@@ -342,7 +154,7 @@ class Interpreter:
 
                     for child in c[1:]:
                         if isinstance(child, Tree) and child.data == "params":
-                            params = self.eval(child, context)
+                            params = self.eval(context.create_sibling_context(node=child))
                         elif isinstance(child, Tree) and child.data == "stmt_block":
                             body = child
 
@@ -353,13 +165,13 @@ class Interpreter:
                     return f"Defined {name}({', '.join(params)})"
 
                 case "args":
-                    return [self.eval(x, context) for x in c]
+                    return [self.eval(context.create_sibling_context(node=x)) for x in c]
 
                 case "call":
                     name = str(c[0])
                     arg_values = []
                     if len(c) == 2 and isinstance(c[1], Tree) and c[1].data == "args":
-                        arg_values = self.eval(c[1], context)
+                        arg_values = self.eval(context.create_sibling_context(node=c[1]))
 
                     if name not in context.funcs:
                         raise Exception(f"Function not found: {name}")
@@ -370,31 +182,31 @@ class Interpreter:
 
                     # Create child context: copy global scope and layer local scope on top
                     local_vars = dict(zip(params, arg_values))
-                    child_context = context.create_child_context(local_vars)
-                    return self.eval(body, child_context)
+                    child_context = context.create_child_context(local_vars, body)
+                    return self.eval(child_context)
 
                 # arithmetic
                 case "add":
-                    a = self.eval(c[0], context)
-                    b = self.eval(c[1], context)
+                    a = self.eval(context.create_sibling_context(node=c[0]))
+                    b = self.eval(context.create_sibling_context(node=c[1]))
                     if isinstance(a, str) or isinstance(b, str):
                         return str(a) + str(b)
                     return a + b
 
                 case "sub":
-                    return self.eval(c[0], context) - self.eval(c[1], context)
+                    return self.eval(context.create_sibling_context(node=c[0])) - self.eval(context.create_sibling_context(node=c[1]))
 
                 case "neg":
-                    return -self.eval(c[0], context)
+                    return -self.eval(context.create_sibling_context(node=c[0]))
 
                 case "mul":
-                    return self.eval(c[0], context) * self.eval(c[1], context)
+                    return self.eval(context.create_sibling_context(node=c[0])) * self.eval(context.create_sibling_context(node=c[1]))
 
                 case "div":
-                    return self.eval(c[0], context) / self.eval(c[1], context)
+                    return self.eval(context.create_sibling_context(node=c[0])) / self.eval(context.create_sibling_context(node=c[1]))
 
                 case "mod":
-                    result = self.eval(c[0], context) % self.eval(c[1], context)
+                    result = self.eval(context.create_sibling_context(node=c[0])) % self.eval(context.create_sibling_context(node=c[1]))
                     # Convert to int if result is a whole number
                     if isinstance(result, float) and result.is_integer():
                         return int(result)
@@ -411,7 +223,7 @@ class Interpreter:
 
                 case "tuple":
                     # Evaluate all children and return as tuple
-                    return tuple(self.eval(child, context) for child in c)
+                    return tuple(self.eval(context.create_sibling_context(node=child)) for child in c)
 
                 case "list":
                     # Empty list
@@ -419,30 +231,30 @@ class Interpreter:
                         return []
                     # List with items
                     if isinstance(c[0], Tree) and c[0].data == "list_items":
-                        return self.eval(c[0], context)
+                        return self.eval(context.create_sibling_context(node=c[0]))
                     return []
 
                 case "list_items":
                     # Evaluate all items and return as list
-                    return [self.eval(child, context) for child in c]
+                    return [self.eval(context.create_sibling_context(node=child)) for child in c]
 
                 # comparisons (return 1/0 like you had)
                 case "gt":
-                    return 1 if self.eval(c[0], context) > self.eval(c[1], context) else 0
+                    return 1 if self.eval(context.create_sibling_context(node=c[0])) > self.eval(context.create_sibling_context(node=c[1])) else 0
 
                 case "lt":
-                    return 1 if self.eval(c[0], context) < self.eval(c[1], context) else 0
+                    return 1 if self.eval(context.create_sibling_context(node=c[0])) < self.eval(context.create_sibling_context(node=c[1])) else 0
 
                 case "ge":
-                    return 1 if self.eval(c[0], context) >= self.eval(c[1], context) else 0
+                    return 1 if self.eval(context.create_sibling_context(node=c[0])) >= self.eval(context.create_sibling_context(node=c[1])) else 0
 
                 case "le":
-                    return 1 if self.eval(c[0], context) <= self.eval(c[1], context) else 0
+                    return 1 if self.eval(context.create_sibling_context(node=c[0])) <= self.eval(context.create_sibling_context(node=c[1])) else 0
 
                 case "eq":
                     # check if comparing to null
-                    first_eval = self.eval(c[0], context)
-                    second_eval = self.eval(c[1], context)
+                    first_eval = self.eval(context.create_sibling_context(node=c[0]))
+                    second_eval = self.eval(context.create_sibling_context(node=c[1]))
                     # check for null comparison
                     if first_eval is None:
                         return 1 if second_eval is None else 0
@@ -451,23 +263,23 @@ class Interpreter:
                     return 1 if first_eval == second_eval else 0
 
                 case "ne":
-                    first_eval = self.eval(c[0], context)
-                    second_eval = self.eval(c[1], context)
+                    first_eval = self.eval(context.create_sibling_context(node=c[0]))
+                    second_eval = self.eval(context.create_sibling_context(node=c[1]))
                     # check for null comparison
                     if first_eval is None:
                         return 0 if second_eval is None else 1
                     if second_eval is None:
                         return 0 if first_eval is None else 1
 
-                    return 1 if self.eval(c[0], context) != self.eval(c[1], context) else 0
+                    return 1 if first_eval != second_eval else 0
 
                 case "loop_stmt":
-                    while self.eval(c[0], context) != 0:
-                        self.eval(c[1], context)  # block
+                    while self.eval(context.create_sibling_context(node=c[0])) != 0:
+                        self.eval(context.create_sibling_context(node=c[1]))  # block
                     return 0
 
                 case "wait_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) >= 1 and len(args) <= 3:
                         duration = args[0]
                         # if second arg is scalar, make it (0, scalar)
@@ -482,7 +294,7 @@ class Interpreter:
                     return wait_func(duration, random_range)
 
                 case "rand_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) == 1:
                         low = 0
                         high = args[0]
@@ -494,7 +306,7 @@ class Interpreter:
                     return random.uniform(low, high)
 
                 case "rand_i_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) == 1:
                         low = 0
                         high = args[0]
@@ -516,7 +328,7 @@ class Interpreter:
 
 
                         # controls timeout
-                        results = self.eval(tick_provider_body, context)
+                        results = self.eval(context.create_sibling_context(node=tick_provider_body))
                         if results == EXIT_SIGNAL:
                             break
                         # call the function
@@ -524,11 +336,11 @@ class Interpreter:
                             raise Exception(f"Function not found: {func_name}")
                         _, body = context.funcs[func_name]
                         # Evaluate function body in current context
-                        results = self.eval(body, context)
+                        results = self.eval(context.create_sibling_context(node=body))
                     return results
 
                 case "mouse_move_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 3:
                         raise Exception(f"mouse_move() takes at least 3 arguments, got {len(args)}")
                     x_offset = args[0]
@@ -541,7 +353,7 @@ class Interpreter:
                     return 0
 
                 case "set_template_dir_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) == 0:
                         raise Exception(f"set_template_dir() takes exactly 1 argument, got {len(args)}")
                     self.template_dir = str(args)
@@ -550,7 +362,7 @@ class Interpreter:
                     # Here you would set the template directory in your application
 
                 case "find_template_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) != 1 and len(args) != 5:
                         raise Exception(f"find_template() takes 1 or 5 arguments (template_name [, left, top, width, height]), got {len(args)}")
                     template_name = str(args[0])
@@ -568,7 +380,7 @@ class Interpreter:
                     return None, None  # not found
 
                 case "find_templates_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 6:
                         raise Exception(f"find_templates() takes 1 to 6 arguments (template_name [, left, top, width, height, top_k]), got {len(args)}")
                     template_name = str(args[0])
@@ -598,7 +410,7 @@ class Interpreter:
                     return tuple()  # empty tuple if not found
 
                 case "get_coordinates_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"get_coordinates() takes 1 or 2 arguments (message [, use_cache]), got {len(args)}")
                     message = str(args[0])
@@ -607,7 +419,7 @@ class Interpreter:
                     return (x, y)
 
                 case "check_pixel_color_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 6 or len(args) > 7:
                         raise Exception(f"check_pixel_color() takes 6 or 7 arguments (x, y, radius, r, g, b [, tolerance]), got {len(args)}")
                     x = int(args[0])
@@ -621,7 +433,7 @@ class Interpreter:
                     return 1 if found else 0
 
                 case "get_pixel_color_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"get_pixel_color() takes 1 or 2 arguments (alias [, use_cache]), got {len(args)}")
                     alias = str(args[0])
@@ -630,14 +442,14 @@ class Interpreter:
                     return (r, g, b)
 
                 case "conditional_expr":
-                    condition = self.eval(c[0], context)
+                    condition = self.eval(context.create_sibling_context(node=c[0]))
                     t_block = c[1]
                     f_block = c[2] if len(c) == 3 else None
 
                     if condition:
-                        return self.eval(t_block, context)
+                        return self.eval(context.create_sibling_context(node=t_block))
                     elif f_block is not None:
-                        return self.eval(f_block, context)
+                        return self.eval(context.create_sibling_context(node=f_block))
                     return None
 
                 case "left_click_func":
@@ -645,7 +457,7 @@ class Interpreter:
                     return 0
 
                 case "send_input_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) != 3:
                         raise Exception(f"send_input() takes exactly 3 arguments (type, key, action), got {len(args)}")
                     t = str(args[0])
@@ -655,7 +467,7 @@ class Interpreter:
                     return 0
 
                 case "press_and_release_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 2:
                         raise Exception(f"press_and_release() takes at least 2 arguments (delay_ms, key1, [key2, ...]), got {len(args)}")
                     delay_ms = int(args[0])
@@ -664,7 +476,7 @@ class Interpreter:
                     return 0
 
                 case "record_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 3:
                         raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
@@ -674,7 +486,7 @@ class Interpreter:
                     return 0
 
                 case "playback_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
@@ -683,11 +495,11 @@ class Interpreter:
                     return 0
 
                 case "recording_exists_func":
-                    recording_name = str(self.eval(c[0], context))
+                    recording_name = str(self.eval(context.create_sibling_context(node=c[0])))
                     return 1 if recording_exists(recording_name) else 0
 
                 case "len_func":
-                    val = self.eval(c[0], context)
+                    val = self.eval(context.create_sibling_context(node=c[0]))
                     if val is None:
                         return 0
                     if isinstance(val, (tuple, list, str)):
@@ -698,7 +510,7 @@ class Interpreter:
                     return time.time()
 
                 case "shuffle_func":
-                    val = self.eval(c[0], context)
+                    val = self.eval(context.create_sibling_context(node=c[0]))
                     if val is None:
                         return tuple()
                     if isinstance(val, tuple):
@@ -714,7 +526,7 @@ class Interpreter:
                     raise Exception(f"shuffle() requires a tuple or list, got {type(val)}")
 
                 case "get_pixel_at_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) != 2:
                         raise Exception(f"get_pixel_at() takes exactly 2 arguments (x, y), got {len(args)}")
                     x = int(args[0])
@@ -726,7 +538,7 @@ class Interpreter:
                     return (r, g, b)
 
                 case "append_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) != 2:
                         raise Exception(f"append() takes exactly 2 arguments (list, item), got {len(args)}")
                     lst = args[0]
@@ -738,7 +550,7 @@ class Interpreter:
                     return lst
 
                 case "pop_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"pop() takes 1 or 2 arguments (list [, index]), got {len(args)}")
                     lst = args[0]
@@ -756,7 +568,7 @@ class Interpreter:
                         return lst.pop()
 
                 case "capture_region_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"capture_region() takes 1 or 2 arguments (region_key [, overwrite_cache]), got {len(args)}")
                     region_key = str(args[0])
@@ -765,7 +577,7 @@ class Interpreter:
                     return region
 
                 case "ocr_find_text_func":
-                    args = self.eval(c[0], context)
+                    args = self.eval(context.create_sibling_context(node=c[0]))
                     if len(args) < 0 or len(args) > 4:
                         raise Exception(f"ocr_find_text() takes 0 to 4 arguments (region, min_conf, filter, upscale), got {len(args)}")
 
@@ -790,7 +602,7 @@ class Interpreter:
 
                 # passthrough for inlined rules
                 case _ if len(c) == 1:
-                    return self.eval(c[0], context)
+                    return self.eval(context.create_sibling_context(node=c[0]))
 
                 case _:
                     raise Exception(f"Unknown tree node: {t}")

@@ -1,7 +1,8 @@
 import click
 from macroni.interpreter.macroni_interpret import Interpreter
-from macroni.interpreter.macroni_debugger import Debugger
-from macroni.interpreter.macroni_interpret import calc_parser
+from macroni.interpreter.macroni_interpret import DBG
+from macroni.interpreter.grammar import calc_parser
+from macroni.interpreter.types import ExecutionContext
 
 @click.command()
 @click.option('-f', '--file', 'filepath', required=True, help='Path to the macroni script file to execute.', type=click.Path(exists=True))
@@ -14,14 +15,14 @@ def main(filepath, debug, breakpoints: list):
     with open(filepath, 'r') as f:
         script_content = f.read()
     
-    dbg = Debugger()
     if debug:
-        dbg.set_breakpoints(list(breakpoints))
+        DBG.set_breakpoints(list(breakpoints))
 
     # Parse and execute the script
     interp = Interpreter()
     tree = calc_parser.parse(script_content)
-    interp.eval(tree)
+    root_context = ExecutionContext(node=tree, debug=debug, eval_cback=interp.eval)
+    interp.eval(root_context)
 
 
 if __name__ == "__main__":
