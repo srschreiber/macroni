@@ -79,6 +79,7 @@ def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     events[-1].duration_ms = 0
     return events
 
+# record -> squashes all mouse moves within distance threshold.
 def record(distance_threshold: int = 50, start_button=None, stop_button=None) -> list[RecordedEvent]:
     # load corresponding key for start/stop
     start_key = keyboard.Key.space if start_button is None else getattr(keyboard.Key, start_button, start_button)
@@ -207,7 +208,7 @@ def hallucinate_points(x1, y1, x2, y2, num_points):
     points.sort(key=lambda p: ((p[0] - x1) ** 2 + (p[1] - y1) ** 2))
     return points
 
-def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
+def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
     print("Playing back...")
     mouse_controller = mouse.Controller()
     keyboard_controller = keyboard.Controller()
@@ -259,7 +260,7 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
 
         # Execute the event
         if e.kind == "mouse_move" and e.to_coordinates:
-            # For mouse moves, use fast movement since we've already waited
+            # For mouse moves, use consistent speed since timing is handled by the wait above
             # splice in a few fake points to make movement slightly more random
             dist = distance(
                 mouse_controller.position[0], mouse_controller.position[1],
@@ -272,8 +273,8 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=2):
             # )
             all_points = []
             all_points.append(e.to_coordinates)
-            # calc pps to keep timing roughly correct
-            pps = int(dist / (e.duration_ms / 1000.0)) if e.duration_ms and e.duration_ms > 0 else 3000
+            # Use consistent speed - timing is already handled by the wait logic above
+            pps = 2000  # consistent pixels per second for smooth, human-like movement
             for pt in all_points:
                 move_mouse_to(pt[0], pt[1], pps, True)
             #move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)

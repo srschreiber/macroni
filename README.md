@@ -167,7 +167,7 @@ fn click_button(x, y) {
 - `@time()`
 
 **Recording:**
-- `@record(name, start_btn, stop_btn)` - Record mouse/keyboard
+- `@record(name, start_btn, stop_btn, squash_distance)` - Record mouse/keyboard (squash_distance defaults to 50 pixels)
 - `@playback(name, stop_btn)` - Replay recording
 
 **Lists:**

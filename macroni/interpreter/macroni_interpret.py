@@ -505,7 +505,9 @@ class Interpreter:
                     recording_name = str(args[0])
                     start_button = str(args[1]) if len(args) >= 2 else "space"
                     stop_button = str(args[2]) if len(args) == 3 else "esc"
-                    record_interactive(recording_name, start_button, stop_button)
+                    # inf means only cares about points before events and not mimicking mouse path
+                    squash_distance = int(args[3]) if len(args) == 4 else float('inf') 
+                    record_interactive(recording_name, start_button, stop_button, squash_distance)
                     return 0
 
                 case "playback_func":
@@ -862,7 +864,7 @@ def recording_exists(recording_name, cache_file="recordings_cache.json"):
     cache = load_recordings_cache(cache_file)
     return recording_name in cache
 
-def record_interactive(recording_name, start_button="space", stop_button="esc"):
+def record_interactive(recording_name, start_button="space", stop_button="esc", squash_distance=50):
     """
     Records mouse movements, clicks, and keyboard inputs.
 
@@ -883,7 +885,7 @@ def record_interactive(recording_name, start_button="space", stop_button="esc"):
     print(f"{'='*60}\n")
 
     # Use output_handler's record function which compresses mouse movements
-    events = output_handler.record(start_button=start_button, stop_button=stop_button)
+    events = output_handler.record(distance_threshold=squash_distance, start_button=start_button, stop_button=stop_button)
 
     # Convert RecordedEvent dataclasses to dicts for JSON serialization
     import dataclasses
