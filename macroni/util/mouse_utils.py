@@ -83,18 +83,24 @@ def smooth_move_to_bezier(
     steps = max(1, min(steps_time, steps_dist))
     dt = desired_time / steps
 
-    # --- Choose Bezier control point ---
-    # Pick a random point along the straight line, then push it sideways.
-    apex_t = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
-    arc_dir = random.choice([-1, 1])
+    # --- Choose Bezier control points (cubic) ---
+    # Pick two random points along the straight line, then push it sideways.
+    apex_t1 = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
+    arc_dir1 = random.choice([-1, 1])
+
+    apex_t2 = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
+    arc_dir2 = random.choice([-1, 1])
 
     if arc_px is None:
         # Sublinear arc scaling: grows with distance, but not crazy on long moves
         arc_px = (math.sqrt(L) * 5.0) * random.uniform(0.25, 1.0)
-    arc_px = arc_dir * min(arc_px_cap, arc_px)
+    arc_px1 = arc_dir1 * min(arc_px_cap, arc_px)
+    arc_px2 = arc_dir2 * min(arc_px_cap, arc_px)
 
-    cx = x1 + dx * apex_t + px * arc_px
-    cy = y1 + dy * apex_t + py * arc_px
+    cx1 = x1 + dx * apex_t1 + px * arc_px1
+    cy1 = y1 + dy * apex_t1 + py * arc_px1
+    cx2 = x1 + dx * apex_t2 + px * arc_px2
+    cy2 = y1 + dy * apex_t2 + py * arc_px2
 
     # --- Wobble setup (tiny and damped) ---
     # allow max of one wobble per 100 pixels
@@ -118,9 +124,12 @@ def smooth_move_to_bezier(
 
         # Quadratic Bezier point
         # B(t) = (1-t)^2 P0 + 2(1-t)t C + t^2 P1
+
+        # Cubic Bezier point
+        # B(t) = (1-t)^3 P0 + 3(1-t)^2 t C1 + 3(1-t) t^2 C2 + t^3 P1
         omt = (1 - t)
-        bx = (omt * omt) * x1 + 2 * omt * t * cx + (t * t) * x2
-        by = (omt * omt) * y1 + 2 * omt * t * cy + (t * t) * y2
+        bx = (omt * omt * omt) * x1 + 3 * (omt * omt) * t * cx1 + 3 * omt * (t * t) * cx2 + (t * t * t) * x2
+        by = (omt * omt * omt) * y1 + 3 * (omt * omt) * t * cy1 + 3 * omt * (t * t) * cy2 + (t * t * t) * y2
 
         # Perpendicular wobble (damped at ends, stronger mid-path)
         env = (4 * t * (1 - t)) ** 1.4  # near-zero at start/end
