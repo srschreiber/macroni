@@ -1,8 +1,21 @@
+COLORS = {
+    "reset": "\033[0m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
+    "blue": "\033[34m",
+    "magenta": "\033[35m",
+    "cyan": "\033[36m",
+    "white": "\033[37m",
+}
+
+print(f"{COLORS["yellow"]}Importing dependencies, this may take a moment especially the first time...{COLORS['reset']}")
 import click
 from macroni.interpreter.macroni_interpret import Interpreter
 from macroni.interpreter.macroni_interpret import DBG
 from macroni.interpreter.grammar import calc_parser
 from macroni.interpreter.types import ExecutionContext
+print(f"{COLORS['green']}Dependencies loaded{COLORS['reset']}")
 
 def count_brackets(text):
     """Count unmatched opening brackets/braces in text."""
@@ -70,7 +83,7 @@ def run_interactive(debug=False):
             print("\nExiting...")
             break
         except KeyboardInterrupt:
-            print("\nInterrupted. Use Ctrl+D to exit.")
+            print(f"\n{COLORS['yellow']}Interrupted. Use Ctrl+D to exit.{COLORS['reset']}")
             continue
         except Exception as e:
             print(f"Error: {e}")
@@ -83,7 +96,7 @@ def run_interactive(debug=False):
 @click.option('-b', '--breakpoints', multiple=True, help='List of breakpoints to set in the script (by line number).')
 def main(filepath, debug, breakpoints: list):
     """Run a macroni script from a file or start interactive mode."""
-
+    print(f"{COLORS['cyan']}For documentation and guidelines, visit: https://github.com/srschreiber/macroni\nFeel free to report issues or contribute!{COLORS['reset']}")
     # If no file provided, start interactive mode
     if not filepath:
         run_interactive(debug=debug)

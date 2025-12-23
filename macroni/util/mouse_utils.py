@@ -85,10 +85,10 @@ def smooth_move_to_bezier(
 
     # --- Choose Bezier control points (cubic) ---
     # Pick two random points along the straight line, then push it sideways.
-    apex_t1 = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
+    apex_t1 = random.uniform(0.025, 0.975)   # where the arc "peaks" along the path
     arc_dir1 = random.choice([-1, 1])
 
-    apex_t2 = random.uniform(0.25, 0.75)   # where the arc "peaks" along the path
+    apex_t2 = random.uniform(0.025, 0.975)   # where the arc "peaks" along the path
     arc_dir2 = random.choice([-1, 1])
 
     if arc_px is None:
@@ -104,7 +104,7 @@ def smooth_move_to_bezier(
 
     # --- Wobble setup (tiny and damped) ---
     # allow max of one wobble per 100 pixels
-    wobble_cycles_min = 0.0
+    wobble_cycles_min = .5
     wobble_cycles_max = L / 100.0
     cycles = random.uniform(wobble_cycles_min, wobble_cycles_max)
     if L < 40:

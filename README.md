@@ -13,6 +13,16 @@ pip install macroni
 
 Note that pytorch for CPU is installed by default. If your NVIDIA GPU supports CUDA, you will have to manually reinstall pytorch for GPU.
 
+To reinstall pytorch:
+```bash
+python -m pip uninstall -y torch torchvision torchaudio
+```
+
+Then reinstall with CUDA (may take some time)
+```bash
+python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+```
+
 
 ### 2. System Permissions
 
