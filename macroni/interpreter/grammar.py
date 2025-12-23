@@ -103,10 +103,16 @@ while_stmt: "while" expr block              -> loop_stmt
 
 # ---------- expressions ----------
 
-?expr: comparison
+?expr: logical_or
      | conditional_expr
 
-?conditional_expr: "if" comparison block ["else" block]  -> conditional_expr
+?conditional_expr: "if" logical_or block ["else" block]  -> conditional_expr
+
+?logical_or: logical_and
+           | logical_or "||" logical_and -> or_op
+
+?logical_and: comparison
+            | logical_and "&&" comparison -> and_op
 
 ?comparison: sum
            | sum ">" sum   -> gt
@@ -115,8 +121,6 @@ while_stmt: "while" expr block              -> loop_stmt
            | sum "<=" sum  -> le
            | sum "==" sum  -> eq
            | sum "!=" sum  -> ne
-           | sum "&&" sum -> and_op
-           | sum "||" sum -> or_op
 
 ?sum: sum "+" product                        -> add
     | sum "-" product                        -> sub
