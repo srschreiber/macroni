@@ -17,8 +17,9 @@ text, conf, bbox = results[0];
 
 # Operators
 a = 10 + 5 - 2 * 3 / 2;    # Arithmetic
-b = x > 10;                # Comparison: returns 1 or 0
-c = items[0];              # Indexing
+b = x > 10;                # Comparison: >, <, >=, <=, ==, !=
+c = x > 5 && y < 10;       # Logical: && (and), || (or)
+d = items[0];              # Indexing
 
 # Control flow
 if x > 10 {
@@ -29,12 +30,16 @@ if x > 10 {
 
 while x < 100 {
     x = x + 1;
+    if x == 50 {
+        break;             # Exit loop early
+    }
 }
 
 # Functions
 fn click_at(x, y) {
     @mouse_move(x, y, 500, true);
     @left_click();
+    return 1;              # Return optional value(s)
 }
 ```
 

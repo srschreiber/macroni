@@ -16,7 +16,7 @@ import threading
 from macroni.util.ocr import region_capture, ocr_find_text
 from macroni.interpreter.macroni_debugger import Debugger
 from .types import ExecutionContext
-from typing import Any
+from typing import Any, Iterable
 try:
     import readline
 except ImportError:
@@ -25,9 +25,38 @@ except ImportError:
     except ImportError:
         pass
 
-EXIT_SIGNAL = 1
+class Sigl:
+    ...
 
+# used to track return signal
+RET_SIG: Sigl = Sigl()
+BRK_SIG: Sigl = Sigl()
+EXIT_SIG: Sigl = Sigl()
 DBG = Debugger()
+
+class ControlSignal:
+    def __init__(self, values: list[Any], signal: Sigl = None):
+        self.values = []
+        if isinstance(values, list) or isinstance(values, tuple):
+            self.values = values
+        else:
+            self.values = [values]
+        self.signal = signal
+
+    def is_single(self) -> bool:
+        return len(self.values) == 1
+    
+    def get_single(self) -> Any:
+        if self.is_single():
+            return self.values[0]
+        raise Exception("Multiple return values present")
+    
+    def get_multiple(self) -> list[Any]:
+        return self.values
+    
+    def is_signal(self, signal: Sigl) -> bool:
+        return self.signal is signal
+
 class Interpreter:
     def __init__(self):
         """
@@ -86,6 +115,10 @@ class Interpreter:
                         stmt_ctx = context.create_sibling_context(node=stmt)
                         DBG.maybe_pause(ctx=stmt_ctx)
                         last = self.eval(stmt_ctx)
+                        # if last is an iterable with first element RET, terminated early so return
+                        if isinstance(last, ControlSignal) and (last.is_signal(RET_SIG) or last.is_signal(BRK_SIG)):
+                            return last
+                            
                     return last
 
                 case "params":
@@ -149,6 +182,11 @@ class Interpreter:
                     # Print all arguments separated by spaces
                     print(*args)
                     return None
+                
+                # special type of built in that returns the evaluated arguments
+                case "return_stmt":
+                    args = self.eval(context.create_sibling_context(node=c[0]))
+                    return ControlSignal(args, RET_SIG)
 
                 case "swap_func":
                     args = self.eval(context.create_sibling_context(node=c[0]))
@@ -173,6 +211,20 @@ class Interpreter:
                     if isinstance(val, tuple):
                         return tuple(val)
                     return val  # for other types, just return as is
+                
+                case "and_op":
+                    left = self.eval(context.create_sibling_context(node=c[0]))
+                    if not left:
+                        return 0
+                    right = self.eval(context.create_sibling_context(node=c[1]))
+                    return 1 if right else 0
+                
+                case "or_op":
+                    left = self.eval(context.create_sibling_context(node=c[0]))
+                    if left:
+                        return 1
+                    right = self.eval(context.create_sibling_context(node=c[1]))
+                    return 1 if right else 0
 
                 case "func_def":
                     name = str(c[0])
@@ -195,6 +247,9 @@ class Interpreter:
 
                 case "args":
                     return [self.eval(context.create_sibling_context(node=x)) for x in c]
+                case "break_stmt":
+                    # emit break signal 
+                    return ControlSignal([], BRK_SIG)
 
                 case "call":
                     name = str(c[0])
@@ -212,7 +267,13 @@ class Interpreter:
                     # Create child context: copy global scope and layer local scope on top
                     local_vars = dict(zip(params, arg_values))
                     child_context = context.create_child_context(local_vars, body)
-                    return self.eval(child_context)
+                    v = self.eval(child_context)
+                    # check for return signal. If no return signal, return 0
+                    if isinstance(v, ControlSignal) and v.is_signal(RET_SIG):
+                        return v.get_single() if v.is_single() else v.get_multiple()
+                    
+                    # return is optional, so if values are present return them
+                    return v if v is not None else 0
 
                 # arithmetic
                 case "add":
@@ -304,7 +365,13 @@ class Interpreter:
 
                 case "loop_stmt":
                     while self.eval(context.create_sibling_context(node=c[0])) != 0:
-                        self.eval(context.create_sibling_context(node=c[1]))  # block
+                        v = self.eval(context.create_sibling_context(node=c[1]))  # block
+                        # check for early return or brk. If brk, just exit loop. If return, propagate up
+                        if isinstance(v, ControlSignal) and v.is_signal(RET_SIG):
+                            return v
+                        if isinstance(v, ControlSignal) and v.is_signal(BRK_SIG):
+                            break 
+                        
                     return 0
 
                 case "wait_func":
@@ -358,7 +425,7 @@ class Interpreter:
 
                         # controls timeout
                         results = self.eval(context.create_sibling_context(node=tick_provider_body))
-                        if results == EXIT_SIGNAL:
+                        if results is None or (isinstance(results, ControlSignal) and results.is_signal(EXIT_SIG)):
                             break
                         # call the function
                         if func_name not in context.funcs:

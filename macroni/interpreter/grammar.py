@@ -10,12 +10,15 @@ program: stmt*                              -> stmt_block
      | assign_stmt
      | expr_stmt
      | outer_stmt
+     | control_stmt
 
 # ---------- statements ----------
 outer_stmt: "outer" NAME ";"                    -> outer_stmt
 assign_stmt: NAME ("," NAME)* "=" expr ";"              -> store_val
 expr_stmt: expr (";")+                         -> expr_stmt
             | conditional_expr        -> expr_stmt
+control_stmt: "break" (";")+      -> break_stmt
+            | "return" [expr] (";")+  -> return_stmt
 
 # ---------- built-ins ----------
 built_in_calls: print_stmt
@@ -112,6 +115,8 @@ while_stmt: "while" expr block              -> loop_stmt
            | sum "<=" sum  -> le
            | sum "==" sum  -> eq
            | sum "!=" sum  -> ne
+           | sum "&&" sum -> and_op
+           | sum "||" sum -> or_op
 
 ?sum: sum "+" product                        -> add
     | sum "-" product                        -> sub
