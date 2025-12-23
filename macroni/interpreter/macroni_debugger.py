@@ -2,8 +2,13 @@ import enum
 from collections.abc import Iterable
 from .types import ExecutionContext
 from macroni.interpreter.grammar import calc_parser
-import readline
-
+try:
+    import readline
+except ImportError:
+    try:
+        import pyreadline3
+    except ImportError:
+        pass
 class StepMode(enum.Enum):
     RUN = "run"
     STEP = "step"

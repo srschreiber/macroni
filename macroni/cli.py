@@ -11,7 +11,10 @@ COLORS = {
 
 print(f"{COLORS["yellow"]}Importing dependencies, this may take a moment especially the first time...{COLORS['reset']}")
 import click
-import readline
+try:
+    import readline
+except ImportError:
+    import pyreadline3
 from macroni.interpreter.macroni_interpret import Interpreter
 from macroni.interpreter.macroni_interpret import DBG
 from macroni.interpreter.grammar import calc_parser

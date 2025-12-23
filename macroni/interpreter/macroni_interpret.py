@@ -17,8 +17,13 @@ from macroni.util.ocr import region_capture, ocr_find_text
 from macroni.interpreter.macroni_debugger import Debugger
 from .types import ExecutionContext
 from typing import Any
-import readline
-
+try:
+    import readline
+except ImportError:
+    try:
+        import pyreadline3
+    except ImportError:
+        pass
 
 EXIT_SIGNAL = 1
 
