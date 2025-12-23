@@ -9,20 +9,60 @@ import json
 import os
 from pynput import mouse
 
+
 # Create once (slow to init). For speed, keep it global.
 reader = easyocr.Reader(['en'], gpu=True)  # set gpu=True if you have CUDA
 
 # Cache file for regions
 REGIONS_CACHE_FILE = "regions_cache.json"
 
-def preprocess_for_ocr(bgr, upscale=1.0):
-    # Often helps on UI text. Convert to a grayscale binary image.
+def preprocess_for_ocr(bgr, upscale=1.5, invert=None, close=False):
+    # 1) upscale (helps small fonts)
+    if upscale and upscale != 1.0:
+        interp = cv2.INTER_CUBIC if upscale > 1.0 else cv2.INTER_AREA
+        bgr = cv2.resize(bgr, None, fx=upscale, fy=upscale, interpolation=interp)
+
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
-    interpolation = cv2.INTER_CUBIC if upscale > 1.0 else cv2.INTER_AREA
-    gray = cv2.resize(gray, None, fx=upscale, fy=upscale, interpolation=interpolation)
-    # gray = cv2.GaussianBlur(gray, (3, 3), 0)
-    # Otsu threshold
-    # _, th = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # 2) denoise (good on noisy backgrounds)
+    gray = cv2.fastNlMeansDenoising(gray, None, h=12, templateWindowSize=7, searchWindowSize=21)
+
+    # # 3) local contrast boost (CLAHE)
+    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    # gray = clahe.apply(gray)
+
+    # # 4) remove slow-varying background (key step for noisy backgrounds)
+    # # Choose kernel size relative to image size; bigger = more aggressive background removal.
+    # h, w = gray.shape[:2]
+    # k = max(15, (min(h, w) // 30) | 1)  # odd
+    # bg = cv2.GaussianBlur(gray, (k, k), 0)
+    # norm = cv2.addWeighted(gray, 1.5, bg, -0.5, 0)  # "unsharp" but background-aware
+
+    # # 5) adaptive threshold handles non-uniform backgrounds better than Otsu
+    # th = cv2.adaptiveThreshold(
+    #     norm, 255,
+    #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    #     cv2.THRESH_BINARY,
+    #     31,  # blockSize (odd); try 21/31/41
+    #     7    # C; try 3..10
+    # )
+
+    # # 6) optional invert if text is light-on-dark
+    # if invert is True:
+    #     th = 255 - th
+    # elif invert is None:
+    #     # auto-guess: if mostly white, assume black text on white background
+    #     # if mostly black, assume white text on black background -> invert
+    #     if np.mean(th) < 127:
+    #         th = 255 - th
+
+    # # 7) optional gentle morphology (use only if letters break up)
+    # if close:
+    #     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    #     th = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel, iterations=1)
+
+    # save a picture for debugging
+    #cv2.imwrite("ocr_debug.png", gray)
     return gray
 
 
@@ -142,39 +182,46 @@ def ocr_find_text(
             "height": bottom_right_y - top_left_y
         }
 
-    bgr = screenshot_bgr(region=region_dict, downscale=1.0)
-    img = preprocess_for_ocr(bgr, upscale=upscale)
+    # try at + 20% and -20% upscales for robustness
+    upscales = [upscale, upscale*1.2, upscale*0.8]
+    for upscale in upscales:
+        bgr = screenshot_bgr(region=region_dict, downscale=1.0)
+        img = preprocess_for_ocr(bgr, upscale=upscale)
 
-    # easyocr expects RGB or grayscale; we already have grayscale/binary
-    results = reader.readtext(img)  # [(bbox, text, conf), ...]
+        # easyocr expects RGB or grayscale; we already have grayscale/binary
+        results = reader.readtext(img)  # [(bbox, text, conf), ...]
 
-    filtered_results = [(bbox, text, conf) for (bbox, text, conf) in results if conf >= min_conf]
+        filtered_results = [(bbox, text, conf) for (bbox, text, conf) in results if conf >= min_conf]
 
-    output: list[OCRResult] = []
-    for bbox, t, c in filtered_results:
-        # Check if this text matches our search
-        if filter:
-            if isinstance(filter, (list, tuple)):
-                if not any(f.lower() in t.lower() for f in filter):
-                    continue
-            else:
-                if filter.lower() not in t.lower():
-                    continue
+        if not filtered_results or len(filtered_results) == 0:
+            continue
+        
+        # found confident results, return these
+        output: list[OCRResult] = []
+        for bbox, t, c in filtered_results:
+            # Check if this text matches our search
+            if filter:
+                if isinstance(filter, (list, tuple)):
+                    if not any(f.lower() in t.lower() for f in filter):
+                        continue
+                else:
+                    if filter.lower() not in t.lower():
+                        continue
 
-        # Scale bbox coordinates back down by upscale factor
-        pts = np.array(bbox, np.float32) / upscale
+            # Scale bbox coordinates back down by upscale factor
+            pts = np.array(bbox, np.float32) / upscale
 
-        # If region was specified, adjust coordinates to be relative to screen (not region)
-        if region is not None:
-            top_left_x, top_left_y, _, _ = region
-            pts[:, 0] += top_left_x  # Add X offset
-            pts[:, 1] += top_left_y  # Add Y offset
+            # If region was specified, adjust coordinates to be relative to screen (not region)
+            if region is not None:
+                top_left_x, top_left_y, _, _ = region
+                pts[:, 0] += top_left_x  # Add X offset
+                pts[:, 1] += top_left_y  # Add Y offset
 
-        # Convert to regular Python list for macroni compatibility (no numpy)
-        bbox_list = [[float(x), float(y)] for x, y in pts]
+            # Convert to regular Python list for macroni compatibility (no numpy)
+            bbox_list = [[float(x), float(y)] for x, y in pts]
 
-        output.append(OCRResult(bbox=bbox_list, text=t, conf=float(c)))
-    return output
+            output.append(OCRResult(bbox=bbox_list, text=t, conf=float(c)))
+        return output
 
 
 if __name__ == "__main__":

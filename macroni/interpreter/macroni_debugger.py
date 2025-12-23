@@ -2,7 +2,7 @@ import enum
 from collections.abc import Iterable
 from .types import ExecutionContext
 from macroni.interpreter.grammar import calc_parser
-
+import readline
 
 class StepMode(enum.Enum):
     RUN = "run"

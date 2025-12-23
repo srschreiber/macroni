@@ -11,11 +11,14 @@ COLORS = {
 
 print(f"{COLORS["yellow"]}Importing dependencies, this may take a moment especially the first time...{COLORS['reset']}")
 import click
+import readline
 from macroni.interpreter.macroni_interpret import Interpreter
 from macroni.interpreter.macroni_interpret import DBG
 from macroni.interpreter.grammar import calc_parser
 from macroni.interpreter.types import ExecutionContext
 print(f"{COLORS['green']}Dependencies loaded{COLORS['reset']}")
+
+STMT_STACK = []
 
 def count_brackets(text):
     """Count unmatched opening brackets/braces in text."""

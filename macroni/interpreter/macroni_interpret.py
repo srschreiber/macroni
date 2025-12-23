@@ -17,6 +17,7 @@ from macroni.util.ocr import region_capture, ocr_find_text
 from macroni.interpreter.macroni_debugger import Debugger
 from .types import ExecutionContext
 from typing import Any
+import readline
 
 
 EXIT_SIGNAL = 1
