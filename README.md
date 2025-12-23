@@ -155,20 +155,28 @@ x, y = (100, 200);
 text, conf, bbox = results[0];
 
 # Control flow
-if x > 10 {
+if x > 10 || x < 5 {
     @print("yes");
 } else {
     @print("no");
 }
 
+if x > 10 && x < 20 {
+    @print("x between 10 and 20);
+}
+
 while x < 100 {
     x = x + 1;
+    if x > 50 {
+        break;
+    }
 }
 
 # Functions
 fn click_button(x, y) {
     @mouse_move(x, y, 500, true);
     @left_click();
+    return 13
 }
 
 # Outer scope copies variable from nearest scope
