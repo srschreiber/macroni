@@ -1,6 +1,7 @@
 # Macroni
 
-DSL for GUI automation with OCR, template matching, and screen interaction. Human-like randomness is baked into all operations, such as mouse movement and playback.
+DSL for GUI automation with OCR, template matching, and screen interaction. Human-like randomness is baked into all operations, such as cubic bezier curved mouse movements and playback.
+
 ## Installation
 
 ### 1. Install Python Dependencies
