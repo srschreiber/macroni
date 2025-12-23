@@ -1,7 +1,6 @@
 # Macroni
 
-DSL for GUI automation with OCR, template matching, and screen interaction. Randomness is baked into all operations, such as mouse movement and playback. 
-
+DSL for GUI automation with OCR, template matching, and screen interaction. Human-like randomness is baked into all operations, such as mouse movement and playback.
 ## Installation
 
 ### 1. Install Python Dependencies
@@ -29,6 +28,8 @@ For syntax highlighting, please add the extension to vscode: Macroni Language Su
 ### Basic Command
 
 #### Interactive
+
+The following command will allow REPL (Read-Eval-Print Loop)
 ```bash
 macroni
 ```
@@ -97,6 +98,24 @@ Note: This operation is fairly slow without CUDA. If using a CPU, keeping the re
 
 ## Template Matching
 
+Easily find the position of images on the screen by uploading pictures to your template directory. 
+
+Templates folder structure:
+```
+templates/
+  └── login_button/
+      ├── ex1.png
+      └── ex2.png
+```
+
+Or more generally:
+```
+TEMPLATE_DIR/
+  └── TEMPLATE_NAME/
+      ├── template_sample1.png
+      └── template_sample2.png
+```
+
 ```macroni
 @set_template_dir("./templates");
 x, y = @find_template("login_button");
@@ -105,14 +124,6 @@ if x != null {
     @mouse_move(x, y, 1000, true);
     @left_click();
 }
-```
-
-Templates folder structure:
-```
-templates/
-  └── login_button/
-      ├── ex1.png
-      └── ex2.png
 ```
 
 ## Language Basics
@@ -148,6 +159,14 @@ fn click_button(x, y) {
     @mouse_move(x, y, 500, true);
     @left_click();
 }
+
+# Outer scope copies variable from nearest scope
+x = 5;
+fn outer_x() {
+    outer x;
+    x = x + 5;
+}
+@print(x); # modified x
 ```
 
 ## Key Functions
@@ -182,9 +201,7 @@ Macroni incorporates randomness to avoid detection and mimic natural user behavi
 @mouse_move(x, y, 1000, true);  # human_like=true enables randomness
 ```
 - Uses smoothstep for natural acceleration/deceleration
-- Adds big random arcs (bulge peaks randomly between 25-75% of path)
-- Mixes in sin wave wobble with random phase drift
-- Each movement takes a unique path, even to the same destination
+- Uses Bezier curves with random bulge combined with subtle sin movements
 
 **Wait Times:**
 ```macroni
@@ -194,10 +211,8 @@ Macroni incorporates randomness to avoid detection and mimic natural user behavi
 - Prevents predictable patterns in automation
 
 **Recording Playback:**
-- Mouse coordinates are compressed during recording (50ms buckets)
-- Playback connects positions using smoothstep with randomized arcs and sin waves
-- Each playback generates a different mouse path, never the exact same trajectory
-- Maintains original timing while applying human-like movement between recorded points
+- Mouse movements are compressed squashed during recording and replayed using random paths while respecting timing and actions and precision
+- Each new playback generates a different mouse path, never the exact same trajectory
 
 ## Cache Files
 
