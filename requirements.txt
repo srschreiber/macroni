@@ -7,3 +7,4 @@ mss
 pynput
 click
 easyocr 
+pyreadline3
