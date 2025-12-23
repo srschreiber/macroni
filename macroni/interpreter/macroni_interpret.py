@@ -697,7 +697,8 @@ class Interpreter:
 
                     # Call OCR function
                     results = ocr_find_text(region=region, min_conf=min_conf, filter=filter_text, upscale=upscale)
-
+                    if results is None:
+                        return []
                     # Convert OCRResult objects to tuples for macroni
                     # Format: [(text, conf, [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]), ...]
                     return [(r.text, r.conf, r.bbox) for r in results]
