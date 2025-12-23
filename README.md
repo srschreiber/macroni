@@ -28,6 +28,8 @@ For syntax highlighting, please add the extension to vscode: Macroni Language Su
 ### Basic Command
 
 #### Interactive
+
+The following command will allow REPL (Read-Eval-Print Loop)
 ```bash
 macroni
 ```
