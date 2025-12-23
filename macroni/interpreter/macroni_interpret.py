@@ -499,7 +499,9 @@ class Interpreter:
                     return 0
 
                 case "record_func":
-                    args = self.eval(context.create_sibling_context(node=c[0]))
+                    new_ctx = context.create_sibling_context(node=c[0])
+                    new_ctx.debug = False  # disable debug during recording
+                    args = self.eval(new_ctx)
                     if len(args) < 1 or len(args) > 3:
                         raise Exception(f"record() takes 1-3 arguments (recording_name [, start_button, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
@@ -511,7 +513,9 @@ class Interpreter:
                     return 0
 
                 case "playback_func":
-                    args = self.eval(context.create_sibling_context(node=c[0]))
+                    new_ctx = context.create_sibling_context(node=c[0])
+                    new_ctx.debug = False  # disable debug during playback
+                    args = self.eval(new_ctx)
                     if len(args) < 1 or len(args) > 2:
                         raise Exception(f"playback() takes 1-2 arguments (recording_name [, stop_button]), got {len(args)}")
                     recording_name = str(args[0])
