@@ -677,6 +677,10 @@ class Interpreter:
                     overwrite_cache = bool(args[1]) if len(args) == 2 else False
                     region = region_capture(region_key, overwrite_cache)
                     return region
+                
+                case "mouse_position_func":
+                    pos = pyautogui.position()
+                    return (pos.x, pos.y)
 
                 case "ocr_find_text_func":
                     args = self.eval(context.create_sibling_context(node=c[0]))

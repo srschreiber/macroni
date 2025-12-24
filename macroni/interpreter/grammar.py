@@ -49,6 +49,7 @@ built_in_calls: print_stmt
           | ocr_find_text_stmt
           | swap_stmt
           | copy_stmt
+          | mouse_position_stmt
 
 print_stmt: "@print" "(" args ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
@@ -86,6 +87,7 @@ capture_region_stmt: "@capture_region" "(" args ")" -> capture_region_func
 ocr_find_text_stmt: "@ocr_find_text" "(" args ")" -> ocr_find_text_func
 swap_stmt: "@swap" "(" args ")"                 -> swap_func
 copy_stmt: "@copy" "(" expr ")"                 -> copy_func
+mouse_position_stmt: "@mouse_position" "(" ")"   -> mouse_position_func
 
 
 # ---------- function definition ----------
