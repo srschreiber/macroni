@@ -85,7 +85,7 @@
       "patterns": [
         {
           "name": "support.function.builtin.macroni",
-          "match": "@(print|wait|rand|rand_i|foreach_tick|mouse_move|set_template_dir|find_template|find_templates|get_coordinates|check_pixel_color|get_pixel_color|left_click|send_input|press_and_release|record|playback|recording_exists|len|time|shuffle|get_pixel_at|append|pop|capture_region|ocr_find_text|swap|copy)\\b"
+          "match": "@(print|wait|rand|rand_i|foreach_tick|mouse_move|set_template_dir|find_template|find_templates|get_coordinates|check_pixel_color|get_pixel_color|left_click|send_input|press_and_release|record|playback|recording_exists|len|time|shuffle|get_pixel_at|append|pop|capture_region|ocr_find_text|swap|copy|mouse_position)\\b"
         }
       ]
     },
