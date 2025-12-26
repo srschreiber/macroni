@@ -1,18 +1,20 @@
-x = 15;
-if x > 10 && x < 20 {
-    @print("x is between 10 and 20");
-} else {
-    @print("x is out of range");
-}
+import "imported.macroni";
+print_hello();
+# x = 15;
+# if x > 10 && x < 20 {
+#     @print("x is between 10 and 20");
+# } else {
+#     @print("x is out of range");
+# }
 
-if x > 10 || x < 5 {
-    @print("x is either greater than 10 or less than 5");
-} else {
-    @print("x is between 5 and 10 inclusive");
-}
+# if x > 10 || x < 5 {
+#     @print("x is either greater than 10 or less than 5");
+# } else {
+#     @print("x is between 5 and 10 inclusive");
+# }
 
-while x < 200 {
-    @print(@mouse_position());
-    @wait(500);
+# while x < 200 {
+#     @print(@mouse_position());
+#     @wait(500);
     
-}
+# }
