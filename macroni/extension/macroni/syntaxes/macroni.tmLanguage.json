@@ -47,7 +47,7 @@
       "patterns": [
         {
           "name": "keyword.control.macroni",
-          "match": "\\b(if|else|while|fn|outer|return|break)\\b"
+          "match": "\\b(if|else|while|fn|outer|return|break|continue)\\b"
         }
       ]
     },
