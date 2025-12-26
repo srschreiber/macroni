@@ -68,8 +68,6 @@ class Interpreter:
         Each file will be: target/ex1.png target/ex2.png etc.
         """
         self.template_dir = "./templates"
-        # outer_vars may point to different ExecutionContext instances
-        self.outer_vars: dict[str, ExecutionContext] = {}
 
     def eval_child(self, parent_context: ExecutionContext, node: any) -> Any:
         child_context = parent_context.create_child_context(node=node)
@@ -95,8 +93,8 @@ class Interpreter:
             case Token(type="NAME"):
                 name = str(node)
                 # outer?
-                if name in self.outer_vars:
-                    outer_ctx = self.outer_vars[name]
+                if name in context.outer_vars:
+                    outer_ctx = context.outer_vars[name]
                     return outer_ctx.vars.get(name, None)
 
                 if name in context.vars:
@@ -115,11 +113,22 @@ class Interpreter:
                     # match list single arg
                     match c:
                         case [name]:
-                            # search parents until found
+                            # First check if parent already has this variable marked as outer
+                            if (
+                                context.parent
+                                and str(name) in context.parent.outer_vars
+                            ):
+                                # Inherit the parent's outer reference
+                                context.outer_vars[str(name)] = (
+                                    context.parent.outer_vars[str(name)]
+                                )
+                                return None
+
+                            # Otherwise search parents until found
                             ctx = context.parent
                             while ctx is not None:
                                 if str(name) in ctx.vars:
-                                    self.outer_vars[str(name)] = ctx
+                                    context.outer_vars[str(name)] = ctx
                                     return None
                                 ctx = ctx.parent
                             return None
@@ -191,8 +200,8 @@ class Interpreter:
                         name = str(c[i])
                         val = vals[i]
                         # check if outer
-                        if name in self.outer_vars:
-                            outer_ctx = self.outer_vars[name]
+                        if name in context.outer_vars:
+                            outer_ctx = context.outer_vars[name]
                             outer_ctx.vars[name] = val
                         else:
                             context.vars[name] = val

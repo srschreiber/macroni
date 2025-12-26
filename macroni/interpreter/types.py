@@ -11,6 +11,7 @@ class ExecutionContext:
         eval_cback=None,
         debug=False,
         parent: "ExecutionContext" = None,
+        outer_vars=None,
     ):
         """
         Initialize execution context.
@@ -19,6 +20,7 @@ class ExecutionContext:
             vars: Dictionary of variables (if None, creates empty dict)
             funcs: Dictionary of functions (if None, creates empty dict)
             depth: Current recursion depth
+            outer_vars: Dictionary mapping variable names to their outer contexts
         """
         self.vars = vars if vars is not None else {}
         self.funcs = funcs if funcs is not None else {}
@@ -27,6 +29,7 @@ class ExecutionContext:
         self.eval_cback = eval_cback  # Optional callback to evaluate nodes
         self.debug = debug  # Enable debugging features
         self.parent = parent  # Reference to parent context, if any
+        self.outer_vars = outer_vars if outer_vars is not None else {}
 
     def create_sibling_context(self, node: any = None):
         """
@@ -44,6 +47,7 @@ class ExecutionContext:
             debug=self.debug,
             eval_cback=self.eval_cback,
             parent=self.parent,
+            outer_vars=self.outer_vars,
         )
 
     def create_child_context(self, local_vars=None, node: any = None):
@@ -74,4 +78,5 @@ class ExecutionContext:
             debug=self.debug,
             eval_cback=self.eval_cback,
             parent=self,
+            outer_vars={},  # Start with empty outer_vars for child context
         )

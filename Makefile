@@ -1,6 +1,17 @@
 install: build-extension
 	./scripts/bootstrap.sh
 
+test:
+	@echo "=== Running Macroni Test Suite ==="
+	@for test in tests/test_*.macroni; do \
+		echo ""; \
+		echo "Running $$test..."; \
+		python3 -m macroni.cli --file "$$test" || exit 1; \
+		echo "✓ $$test passed"; \
+	done
+	@echo ""
+	@echo "=== All Tests Passed ==="
+
 build-extension:
 	cd macroni/extension/macroni && vsce package
 	mv macroni/extension/macroni/*.vsix .
