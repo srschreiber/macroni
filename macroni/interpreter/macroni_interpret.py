@@ -110,6 +110,9 @@ class Interpreter:
             c = node.children
 
             match t:
+                case "import_stmt":
+                    # imports should be pre-loaded by now
+                    return None
                 case "outer_stmt":
                     # match list single arg
                     match c:

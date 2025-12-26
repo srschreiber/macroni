@@ -1,0 +1,31 @@
+# Helper file for testing imports
+# This file defines functions and variables that will be imported
+
+# Define a simple function
+fn greet(name) {
+    return "Hello, " + name;
+}
+
+# Define a function with calculations
+fn add_numbers(a, b) {
+    return a + b;
+}
+
+# Define a function that uses another function
+fn greet_and_add(name, x, y) {
+    greeting = greet(name);
+    sum = add_numbers(x, y);
+    return greeting + " Sum: " + sum;
+}
+
+# Define some variables
+imported_var = 42;
+imported_string = "imported";
+
+# Define a function that modifies a global variable
+counter = 0;
+fn increment_counter() {
+    outer counter;
+    counter = counter + 1;
+    return counter;
+}

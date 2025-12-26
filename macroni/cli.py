@@ -142,9 +142,34 @@ def main(filepath, debug, breakpoints: list):
     # Parse and execute the script
     interp = Interpreter()
     tree = calc_parser.parse(script_content)
+    imps = get_import_paths(tree)
+    imported_scripts = []
+    for imp in imps:
+        with open(imp, "r") as f:
+            imported_scripts.append(f.read())
+    prepended_imps = "\n".join(imported_scripts)
+    script_with_imports = prepended_imps + "\n" + script_content
+    # parse the combined script
+    tree = calc_parser.parse(script_with_imports)
+    # load all of the imported modules and prepend them to the script_content
+
     root_context = ExecutionContext(node=tree, debug=debug, eval_cback=interp.eval)
     interp.eval(root_context)
 
+def get_import_paths(node):
+    """Recursively extract import paths from the AST node."""
+    import_paths = []
+
+    if hasattr(node, "data") and node.data == "import_stmt":
+        # Extract the string value (import path)
+        import_path = node.children[0].value.strip('"').strip("'")
+        import_paths.append(import_path)
+
+    # Recursively check child nodes
+    for child in getattr(node, "children", []):
+        import_paths.extend(get_import_paths(child))
+
+    return import_paths
 
 if __name__ == "__main__":
     main()

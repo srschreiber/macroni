@@ -11,6 +11,11 @@ program: stmt*                              -> stmt_block
      | expr_stmt
      | outer_stmt
      | control_stmt
+     | import_stmt
+
+# ---------- importing modules ----------
+import_stmt: "import" STRING ";"            -> import_stmt
+
 
 # ---------- statements ----------
 outer_stmt: "outer" NAME ";"                    -> outer_stmt

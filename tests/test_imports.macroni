@@ -1,0 +1,69 @@
+# Test import functionality
+import "tests/test_import_helper.macroni";
+
+@print("=== Import Tests ===");
+
+# Test imported function call
+result = greet("World");
+if result != "Hello, World" {
+    @print("FAILED: greet should return 'Hello, World', got", result);
+    return;
+}
+@print("✓ Import and call function");
+
+# Test imported function with calculations
+sum = add_numbers(10, 20);
+if sum != 30 {
+    @print("FAILED: add_numbers(10, 20) should return 30, got", sum);
+    return;
+}
+@print("✓ Import function with calculations");
+
+# Test function that uses other imported functions
+combined = greet_and_add("Alice", 5, 7);
+if combined != "Hello, Alice Sum: 12" {
+    @print("FAILED: greet_and_add should return 'Hello, Alice Sum: 12', got", combined);
+    return;
+}
+@print("✓ Import function that uses other functions");
+
+# Test imported variables
+if imported_var != 42 {
+    @print("FAILED: imported_var should be 42, got", imported_var);
+    return;
+}
+@print("✓ Import variable");
+
+if imported_string != "imported" {
+    @print("FAILED: imported_string should be 'imported', got", imported_string);
+    return;
+}
+@print("✓ Import string variable");
+
+# Test imported function with outer variable
+count1 = increment_counter();
+if count1 != 1 {
+    @print("FAILED: First counter should be 1, got", count1);
+    return;
+}
+count2 = increment_counter();
+if count2 != 2 {
+    @print("FAILED: Second counter should be 2, got", count2);
+    return;
+}
+count3 = increment_counter();
+if count3 != 3 {
+    @print("FAILED: Third counter should be 3, got", count3);
+    return;
+}
+@print("✓ Import function with outer variable");
+
+# Test that we can modify imported variables
+imported_var = imported_var + 10;
+if imported_var != 52 {
+    @print("FAILED: Modified imported_var should be 52, got", imported_var);
+    return;
+}
+@print("✓ Modify imported variable");
+
+@print("=== All Import Tests Passed ===");
