@@ -1,0 +1,138 @@
+# Test built-in functions (non-visual)
+@print("=== Built-in Functions Tests ===");
+
+# len with list
+if @len([1,2,3]) != 3 {
+    @print("FAILED: len([1,2,3]) should be 3");
+    return;
+}
+if @len([]) != 0 {
+    @print("FAILED: len([]) should be 0");
+    return;
+}
+@print("✓ len with list");
+
+# len with tuple
+if @len((1,2)) != 2 {
+    @print("FAILED: len((1,2)) should be 2");
+    return;
+}
+@print("✓ len with tuple");
+
+# len with string
+if @len("hello") != 5 {
+    @print("FAILED: len('hello') should be 5");
+    return;
+}
+if @len("") != 0 {
+    @print("FAILED: len('') should be 0");
+    return;
+}
+@print("✓ len with string");
+
+# len with null
+if @len(null) != 0 {
+    @print("FAILED: len(null) should be 0");
+    return;
+}
+@print("✓ len with null");
+
+# time function returns increasing values
+t1 = @time();
+t2 = @time();
+if t2 < t1 {
+    @print("FAILED: Time should be increasing");
+    return;
+}
+@print("✓ time function");
+
+# rand function range check
+r1 = @rand(10);
+if r1 < 0 || r1 > 10 {
+    @print("FAILED: rand(10) should be in [0, 10]");
+    return;
+}
+@print("✓ rand single arg");
+
+r2 = @rand(5, 10);
+if r2 < 5 || r2 > 10 {
+    @print("FAILED: rand(5, 10) should be in [5, 10]");
+    return;
+}
+@print("✓ rand two args");
+
+# rand_i returns integer
+ri = @rand_i(10);
+if ri % 1 != 0 {
+    @print("FAILED: rand_i should return integer");
+    return;
+}
+if ri < 0 || ri > 10 {
+    @print("FAILED: rand_i(10) should be in [0, 10]");
+    return;
+}
+@print("✓ rand_i");
+
+# append modifies list in place
+list = [1, 2];
+@append(list, 3);
+if @len(list) != 3 {
+    @print("FAILED: append should increase length to 3");
+    return;
+}
+if list[2] != 3 {
+    @print("FAILED: appended element should be 3");
+    return;
+}
+@print("✓ append");
+
+# pop removes and returns last element
+list = [10, 20, 30];
+val = @pop(list);
+if val != 30 {
+    @print("FAILED: pop should return 30");
+    return;
+}
+if @len(list) != 2 {
+    @print("FAILED: list length should be 2 after pop");
+    return;
+}
+@print("✓ pop");
+
+# copy creates independent copy
+orig = [1, 2, 3];
+dup = @copy(orig);
+@append(dup, 4);
+if @len(orig) != 3 {
+    @print("FAILED: original should still be length 3");
+    return;
+}
+if @len(dup) != 4 {
+    @print("FAILED: copy should be length 4");
+    return;
+}
+@print("✓ copy");
+
+# swap exchanges elements
+arr = [1, 2, 3, 4];
+@swap(arr, 0, 3);
+if arr[0] != 4 {
+    @print("FAILED: first element should be 4 after swap");
+    return;
+}
+if arr[3] != 1 {
+    @print("FAILED: last element should be 1 after swap");
+    return;
+}
+@print("✓ swap");
+
+# shuffle returns same length
+original = [1, 2, 3, 4, 5];
+shuffled = @shuffle(original);
+if @len(shuffled) != @len(original) {
+    @print("FAILED: shuffled should have same length as original");
+    return;
+}
+@print("✓ shuffle");
+
+@print("=== All Built-in Function Tests Passed ===");

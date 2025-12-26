@@ -2,6 +2,7 @@ import pyautogui
 import random
 import time
 
+
 def distance(x1: int, y1: int, x2: int, y2: int) -> float:
     return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
 
@@ -12,11 +13,14 @@ def calc_duration(x1: int, y1: int, x2: int, y2: int, pps: int) -> float:
         return 0.0
     return _distance / pps if pps > 0 else 0.0
 
+
 import random
 import math
 
+
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
+
 
 def smooth_move_to_bezier_deterministic(x2, y2, total_time=0.25, hz=240):
     desired_time = total_time * 0.90
@@ -56,13 +60,14 @@ def smooth_move_to_bezier_deterministic(x2, y2, total_time=0.25, hz=240):
 
 # TODO: PLAYBACK MAKE END POINT MORE RANDOM
 def smooth_move_to_bezier(
-    x2, y2,
+    x2,
+    y2,
     total_time=0.25,
     hz=240,
     accuracy_pixels=1,
-    arc_px=None,               # if None, chosen from distance
+    arc_px=None,  # if None, chosen from distance
     arc_px_cap=80,
-    wobble_px=2,             # max wobble amplitude in pixels
+    wobble_px=2,  # max wobble amplitude in pixels
 ):
     desired_time = total_time * 0.8
     x1, y1 = pyautogui.position()
@@ -70,7 +75,7 @@ def smooth_move_to_bezier(
     dx, dy = x2 - x1, y2 - y1
     L = math.hypot(dx, dy) or 1.0
 
-    if L*.1 < arc_px_cap:
+    if L * 0.1 < arc_px_cap:
         arc_px_cap = L * 0.1
 
     # Unit direction + perpendicular
@@ -85,10 +90,10 @@ def smooth_move_to_bezier(
 
     # --- Choose Bezier control points (cubic) ---
     # Pick two random points along the straight line, then push it sideways.
-    apex_t1 = random.uniform(0.025, 0.975)   # where the arc "peaks" along the path
+    apex_t1 = random.uniform(0.025, 0.975)  # where the arc "peaks" along the path
     arc_dir1 = random.choice([-1, 1])
 
-    apex_t2 = random.uniform(0.025, 0.975)   # where the arc "peaks" along the path
+    apex_t2 = random.uniform(0.025, 0.975)  # where the arc "peaks" along the path
     arc_dir2 = random.choice([-1, 1])
 
     if arc_px is None:
@@ -104,7 +109,7 @@ def smooth_move_to_bezier(
 
     # --- Wobble setup (tiny and damped) ---
     # allow max of one wobble per 100 pixels
-    wobble_cycles_min = .5
+    wobble_cycles_min = 0.5
     wobble_cycles_max = L / 100.0
     cycles = random.uniform(wobble_cycles_min, wobble_cycles_max)
     if L < 40:
@@ -127,9 +132,19 @@ def smooth_move_to_bezier(
 
         # Cubic Bezier point
         # B(t) = (1-t)^3 P0 + 3(1-t)^2 t C1 + 3(1-t) t^2 C2 + t^3 P1
-        omt = (1 - t)
-        bx = (omt * omt * omt) * x1 + 3 * (omt * omt) * t * cx1 + 3 * omt * (t * t) * cx2 + (t * t * t) * x2
-        by = (omt * omt * omt) * y1 + 3 * (omt * omt) * t * cy1 + 3 * omt * (t * t) * cy2 + (t * t * t) * y2
+        omt = 1 - t
+        bx = (
+            (omt * omt * omt) * x1
+            + 3 * (omt * omt) * t * cx1
+            + 3 * omt * (t * t) * cx2
+            + (t * t * t) * x2
+        )
+        by = (
+            (omt * omt * omt) * y1
+            + 3 * (omt * omt) * t * cy1
+            + 3 * omt * (t * t) * cy2
+            + (t * t * t) * y2
+        )
 
         # Perpendicular wobble (damped at ends, stronger mid-path)
         env = (4 * t * (1 - t)) ** 1.4  # near-zero at start/end
@@ -138,7 +153,9 @@ def smooth_move_to_bezier(
 
         wob = 0.0
         if cycles > 0:
-            wob = wobble_px * env * settle * math.sin(phase + omega * (t * desired_time))
+            wob = (
+                wobble_px * env * settle * math.sin(phase + omega * (t * desired_time))
+            )
 
         bx += px * wob
         by += py * wob
@@ -158,7 +175,9 @@ def smooth_move_to_bezier(
     time_remaining = max(total_time - elapsed, 0.0)
 
     if rem > 2:
-        pyautogui.moveTo(x2, y2, duration=min(0.06, max(0.01, time_remaining)), _pause=False)
+        pyautogui.moveTo(
+            x2, y2, duration=min(0.06, max(0.01, time_remaining)), _pause=False
+        )
     else:
         pyautogui.moveTo(x2, y2, duration=0, _pause=False)
 
@@ -166,16 +185,21 @@ def smooth_move_to_bezier(
 def move_mouse_offset(x_offset: int, y_offset: int, pps: int, humanLike: bool) -> None:
     """Move the mouse cursor by the specified offsets at a rate of pps pixels per second."""
     current_x, current_y = pyautogui.position()
-    duration = calc_duration(current_x, current_y, current_x + x_offset, current_y + y_offset, pps)
+    duration = calc_duration(
+        current_x, current_y, current_x + x_offset, current_y + y_offset, pps
+    )
     new_x = current_x + x_offset
     new_y = current_y + y_offset
     move_mouse_to(new_x, new_y, pps, humanLike)
 
-def move_mouse_to(x: int, y: int, pps: int, humanLike: bool, within_pixels: int = 1) -> None:
+
+def move_mouse_to(
+    x: int, y: int, pps: int, humanLike: bool, within_pixels: int = 1
+) -> None:
     """Move the mouse cursor to the specified coordinates at a rate of pps pixels per second."""
     current_x, current_y = pyautogui.position()
     duration = calc_duration(current_x, current_y, x, y, pps)
-    
+
     r = within_pixels * math.sqrt(random.random())
     theta = random.uniform(0, 2 * math.pi)
 
@@ -187,5 +211,4 @@ def move_mouse_to(x: int, y: int, pps: int, humanLike: bool, within_pixels: int 
     if not humanLike:
         pyautogui.moveTo(x, y, duration=duration)
     else:
-            smooth_move_to_bezier(x, y, total_time=duration)
-    
+        smooth_move_to_bezier(x, y, total_time=duration)

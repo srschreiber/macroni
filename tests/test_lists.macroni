@@ -1,0 +1,125 @@
+# Test list operations
+@print("=== List Tests ===");
+
+# Empty list
+empty = [];
+if @len(empty) != 0 {
+    @print("FAILED: Empty list length should be 0");
+    return;
+}
+@print("✓ Empty list");
+
+# List with items
+numbers = [1, 2, 3, 4, 5];
+if @len(numbers) != 5 {
+    @print("FAILED: List length should be 5");
+    return;
+}
+@print("✓ List creation");
+
+# Indexing
+first = numbers[0];
+if first != 1 {
+    @print("FAILED: First element should be 1, got", first);
+    return;
+}
+third = numbers[2];
+if third != 3 {
+    @print("FAILED: Third element should be 3, got", third);
+    return;
+}
+last = numbers[4];
+if last != 5 {
+    @print("FAILED: Last element should be 5, got", last);
+    return;
+}
+@print("✓ List indexing");
+
+# Mixed types
+mixed = [1, "hello", null, 42];
+if @len(mixed) != 4 {
+    @print("FAILED: Mixed list length should be 4");
+    return;
+}
+if mixed[1] != "hello" {
+    @print("FAILED: Second item should be 'hello'");
+    return;
+}
+@print("✓ Mixed type list");
+
+# Append
+list = [1, 2, 3];
+@append(list, 4);
+if @len(list) != 4 {
+    @print("FAILED: List length after append should be 4");
+    return;
+}
+if list[3] != 4 {
+    @print("FAILED: Appended element should be 4");
+    return;
+}
+@print("✓ Append");
+
+# Pop from end
+list = [1, 2, 3, 4, 5];
+popped = @pop(list);
+if popped != 5 {
+    @print("FAILED: Popped value should be 5, got", popped);
+    return;
+}
+if @len(list) != 4 {
+    @print("FAILED: List length after pop should be 4");
+    return;
+}
+@print("✓ Pop from end");
+
+# Pop with index
+list = [1, 2, 3, 4];
+popped = @pop(list, 1);
+if popped != 2 {
+    @print("FAILED: Popped value at index 1 should be 2, got", popped);
+    return;
+}
+if list[1] != 3 {
+    @print("FAILED: Element at index 1 should now be 3");
+    return;
+}
+@print("✓ Pop with index");
+
+# Copy
+original = [1, 2, 3];
+copied = @copy(original);
+@append(copied, 4);
+if @len(original) != 3 {
+    @print("FAILED: Original list should still be length 3");
+    return;
+}
+if @len(copied) != 4 {
+    @print("FAILED: Copied list should be length 4");
+    return;
+}
+@print("✓ Copy");
+
+# Swap
+swaplist = [10, 20, 30, 40];
+@swap(swaplist, 0, 3);
+if swaplist[0] != 40 {
+    @print("FAILED: First element should be 40 after swap");
+    return;
+}
+if swaplist[3] != 10 {
+    @print("FAILED: Last element should be 10 after swap");
+    return;
+}
+@print("✓ Swap");
+
+# Nested lists
+nested = [[1, 2], [3, 4]];
+inner = nested[1];
+if inner[0] != 3 {
+    @print("FAILED: Nested access should give 3");
+    return;
+}
+@print("✓ Nested lists");
+
+@print("=== All List Tests Passed ===");

@@ -1,0 +1,109 @@
+# Test loop statements
+@print("=== Loop Tests ===");
+
+# Basic while loop counting
+counter = 0;
+i = 1;
+while i <= 5 {
+    counter = counter + 1;
+    i = i + 1;
+}
+if counter != 5 {
+    @print("FAILED: Basic while loop should iterate 5 times, got", counter);
+    return;
+}
+@print("✓ Basic while loop");
+
+# While with countdown
+n = 5;
+while n > 0 {
+    n = n - 1;
+}
+if n != 0 {
+    @print("FAILED: Countdown should end at 0, got", n);
+    return;
+}
+@print("✓ While countdown");
+
+# Loop with break
+i = 1;
+while i <= 10 {
+    if i == 3 {
+        break;
+    }
+    i = i + 1;
+}
+if i != 3 {
+    @print("FAILED: Loop with break should stop at 3, got", i);
+    return;
+}
+@print("✓ Loop with break");
+
+# Nested loops
+outer_count = 0;
+inner_count = 0;
+o = 1;
+while o <= 3 {
+    outer_count = outer_count + 1;
+    inner = 1;
+    while inner <= 2 {
+        inner_count = inner_count + 1;
+        inner = inner + 1;
+    }
+    o = o + 1;
+}
+if outer_count != 3 {
+    @print("FAILED: Outer loop should run 3 times, got", outer_count);
+    return;
+}
+if inner_count != 6 {
+    @print("FAILED: Inner loop should run 6 times total, got", inner_count);
+    return;
+}
+@print("✓ Nested loops");
+
+# Loop with early return in function
+fn test_loop_return() {
+    i = 1;
+    while i <= 10 {
+        if i == 3 {
+            return i;
+        }
+        i = i + 1;
+    }
+    return -1;
+}
+result = test_loop_return();
+if result != 3 {
+    @print("FAILED: Loop return should be 3, got", result);
+    return;
+}
+@print("✓ Loop with early return");
+
+# Accumulator pattern (sum 1 to 10)
+sum = 0;
+num = 1;
+while num <= 10 {
+    sum = sum + num;
+    num = num + 1;
+}
+if sum != 55 {
+    @print("FAILED: Sum 1 to 10 should be 55, got", sum);
+    return;
+}
+@print("✓ Accumulator pattern");
+
+# Loop that never executes
+executed = 0;
+i = 10;
+while i < 5 {
+    executed = 1;
+    i = i + 1;
+}
+if executed != 0 {
+    @print("FAILED: Non-executing loop should not run");
+    return;
+}
+@print("✓ Non-executing loop");
+
+@print("=== All Loop Tests Passed ===");

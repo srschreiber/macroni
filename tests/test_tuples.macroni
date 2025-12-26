@@ -1,0 +1,133 @@
+# Test tuple operations
+@print("=== Tuple Tests ===");
+
+# Tuple with items
+coords = (10, 20);
+if @len(coords) != 2 {
+    @print("FAILED: Tuple length should be 2");
+    return;
+}
+@print("✓ Tuple creation");
+
+# Indexing
+x = coords[0];
+y = coords[1];
+if x != 10 {
+    @print("FAILED: First element should be 10, got", x);
+    return;
+}
+if y != 20 {
+    @print("FAILED: Second element should be 20, got", y);
+    return;
+}
+@print("✓ Tuple indexing");
+
+# Three element tuple
+rgb = (255, 128, 64);
+r = rgb[0];
+g = rgb[1];
+b = rgb[2];
+if r != 255 {
+    @print("FAILED: R should be 255, got", r);
+    return;
+}
+if g != 128 {
+    @print("FAILED: G should be 128, got", g);
+    return;
+}
+if b != 64 {
+    @print("FAILED: B should be 64, got", b);
+    return;
+}
+@print("✓ Three element tuple");
+
+# Mixed types in tuple
+mixed = (42, "hello", null);
+if mixed[0] != 42 {
+    @print("FAILED: First element should be 42");
+    return;
+}
+if mixed[1] != "hello" {
+    @print("FAILED: Second element should be 'hello'");
+    return;
+}
+if mixed[2] != null {
+    @print("FAILED: Third element should be null");
+    return;
+}
+@print("✓ Mixed type tuple");
+
+# Destructuring assignment
+a, b = (5, 10);
+if a != 5 {
+    @print("FAILED: a should be 5, got", a);
+    return;
+}
+if b != 10 {
+    @print("FAILED: b should be 10, got", b);
+    return;
+}
+@print("✓ Destructuring two elements");
+
+# Destructuring three elements
+x, y, z = (100, 200, 300);
+if x != 100 {
+    @print("FAILED: x should be 100, got", x);
+    return;
+}
+if y != 200 {
+    @print("FAILED: y should be 200, got", y);
+    return;
+}
+if z != 300 {
+    @print("FAILED: z should be 300, got", z);
+    return;
+}
+@print("✓ Destructuring three elements");
+
+# Function returning tuple
+fn get_point() {
+    return (50, 75);
+}
+point = get_point();
+px = point[0];
+py = point[1];
+if px != 50 {
+    @print("FAILED: px should be 50, got", px);
+    return;
+}
+if py != 75 {
+    @print("FAILED: py should be 75, got", py);
+    return;
+}
+@print("✓ Function returning tuple");
+
+# Destructuring function return
+fn get_coords() {
+    return (30, 40);
+}
+cx, cy = get_coords();
+if cx != 30 {
+    @print("FAILED: cx should be 30, got", cx);
+    return;
+}
+if cy != 40 {
+    @print("FAILED: cy should be 40, got", cy);
+    return;
+}
+@print("✓ Destructuring function return");
+
+# Nested tuples
+nested = ((1, 2), (3, 4));
+first_pair = nested[0];
+if first_pair[0] != 1 {
+    @print("FAILED: Nested access should give 1");
+    return;
+}
+if first_pair[1] != 2 {
+    @print("FAILED: Nested access should give 2");
+    return;
+}
+@print("✓ Nested tuples");
+
+@print("=== All Tuple Tests Passed ===");

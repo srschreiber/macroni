@@ -9,13 +9,16 @@ from macroni.util.vision import Vision
 import sys
 import concurrent.futures
 
+
 def screenshot_scale(screen_bgr, region=None):
-    img_h, img_w = screen_bgr.shape[:2]          # screenshot pixels
-    scr_w, scr_h = pyautogui.size() # screen points
+    img_h, img_w = screen_bgr.shape[:2]  # screenshot pixels
+    scr_w, scr_h = pyautogui.size()  # screen points
     return (img_w / scr_w), (img_h / scr_h)
+
 
 def img_xy_to_screen_xy(x_img, y_img, sx, sy):
     return (x_img / sx, y_img / sy)
+
 
 def screenshot_bgr(region=None, downscale=1.0, debug=False):
     """
@@ -33,7 +36,7 @@ def screenshot_bgr(region=None, downscale=1.0, debug=False):
             # region is (left, top, width, height) in screen points
             # MSS needs actual pixel coordinates, so scale by the display scaling factor
             # For retina displays, this is typically 2.0
-            monitor =  region
+            monitor = region
 
         # MSS returns BGRA on all platforms (Windows, macOS, Linux)
         # Drop alpha channel to get BGR format for OpenCV
@@ -52,6 +55,7 @@ def screenshot_bgr(region=None, downscale=1.0, debug=False):
 
         return bgr
 
+
 def get_template_examples(template_dir, template_name):
     """
     Returns list of file paths for template examples in the given directory.
@@ -62,11 +66,13 @@ def get_template_examples(template_dir, template_name):
         return []
     files = []
     for fname in os.listdir(target_dir):
-        if fname.lower().endswith(('.png', '.jpg', '.jpeg')):
+        if fname.lower().endswith((".png", ".jpg", ".jpeg")):
             files.append(os.path.join(target_dir, fname))
     return files
 
+
 template_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+
 
 # just return center points of found templates
 def locate_template_on_screen(
@@ -75,7 +81,7 @@ def locate_template_on_screen(
     scales=np.linspace(0.8, 1.2, 5),
     threshold=0.8,
     use_gray=True,
-    downscale=.8,
+    downscale=0.8,
     top_k=1,
     debug=False,
 ) -> tuple | None:
@@ -95,7 +101,7 @@ def locate_template_on_screen(
     # On macOS, templates are typically at 2x retina resolution, but MSS captures at 1x
     # So we need to scale templates by 0.5x to match MSS screenshots
     template_scale = downscale
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         template_scale *= 0.5  # Compensate for retina resolution difference
 
     def find_in_template(template_path) -> list[Vision.VisionHit]:
@@ -103,9 +109,15 @@ def locate_template_on_screen(
         # Scale template to match the screenshot resolution
         template_img = cv2.imread(template_path)
         if template_scale != 1.0:
-            template_img = cv2.resize(template_img, (0,0), fx=template_scale, fy=template_scale, interpolation=cv2.INTER_AREA)
+            template_img = cv2.resize(
+                template_img,
+                (0, 0),
+                fx=template_scale,
+                fy=template_scale,
+                interpolation=cv2.INTER_AREA,
+            )
             # Save temporarily to create Vision instance
-            temp_path = template_path.replace('.png', '_temp.png')
+            temp_path = template_path.replace(".png", "_temp.png")
             cv2.imwrite(temp_path, template_img)
             vision = Vision(temp_path)
             os.remove(temp_path)
@@ -113,12 +125,22 @@ def locate_template_on_screen(
             vision = Vision(template_path)
 
         # Find matches using multiscale
-        points = vision.find_multiscale(screen, scales=scales, threshold=threshold, use_gray=use_gray, find_one=False, debug_mode=debug)
+        points = vision.find_multiscale(
+            screen,
+            scales=scales,
+            threshold=threshold,
+            use_gray=use_gray,
+            find_one=False,
+            debug_mode=debug,
+        )
         return points
-    
+
     # Collect all VisionHit results from parallel searches
     all_hits: list[Vision.VisionHit] = []
-    futures = [template_thread_pool.submit(find_in_template, template_path) for template_path in template_paths]
+    futures = [
+        template_thread_pool.submit(find_in_template, template_path)
+        for template_path in template_paths
+    ]
     for future in concurrent.futures.as_completed(futures):
         hits = future.result()
         all_hits.extend(hits)
@@ -136,20 +158,23 @@ def locate_template_on_screen(
             x, y, w, h = hit.bbox
             rect = [int(x), int(y), int(w), int(h)]
             rectangles.append(rect)
-            rectangles.append(rect)  # Add twice for groupRectangles to keep single boxes
+            rectangles.append(
+                rect
+            )  # Add twice for groupRectangles to keep single boxes
 
         # Group overlapping rectangles
-        grouped_rects, weights = cv2.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
+        grouped_rects, weights = cv2.groupRectangles(
+            rectangles, groupThreshold=1, eps=0.5
+        )
 
         # Extract deduplicated center points
         deduped_hits = []
-        for (x, y, w, h) in grouped_rects:
+        for x, y, w, h in grouped_rects:
             center_x = x + w // 2
             center_y = y + h // 2
-            deduped_hits.append(Vision.VisionHit(
-                bbox=(x, y, w, h),
-                center=(center_x, center_y)
-            ))
+            deduped_hits.append(
+                Vision.VisionHit(bbox=(x, y, w, h), center=(center_x, center_y))
+            )
 
         print(f"Templates found: {len(all_hits)} -> {len(deduped_hits)} after dedup")
     else:
@@ -179,5 +204,3 @@ if __name__ == "__main__":
         move_mouse_to(pos[0], pos[1], pps=5000, humanLike=True)
     else:
         print(f"Template '{template_name}' not found on screen.")
-
-

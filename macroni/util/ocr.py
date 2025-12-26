@@ -11,10 +11,11 @@ from pynput import mouse
 
 
 # Create once (slow to init). For speed, keep it global.
-reader = easyocr.Reader(['en'], gpu=True)  # set gpu=True if you have CUDA
+reader = easyocr.Reader(["en"], gpu=True)  # set gpu=True if you have CUDA
 
 # Cache file for regions
 REGIONS_CACHE_FILE = "regions_cache.json"
+
 
 def preprocess_for_ocr(bgr, upscale=1.5, invert=None, close=False):
     # 1) upscale (helps small fonts)
@@ -25,7 +26,9 @@ def preprocess_for_ocr(bgr, upscale=1.5, invert=None, close=False):
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
     # 2) denoise (good on noisy backgrounds)
-    gray = cv2.fastNlMeansDenoising(gray, None, h=12, templateWindowSize=7, searchWindowSize=21)
+    gray = cv2.fastNlMeansDenoising(
+        gray, None, h=12, templateWindowSize=7, searchWindowSize=21
+    )
 
     # # 3) local contrast boost (CLAHE)
     # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
@@ -62,11 +65,13 @@ def preprocess_for_ocr(bgr, upscale=1.5, invert=None, close=False):
     #     th = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel, iterations=1)
 
     # save a picture for debugging
-    #cv2.imwrite("ocr_debug.png", gray)
+    # cv2.imwrite("ocr_debug.png", gray)
     return gray
 
 
-def region_capture(region_key: str, overwrite_cache: bool = False) -> tuple[int, int, int, int]:
+def region_capture(
+    region_key: str, overwrite_cache: bool = False
+) -> tuple[int, int, int, int]:
     """
     Interactively capture a screen region with caching.
     Always writes to cache, but overwrite_cache controls whether to recapture.
@@ -91,7 +96,7 @@ def region_capture(region_key: str, overwrite_cache: bool = False) -> tuple[int,
     # Load cache
     cache = {}
     if os.path.exists(REGIONS_CACHE_FILE):
-        with open(REGIONS_CACHE_FILE, 'r') as f:
+        with open(REGIONS_CACHE_FILE, "r") as f:
             cache = json.load(f)
 
     # Return cached region if available and not overwriting
@@ -127,7 +132,7 @@ def region_capture(region_key: str, overwrite_cache: bool = False) -> tuple[int,
 
     # Always save to cache
     cache[region_key] = list(region)
-    with open(REGIONS_CACHE_FILE, 'w') as f:
+    with open(REGIONS_CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 
     print(f"Region '{region_key}' captured and cached: {region}\n")
@@ -145,7 +150,7 @@ def ocr_find_text(
     region: tuple[int, int, int, int] | None = None,
     min_conf: float = 0.45,
     filter: str | list | tuple | None = None,
-    upscale: float = 1.0
+    upscale: float = 1.0,
 ) -> list[OCRResult]:
     """
     Perform OCR on screen region with optional filtering.
@@ -179,11 +184,11 @@ def ocr_find_text(
             "left": top_left_x,
             "top": top_left_y,
             "width": bottom_right_x - top_left_x,
-            "height": bottom_right_y - top_left_y
+            "height": bottom_right_y - top_left_y,
         }
 
     # try at + 20% and -20% upscales for robustness
-    upscales = [upscale, upscale*1.2, upscale*0.8]
+    upscales = [upscale, upscale * 1.2, upscale * 0.8]
     for upscale in upscales:
         bgr = screenshot_bgr(region=region_dict, downscale=1.0)
         img = preprocess_for_ocr(bgr, upscale=upscale)
@@ -191,11 +196,13 @@ def ocr_find_text(
         # easyocr expects RGB or grayscale; we already have grayscale/binary
         results = reader.readtext(img)  # [(bbox, text, conf), ...]
 
-        filtered_results = [(bbox, text, conf) for (bbox, text, conf) in results if conf >= min_conf]
+        filtered_results = [
+            (bbox, text, conf) for (bbox, text, conf) in results if conf >= min_conf
+        ]
 
         if not filtered_results or len(filtered_results) == 0:
             continue
-        
+
         # found confident results, return these
         output: list[OCRResult] = []
         for bbox, t, c in filtered_results:

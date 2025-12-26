@@ -1,0 +1,78 @@
+# Test logical operators
+@print("=== Logical Operators Tests ===");
+
+# AND operator
+if (1 && 1) != 1 {
+    @print("FAILED: 1 && 1 should be 1");
+    return;
+}
+if (1 && 0) != 0 {
+    @print("FAILED: 1 && 0 should be 0");
+    return;
+}
+if (0 && 1) != 0 {
+    @print("FAILED: 0 && 1 should be 0");
+    return;
+}
+if (0 && 0) != 0 {
+    @print("FAILED: 0 && 0 should be 0");
+    return;
+}
+@print("✓ AND operator");
+
+# OR operator
+if (1 || 1) != 1 {
+    @print("FAILED: 1 || 1 should be 1");
+    return;
+}
+if (1 || 0) != 1 {
+    @print("FAILED: 1 || 0 should be 1");
+    return;
+}
+if (0 || 1) != 1 {
+    @print("FAILED: 0 || 1 should be 1");
+    return;
+}
+if (0 || 0) != 0 {
+    @print("FAILED: 0 || 0 should be 0");
+    return;
+}
+@print("✓ OR operator");
+
+# Complex expressions
+x = 15;
+if (x > 10 && x < 20) != 1 {
+    @print("FAILED: 15 > 10 && 15 < 20 should be 1");
+    return;
+}
+if (x > 20 && x < 30) != 0 {
+    @print("FAILED: 15 > 20 && 15 < 30 should be 0");
+    return;
+}
+if (x > 20 || x < 30) != 1 {
+    @print("FAILED: 15 > 20 || 15 < 30 should be 1");
+    return;
+}
+if (x > 20 || x < 10) != 0 {
+    @print("FAILED: 15 > 20 || 15 < 10 should be 0");
+    return;
+}
+@print("✓ Complex logical expressions");
+
+# Short-circuit AND (0 && ... should not evaluate right side)
+result = 0 && 5;
+if result != 0 {
+    @print("FAILED: Short-circuit AND should be 0");
+    return;
+}
+@print("✓ Short-circuit AND");
+
+# Short-circuit OR (1 || ... should not evaluate right side)
+result = 1 || 5;
+if result != 1 {
+    @print("FAILED: Short-circuit OR should be 1");
+    return;
+}
+@print("✓ Short-circuit OR");
+
+@print("=== All Logical Tests Passed ===");

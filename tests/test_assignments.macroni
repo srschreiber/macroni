@@ -1,0 +1,125 @@
+# Test variable assignments
+@print("=== Assignment Tests ===");
+
+# Simple assignment
+x = 42;
+if x != 42 {
+    @print("FAILED: x should be 42, got", x);
+    return;
+}
+@print("✓ Simple assignment");
+
+# Assignment from expression
+sum = 5 + 3;
+if sum != 8 {
+    @print("FAILED: sum should be 8, got", sum);
+    return;
+}
+@print("✓ Assignment from expression");
+
+# Assignment from function
+fn get_value() {
+    return 99;
+}
+val = get_value();
+if val != 99 {
+    @print("FAILED: val should be 99, got", val);
+    return;
+}
+@print("✓ Assignment from function");
+
+# Destructuring assignment with tuple
+x, y = (100, 200);
+if x != 100 {
+    @print("FAILED: x should be 100, got", x);
+    return;
+}
+if y != 200 {
+    @print("FAILED: y should be 200, got", y);
+    return;
+}
+@print("✓ Destructuring assignment");
+
+# Multiple destructuring
+a, b, c = (1, 2, 3);
+if a != 1 || b != 2 || c != 3 {
+    @print("FAILED: Destructuring should give 1, 2, 3");
+    return;
+}
+@print("✓ Multiple destructuring");
+
+# Destructuring from function return
+fn get_coords() {
+    return (50, 75);
+}
+px, py = get_coords();
+if px != 50 {
+    @print("FAILED: px should be 50, got", px);
+    return;
+}
+if py != 75 {
+    @print("FAILED: py should be 75, got", py);
+    return;
+}
+@print("✓ Destructuring function return");
+
+# Reassignment
+counter = 0;
+counter = counter + 1;
+if counter != 1 {
+    @print("FAILED: counter should be 1 after increment");
+    return;
+}
+counter = counter * 2;
+if counter != 2 {
+    @print("FAILED: counter should be 2 after double");
+    return;
+}
+@print("✓ Reassignment");
+
+# Assignment with null
+nullable = null;
+if nullable != null {
+    @print("FAILED: nullable should be null");
+    return;
+}
+nullable = 123;
+if nullable != 123 {
+    @print("FAILED: nullable should be 123 after assignment");
+    return;
+}
+@print("✓ Assignment with null");
+
+# Assignment with list
+mylist = [1, 2, 3];
+if @len(mylist) != 3 {
+    @print("FAILED: mylist length should be 3");
+    return;
+}
+mylist = [4, 5, 6];
+if mylist[0] != 4 {
+    @print("FAILED: first element should be 4 after reassignment");
+    return;
+}
+@print("✓ Assignment with list");
+
+# Assignment from list index
+arr = [10, 20, 30];
+elem = arr[1];
+if elem != 20 {
+    @print("FAILED: elem should be 20, got", elem);
+    return;
+}
+@print("✓ Assignment from list index");
+
+# Multiple assignments in sequence
+x = 1;
+y = 2;
+z = 3;
+if x != 1 || y != 2 || z != 3 {
+    @print("FAILED: Multiple assignments failed");
+    return;
+}
+@print("✓ Multiple assignments");
+
+@print("=== All Assignment Tests Passed ===");

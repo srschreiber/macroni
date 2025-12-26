@@ -1,29 +1,18 @@
-# fn printHello() {
-#     @print("Hello, World!");
-# }
-
-# fn printGoodbye() {
-#     @print("Goodbye, World!");
-# }
-
-# x = 5;
-
-# printHello();
-# printGoodbye();
-
-# test variable scoping: function uses i, caller users i
-fn test_scope() {
-    i = 5;
+x = 15;
+if x > 10 && x < 20 {
+    @print("x is between 10 and 20");
+} else {
+    @print("x is out of range");
 }
 
-fn test_outer() {
-    outer i;
-    i = i + 10;
+if x > 10 || x < 5 {
+    @print("x is either greater than 10 or less than 5");
+} else {
+    @print("x is between 5 and 10 inclusive");
 }
 
-i = 10;
-test_scope();
-@print(i);
-test_outer();
-@print(i);
-
+while x < 200 {
+    @print(@mouse_position());
+    @wait(500);
+    
+}

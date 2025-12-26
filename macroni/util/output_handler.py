@@ -8,18 +8,21 @@ import random
 event_queue: "queue.Queue[RecordedEvent]" = queue.Queue()
 stop_event = threading.Event()
 
+
 @dataclasses.dataclass
 class RecordedEvent:
     timestamp: float
-    kind: str              # "mouse_move" | "mouse_click" | "key_down" | "key_up"
-    key: str               # "move" | "Button.left" | "Key.space" | "a" ...
-    action: str            # "move" | "down" | "up"
+    kind: str  # "mouse_move" | "mouse_click" | "key_down" | "key_up"
+    key: str  # "move" | "Button.left" | "Key.space" | "a" ...
+    action: str  # "move" | "down" | "up"
     to_coordinates: Optional[tuple[int, int]] = None
     from_coordinates: Optional[tuple[int, int]] = None
     duration_ms: Optional[int] = None  # time until next event (or next move)
 
+
 def now() -> float:
     return time.perf_counter()
+
 
 def drain_queue(q: "queue.Queue[RecordedEvent]") -> list[RecordedEvent]:
     out: list[RecordedEvent] = []
@@ -30,7 +33,10 @@ def drain_queue(q: "queue.Queue[RecordedEvent]") -> list[RecordedEvent]:
             break
     return out
 
-def squash_moves(events: list[RecordedEvent], distance_threshold: int = 50) -> list[RecordedEvent]:
+
+def squash_moves(
+    events: list[RecordedEvent], distance_threshold: int = 50
+) -> list[RecordedEvent]:
     """Squash consecutive mouse moves based on pixel distance from start of sequence.
     Preserves last move positions before non-move events (clicks, key presses, etc.)."""
     out: list[RecordedEvent] = []
@@ -49,7 +55,9 @@ def squash_moves(events: list[RecordedEvent], distance_threshold: int = 50) -> l
             while j < n and events[j].kind == "mouse_move":
                 current_pos = events[j].to_coordinates
                 if start_pos and current_pos:
-                    dist = distance(start_pos[0], start_pos[1], current_pos[0], current_pos[1])
+                    dist = distance(
+                        start_pos[0], start_pos[1], current_pos[0], current_pos[1]
+                    )
                     if dist > distance_threshold:
                         # Distance exceeded - stop here and start new sequence
                         break
@@ -60,7 +68,11 @@ def squash_moves(events: list[RecordedEvent], distance_threshold: int = 50) -> l
             # Create squashed event from first to last (preserving final position)
             squashed = dataclasses.replace(
                 last,
-                from_coordinates=first.from_coordinates if first.from_coordinates else first.to_coordinates
+                from_coordinates=(
+                    first.from_coordinates
+                    if first.from_coordinates
+                    else first.to_coordinates
+                ),
             )
             out.append(squashed)
             i = j
@@ -68,6 +80,7 @@ def squash_moves(events: list[RecordedEvent], distance_threshold: int = 50) -> l
             out.append(e)
             i += 1
     return out
+
 
 def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     """Set duration_ms = time until next event (ms). Last event duration_ms = 0."""
@@ -79,63 +92,82 @@ def attach_durations(events: list[RecordedEvent]) -> list[RecordedEvent]:
     events[-1].duration_ms = 0
     return events
 
+
 # record -> squashes all mouse moves within distance threshold.
-def record(distance_threshold: int = 50, start_button=None, stop_button=None) -> list[RecordedEvent]:
+def record(
+    distance_threshold: int = 50, start_button=None, stop_button=None
+) -> list[RecordedEvent]:
     # load corresponding key for start/stop
-    start_key = keyboard.Key.space if start_button is None else getattr(keyboard.Key, start_button, start_button)
-    stop_key = keyboard.Key.esc if stop_button is None else getattr(keyboard.Key, stop_button, stop_button)
+    start_key = (
+        keyboard.Key.space
+        if start_button is None
+        else getattr(keyboard.Key, start_button, start_button)
+    )
+    stop_key = (
+        keyboard.Key.esc
+        if stop_button is None
+        else getattr(keyboard.Key, stop_button, stop_button)
+    )
 
     global event_queue
     event_queue = queue.Queue()
     stop_event.clear()
     start_event = threading.Event()
-    recording_started = {'flag': False}
+    recording_started = {"flag": False}
 
     # Track last mouse position for from_coordinates
-    last_pos = {'x': None, 'y': None}
+    last_pos = {"x": None, "y": None}
 
     def on_move(x, y):
-        if not recording_started['flag']:
+        if not recording_started["flag"]:
             return
-        from_x, from_y = last_pos['x'], last_pos['y']
-        from_coords = (int(from_x), int(from_y)) if from_x is not None and from_y is not None else None
-        event_queue.put(RecordedEvent(
-            now(),
-            "mouse_move",
-            "move",
-            "move",
-            to_coordinates=(int(x), int(y)),
-            from_coordinates=from_coords
-        ))
-        last_pos['x'], last_pos['y'] = x, y
+        from_x, from_y = last_pos["x"], last_pos["y"]
+        from_coords = (
+            (int(from_x), int(from_y))
+            if from_x is not None and from_y is not None
+            else None
+        )
+        event_queue.put(
+            RecordedEvent(
+                now(),
+                "mouse_move",
+                "move",
+                "move",
+                to_coordinates=(int(x), int(y)),
+                from_coordinates=from_coords,
+            )
+        )
+        last_pos["x"], last_pos["y"] = x, y
 
     def on_click(x, y, button, pressed):
-        if not recording_started['flag']:
+        if not recording_started["flag"]:
             return
-        event_queue.put(RecordedEvent(
-            now(),
-            "mouse_click",
-            str(button),
-            "down" if pressed else "up",
-            to_coordinates=(int(x), int(y)),
-        ))
+        event_queue.put(
+            RecordedEvent(
+                now(),
+                "mouse_click",
+                str(button),
+                "down" if pressed else "up",
+                to_coordinates=(int(x), int(y)),
+            )
+        )
 
     def on_press(key):
-        if not recording_started['flag'] and key == start_key:
-            recording_started['flag'] = True
+        if not recording_started["flag"] and key == start_key:
+            recording_started["flag"] = True
             start_event.set()
             print(f"\n✓ Recording started! Press {stop_button or 'ESC'} to stop.\n")
             return
 
-        if recording_started['flag'] and key == stop_key:
+        if recording_started["flag"] and key == stop_key:
             stop_event.set()
             return False
 
-        if recording_started['flag']:
+        if recording_started["flag"]:
             event_queue.put(RecordedEvent(now(), "key_down", str(key), "down"))
 
     def on_release(key):
-        if recording_started['flag']:
+        if recording_started["flag"]:
             event_queue.put(RecordedEvent(now(), "key_up", str(key), "up"))
 
     print(f"Press {start_button or 'SPACE'} to start recording...")
@@ -151,15 +183,17 @@ def record(distance_threshold: int = 50, start_button=None, stop_button=None) ->
 
     # Initialize last_pos to current mouse position after starting
     x, y = pyautogui.position()
-    last_pos['x'], last_pos['y'] = x, y
-    event_queue.put(RecordedEvent(
-        now(),
-        "mouse_move",
-        "move",
-        "move",
-        to_coordinates=(int(x), int(y)),
-        from_coordinates=None
-    ))
+    last_pos["x"], last_pos["y"] = x, y
+    event_queue.put(
+        RecordedEvent(
+            now(),
+            "mouse_move",
+            "move",
+            "move",
+            to_coordinates=(int(x), int(y)),
+            from_coordinates=None,
+        )
+    )
 
     # Wait for stop button
     while not stop_event.is_set():
@@ -181,6 +215,7 @@ def record(distance_threshold: int = 50, start_button=None, stop_button=None) ->
     print(f"✓ Recording stopped! Captured {len(events)} events (compressed).\n")
     return events
 
+
 def parse_key_string(key_str: str):
     """Parse key string like 'Key.space' or \"'a'\" into pynput key object."""
     try:
@@ -196,7 +231,8 @@ def parse_key_string(key_str: str):
             return key_str
     except Exception:
         return None
-    
+
+
 def hallucinate_points(x1, y1, x2, y2, num_points):
     # randomly select n points between (x1, y1) and (x2, y2)
     points = []
@@ -208,6 +244,7 @@ def hallucinate_points(x1, y1, x2, y2, num_points):
     points.sort(key=lambda p: ((p[0] - x1) ** 2 + (p[1] - y1) ** 2))
     return points
 
+
 def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
     print("Playing back...")
     mouse_controller = mouse.Controller()
@@ -218,7 +255,11 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
         return
 
     # Setup stop button listener
-    stop_key = getattr(keyboard.Key, stop_button, keyboard.Key.esc) if stop_button else keyboard.Key.esc
+    stop_key = (
+        getattr(keyboard.Key, stop_button, keyboard.Key.esc)
+        if stop_button
+        else keyboard.Key.esc
+    )
     stop_playback = threading.Event()
 
     def on_press(key):
@@ -231,9 +272,13 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
     keyboard_listener.start()
 
     # first, move the mouse quickly to the start position
-    first_move = next((e for e in events if e.kind == "mouse_move" and e.to_coordinates), None)
+    first_move = next(
+        (e for e in events if e.kind == "mouse_move" and e.to_coordinates), None
+    )
     if first_move and first_move.to_coordinates:
-        new_first = first_move.to_coordinates[0] + random.uniform(-jitter, jitter), first_move.to_coordinates[1] + random.uniform(-5, 5)
+        new_first = first_move.to_coordinates[0] + random.uniform(
+            -jitter, jitter
+        ), first_move.to_coordinates[1] + random.uniform(-5, 5)
         # overwrite first_move to include scatter
         first_move.to_coordinates = new_first
         move_mouse_to(new_first[0], new_first[1], pps=800, humanLike=True)
@@ -250,7 +295,7 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
             break
 
         # Calculate when this event should occur relative to playback start
-        event_should_occur_at = (e.timestamp - first_event_timestamp)
+        event_should_occur_at = e.timestamp - first_event_timestamp
         actual_elapsed = now() - playback_start_time
 
         # Wait if we're ahead of schedule
@@ -263,8 +308,10 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
             # For mouse moves, use consistent speed since timing is handled by the wait above
             # splice in a few fake points to make movement slightly more random
             dist = distance(
-                mouse_controller.position[0], mouse_controller.position[1],
-                e.to_coordinates[0], e.to_coordinates[1]
+                mouse_controller.position[0],
+                mouse_controller.position[1],
+                e.to_coordinates[0],
+                e.to_coordinates[1],
             )
             # all_points = hallucinate_points(
             #     mouse_controller.position[0], mouse_controller.position[1],
@@ -277,7 +324,7 @@ def playback(events: list[RecordedEvent], stop_button: str = "esc", jitter=1):
             pps = 2000  # consistent pixels per second for smooth, human-like movement
             for pt in all_points:
                 move_mouse_to(pt[0], pt[1], pps, True)
-            #move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)
+            # move_mouse_to(e.to_coordinates[0] + random.uniform(-jitter, jitter), e.to_coordinates[1] + random.uniform(-jitter, jitter), 3000, True)
         elif e.kind == "mouse_click" and e.to_coordinates:
             button = getattr(mouse.Button, e.key.split(".")[-1])
             if e.action == "down":

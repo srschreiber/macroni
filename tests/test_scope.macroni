@@ -1,0 +1,111 @@
+# Test variable scope and outer keyword
+@print("=== Scope Tests ===");
+
+# Function local scope
+fn test_local() {
+    local_var = 50;
+    return local_var;
+}
+result = test_local();
+if result != 50 {
+    @print("FAILED: Function should return local var 50, got", result);
+    return;
+}
+@print("✓ Function local scope");
+
+# Shadowing global variable
+outer_x = 5;
+fn shadow_test() {
+    outer_x = 10;
+    return outer_x;
+}
+returned = shadow_test();
+if returned != 10 {
+    @print("FAILED: Function should return 10, got", returned);
+    return;
+}
+if outer_x != 5 {
+    @print("FAILED: Outer x should still be 5, got", outer_x);
+    return;
+}
+@print("✓ Variable shadowing");
+
+# Using outer keyword to modify outer scope
+global_counter = 0;
+fn increment_counter() {
+    outer global_counter;
+    global_counter = global_counter + 1;
+}
+increment_counter();
+if global_counter != 1 {
+    @print("FAILED: Counter should be 1 after first call, got", global_counter);
+    return;
+}
+increment_counter();
+if global_counter != 2 {
+    @print("FAILED: Counter should be 2 after second call, got", global_counter);
+    return;
+}
+increment_counter();
+if global_counter != 3 {
+    @print("FAILED: Counter should be 3 after third call, got", global_counter);
+    return;
+}
+@print("✓ Outer keyword");
+
+# Nested functions with outer
+level1 = 100;
+fn outer_func() {
+    outer level1;
+    level1 = level1 + 10;
+    return level1;
+}
+result = outer_func();
+if result != 110 {
+    @print("FAILED: result should be 110, got", result);
+    return;
+}
+if level1 != 110 {
+    @print("FAILED: level1 should be 110, got", level1);
+    return;
+}
+@print("✓ Nested outer");
+
+# Parameters are local
+param_test = 999;
+fn param_func(param_test) {
+    param_test = 777;
+    return param_test;
+}
+ret = param_func(123);
+if ret != 777 {
+    @print("FAILED: Function should return 777, got", ret);
+    return;
+}
+if param_test != 999 {
+    @print("FAILED: Global param_test should still be 999, got", param_test);
+    return;
+}
+@print("✓ Parameters are local");
+
+# Multiple outer variables
+x = 1;
+y = 2;
+fn modify_both() {
+    outer x;
+    outer y;
+    x = x + 10;
+    y = y + 20;
+}
+modify_both();
+if x != 11 {
+    @print("FAILED: x should be 11, got", x);
+    return;
+}
+if y != 22 {
+    @print("FAILED: y should be 22, got", y);
+    return;
+}
+@print("✓ Multiple outer variables");
+
+@print("=== All Scope Tests Passed ===");

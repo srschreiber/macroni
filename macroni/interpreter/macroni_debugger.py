@@ -2,6 +2,7 @@ import enum
 from collections.abc import Iterable
 from .types import ExecutionContext
 from macroni.interpreter.grammar import calc_parser
+
 try:
     import readline
 except ImportError:
@@ -9,24 +10,27 @@ except ImportError:
         import pyreadline3
     except ImportError:
         pass
+
+
 class StepMode(enum.Enum):
     RUN = "run"
     STEP = "step"
     NEXT = "next"
     OUT = "out"
 
+
 class Debugger:
     def __init__(self):
         self.breakpoints = set()
-        self.mode: StepMode = StepMode.RUN        
+        self.mode: StepMode = StepMode.RUN
         self.target_depth = None
-        self.last_line = None 
+        self.last_line = None
 
     def set_breakpoints(self, breakpoints: Iterable[any]):
         bps = set(map(int, breakpoints))
         print(f"Setting breakpoints: {bps}")
         self.breakpoints = bps
-    
+
     def maybe_pause(self, ctx: ExecutionContext = None):
         if ctx is None or not ctx.debug:
             return
@@ -34,13 +38,13 @@ class Debugger:
         print(f"Checking line {line} at call depth {ctx.depth if ctx else 'unknown'}")
         if line is None:
             return
-         
+
         line = int(line)
         if line in self.breakpoints:
             print(f"Hit breakpoint at line {line}")
             self._pause(ctx=ctx, reason="breakpoint")
             return
-        
+
         match self.mode:
             case StepMode.STEP:
                 if self.last_line is None or line != self.last_line:

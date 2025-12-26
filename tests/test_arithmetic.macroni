@@ -1,0 +1,78 @@
+# Test arithmetic operations
+@print("=== Arithmetic Tests ===");
+
+# Basic addition
+x = 5 + 3;
+if x != 8 {
+    @print("FAILED: 5 + 3 should be 8, got", x);
+    return;
+}
+@print("✓ Addition");
+
+# Basic subtraction
+y = 10 - 4;
+if y != 6 {
+    @print("FAILED: 10 - 4 should be 6, got", y);
+    return;
+}
+@print("✓ Subtraction");
+
+# Basic multiplication
+z = 6 * 7;
+if z != 42 {
+    @print("FAILED: 6 * 7 should be 42, got", z);
+    return;
+}
+@print("✓ Multiplication");
+
+# Basic division
+w = 20 / 4;
+if w != 5 {
+    @print("FAILED: 20 / 4 should be 5, got", w);
+    return;
+}
+@print("✓ Division");
+
+# Modulo
+m = 17 % 5;
+if m != 2 {
+    @print("FAILED: 17 % 5 should be 2, got", m);
+    return;
+}
+@print("✓ Modulo");
+
+# Negation
+neg = -10;
+if neg != -10 {
+    @print("FAILED: -10 should be -10, got", neg);
+    return;
+}
+@print("✓ Negation");
+
+# Order of operations
+result = 2 + 3 * 4;
+if result != 14 {
+    @print("FAILED: 2 + 3 * 4 should be 14, got", result);
+    return;
+}
+@print("✓ Order of operations");
+
+# Parentheses
+result2 = (2 + 3) * 4;
+if result2 != 20 {
+    @print("FAILED: (2 + 3) * 4 should be 20, got", result2);
+    return;
+}
+@print("✓ Parentheses");
+
+# String concatenation
+str1 = "Hello";
+str2 = "World";
+combined = str1 + " " + str2;
+if combined != "Hello World" {
+    @print("FAILED: String concat should be 'Hello World', got", combined);
+    return;
+}
+@print("✓ String concatenation");
+
+@print("=== All Arithmetic Tests Passed ===");

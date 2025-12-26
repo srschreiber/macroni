@@ -8,3 +8,4 @@ pynput
 click
 easyocr 
 pyreadline3
+black

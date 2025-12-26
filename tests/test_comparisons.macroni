@@ -1,0 +1,119 @@
+# Test comparison operators
+@print("=== Comparison Tests ===");
+
+# Greater than
+result = 10 > 5;
+if result != 1 {
+    @print("FAILED: 10 > 5 should be 1");
+    return;
+}
+result = 5 > 10;
+if result != 0 {
+    @print("FAILED: 5 > 10 should be 0");
+    return;
+}
+@print("✓ Greater than");
+
+# Less than
+result = 5 < 10;
+if result != 1 {
+    @print("FAILED: 5 < 10 should be 1");
+    return;
+}
+result = 10 < 5;
+if result != 0 {
+    @print("FAILED: 10 < 5 should be 0");
+    return;
+}
+@print("✓ Less than");
+
+# Greater than or equal
+result = 10 >= 10;
+if result != 1 {
+    @print("FAILED: 10 >= 10 should be 1");
+    return;
+}
+result = 10 >= 5;
+if result != 1 {
+    @print("FAILED: 10 >= 5 should be 1");
+    return;
+}
+result = 5 >= 10;
+if result != 0 {
+    @print("FAILED: 5 >= 10 should be 0");
+    return;
+}
+@print("✓ Greater than or equal");
+
+# Less than or equal
+result = 10 <= 10;
+if result != 1 {
+    @print("FAILED: 10 <= 10 should be 1");
+    return;
+}
+result = 5 <= 10;
+if result != 1 {
+    @print("FAILED: 5 <= 10 should be 1");
+    return;
+}
+result = 10 <= 5;
+if result != 0 {
+    @print("FAILED: 10 <= 5 should be 0");
+    return;
+}
+@print("✓ Less than or equal");
+
+# Equality
+result = 10 == 10;
+if result != 1 {
+    @print("FAILED: 10 == 10 should be 1");
+    return;
+}
+result = 10 == 5;
+if result != 0 {
+    @print("FAILED: 10 == 5 should be 0");
+    return;
+}
+@print("✓ Equality");
+
+# Not equal
+result = 10 != 5;
+if result != 1 {
+    @print("FAILED: 10 != 5 should be 1");
+    return;
+}
+result = 10 != 10;
+if result != 0 {
+    @print("FAILED: 10 != 10 should be 0");
+    return;
+}
+@print("✓ Not equal");
+
+# Null comparisons
+x = null;
+result = x == null;
+if result != 1 {
+    @print("FAILED: null == null should be 1");
+    return;
+}
+result = x != null;
+if result != 0 {
+    @print("FAILED: null != null should be 0");
+    return;
+}
+@print("✓ Null equality");
+
+y = 5;
+result = y == null;
+if result != 0 {
+    @print("FAILED: 5 == null should be 0");
+    return;
+}
+result = y != null;
+if result != 1 {
+    @print("FAILED: 5 != null should be 1");
+    return;
+}
+@print("✓ Null inequality");
+
+@print("=== All Comparison Tests Passed ===");

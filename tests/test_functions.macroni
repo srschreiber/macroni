@@ -1,0 +1,109 @@
+# Test function definitions and calls
+@print("=== Function Tests ===");
+
+# Function with return value
+fn add(a, b) {
+    return a + b;
+}
+result = add(5, 3);
+if result != 8 {
+    @print("FAILED: add(5, 3) should be 8, got", result);
+    return;
+}
+@print("✓ Function with return");
+
+# Function with multiple statements
+fn calculate(x, y) {
+    sum = x + y;
+    product = x * y;
+    return product;
+}
+res = calculate(4, 5);
+if res != 20 {
+    @print("FAILED: calculate(4, 5) should be 20, got", res);
+    return;
+}
+@print("✓ Function with multiple statements");
+
+# Function calling another function
+fn multiply(a, b) {
+    return a * b;
+}
+fn square(n) {
+    return multiply(n, n);
+}
+sq = square(7);
+if sq != 49 {
+    @print("FAILED: square(7) should be 49, got", sq);
+    return;
+}
+@print("✓ Function calling function");
+
+# Recursive function
+fn factorial(n) {
+    if n <= 1 {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+fact = factorial(5);
+if fact != 120 {
+    @print("FAILED: factorial(5) should be 120, got", fact);
+    return;
+}
+@print("✓ Recursive function");
+
+# Function with early return
+fn find_first_even(limit) {
+    i = 1;
+    while i <= limit {
+        if i % 2 == 0 {
+            return i;
+        }
+        i = i + 1;
+    }
+    return -1;
+}
+first_even = find_first_even(10);
+if first_even != 2 {
+    @print("FAILED: find_first_even should be 2, got", first_even);
+    return;
+}
+@print("✓ Function with early return");
+
+# Function with implicit return (last value)
+fn implicit_return(x) {
+    x * 2;
+}
+val = implicit_return(6);
+if val != 12 {
+    @print("FAILED: implicit_return(6) should be 12, got", val);
+    return;
+}
+@print("✓ Function with implicit return");
+
+# Function with no parameters
+fn get_constant() {
+    return 42;
+}
+const = get_constant();
+if const != 42 {
+    @print("FAILED: get_constant() should be 42, got", const);
+    return;
+}
+@print("✓ Function with no parameters");
+
+# Function modifying and returning value
+fn increment(n) {
+    result = n + 1;
+    return result;
+}
+val = increment(10);
+if val != 11 {
+    @print("FAILED: increment(10) should be 11, got", val);
+    return;
+}
+@print("✓ Function modifying value");
+
+@print("=== All Function Tests Passed ===");

@@ -1,5 +1,17 @@
+from dataclasses import dataclass
+
+
 class ExecutionContext:
-    def __init__(self, vars=None, funcs=None, depth=0, node: any = None, eval_cback = None, debug=False, parent: 'ExecutionContext'=None):
+    def __init__(
+        self,
+        vars=None,
+        funcs=None,
+        depth=0,
+        node: any = None,
+        eval_cback=None,
+        debug=False,
+        parent: "ExecutionContext" = None,
+    ):
         """
         Initialize execution context.
 
@@ -16,7 +28,6 @@ class ExecutionContext:
         self.debug = debug  # Enable debugging features
         self.parent = parent  # Reference to parent context, if any
 
-
     def create_sibling_context(self, node: any = None):
         """
         Create a sibling context at the same depth.
@@ -25,7 +36,15 @@ class ExecutionContext:
         Returns:
             ExecutionContext: New sibling context
         """
-        return ExecutionContext(vars=self.vars, funcs=self.funcs, depth=self.depth, node=node, debug=self.debug, eval_cback=self.eval_cback, parent=self.parent)
+        return ExecutionContext(
+            vars=self.vars,
+            funcs=self.funcs,
+            depth=self.depth,
+            node=node,
+            debug=self.debug,
+            eval_cback=self.eval_cback,
+            parent=self.parent,
+        )
 
     def create_child_context(self, local_vars=None, node: any = None):
         """
@@ -47,4 +66,12 @@ class ExecutionContext:
         if local_vars:
             child_vars.update(local_vars)
 
-        return ExecutionContext(vars=child_vars, funcs=child_funcs, depth=self.depth + 1, node=node, debug=self.debug, eval_cback=self.eval_cback, parent=self)
+        return ExecutionContext(
+            vars=child_vars,
+            funcs=child_funcs,
+            depth=self.depth + 1,
+            node=node,
+            debug=self.debug,
+            eval_cback=self.eval_cback,
+            parent=self,
+        )

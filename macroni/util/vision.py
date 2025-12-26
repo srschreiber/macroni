@@ -36,7 +36,7 @@ class Vision:
         # Get the all the positions from the match result that exceed our threshold
         locations = np.where(result >= threshold)
         locations = list(zip(*locations[::-1]))
-        #print(locations)
+        # print(locations)
 
         # You'll notice a lot of overlapping rectangles get drawn. We can eliminate those redundant
         # locations by using groupRectangles().
@@ -53,11 +53,11 @@ class Vision:
         # in the result. I've set eps to 0.5, which is:
         # "Relative difference between sides of the rectangles to merge them into a group."
         rectangles, weights = cv.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
-        #print(rectangles)
+        # print(rectangles)
 
         points = []
         if len(rectangles):
-            #print('Found needle.')
+            # print('Found needle.')
 
             line_color = (0, 255, 0)
             line_type = cv.LINE_4
@@ -65,31 +65,42 @@ class Vision:
             marker_type = cv.MARKER_CROSS
 
             # Loop over all the rectangles
-            for (x, y, w, h) in rectangles:
+            for x, y, w, h in rectangles:
 
                 # Determine the center position
-                center_x = x + int(w/2)
-                center_y = y + int(h/2)
+                center_x = x + int(w / 2)
+                center_y = y + int(h / 2)
                 # Save the points
                 points.append((center_x, center_y))
 
-                if debug_mode == 'rectangles':
+                if debug_mode == "rectangles":
                     # Determine the box position
                     top_left = (x, y)
                     bottom_right = (x + w, y + h)
                     # Draw the box
-                    cv.rectangle(haystack_img, top_left, bottom_right, color=line_color, 
-                                lineType=line_type, thickness=2)
-                elif debug_mode == 'points':
+                    cv.rectangle(
+                        haystack_img,
+                        top_left,
+                        bottom_right,
+                        color=line_color,
+                        lineType=line_type,
+                        thickness=2,
+                    )
+                elif debug_mode == "points":
                     # Draw the center point
-                    cv.drawMarker(haystack_img, (center_x, center_y), 
-                                color=marker_color, markerType=marker_type, 
-                                markerSize=40, thickness=2)
+                    cv.drawMarker(
+                        haystack_img,
+                        (center_x, center_y),
+                        color=marker_color,
+                        markerType=marker_type,
+                        markerSize=40,
+                        thickness=2,
+                    )
 
         if debug_mode:
-            cv.imshow('Matches', haystack_img)
-            #cv.waitKey()
-            #cv.imwrite('result_click_point.jpg', haystack_img)
+            cv.imshow("Matches", haystack_img)
+            # cv.waitKey()
+            # cv.imwrite('result_click_point.jpg', haystack_img)
 
         return points
 
@@ -98,7 +109,15 @@ class Vision:
         bbox: tuple[int, int, int, int]  # (x, y, w, h)
         center: tuple[int, int]  # (center_x, center_y)
 
-    def find_multiscale(self, haystack_img, scales=None, threshold=0.5, use_gray=True, find_one=False, debug_mode=None) -> list[VisionHit]:
+    def find_multiscale(
+        self,
+        haystack_img,
+        scales=None,
+        threshold=0.5,
+        use_gray=True,
+        find_one=False,
+        debug_mode=None,
+    ) -> list[VisionHit]:
         """
         Find needle in haystack at multiple scales.
         Returns list of (x, y) center points for matches found.
@@ -136,7 +155,9 @@ class Vision:
                     continue
 
                 # Resize needle to current scale
-                scaled_needle = cv.resize(needle, (scaled_w, scaled_h), interpolation=cv.INTER_AREA)
+                scaled_needle = cv.resize(
+                    needle, (scaled_w, scaled_h), interpolation=cv.INTER_AREA
+                )
 
                 # Match template
                 result = cv.matchTemplate(haystack, scaled_needle, self.method)
@@ -161,15 +182,22 @@ class Vision:
                     if debug_mode:
                         marker_color = (255, 0, 255)
                         marker_type = cv.MARKER_CROSS
-                        cv.drawMarker(haystack_img, (center_x, center_y),
-                                    color=marker_color, markerType=marker_type,
-                                    markerSize=40, thickness=2)
-                        cv.imshow('Multiscale Matches', haystack_img)
+                        cv.drawMarker(
+                            haystack_img,
+                            (center_x, center_y),
+                            color=marker_color,
+                            markerType=marker_type,
+                            markerSize=40,
+                            thickness=2,
+                        )
+                        cv.imshow("Multiscale Matches", haystack_img)
 
-                    return [Vision.VisionHit(
-                        bbox=(x, y, scaled_w, scaled_h),
-                        center=(center_x, center_y),
-                    )]
+                    return [
+                        Vision.VisionHit(
+                            bbox=(x, y, scaled_w, scaled_h),
+                            center=(center_x, center_y),
+                        )
+                    ]
 
             return []
 
@@ -188,7 +216,9 @@ class Vision:
                 continue
 
             # Resize needle to current scale
-            scaled_needle = cv.resize(needle, (scaled_w, scaled_h), interpolation=cv.INTER_AREA)
+            scaled_needle = cv.resize(
+                needle, (scaled_w, scaled_h), interpolation=cv.INTER_AREA
+            )
 
             # Match template
             result = cv.matchTemplate(haystack, scaled_needle, self.method)
@@ -210,7 +240,9 @@ class Vision:
         if len(all_rectangles) == 0:
             return []
 
-        rectangles, weights = cv.groupRectangles(all_rectangles, groupThreshold=1, eps=0.5)
+        rectangles, weights = cv.groupRectangles(
+            all_rectangles, groupThreshold=1, eps=0.5
+        )
 
         points: list[Vision.VisionHit] = []
         if len(rectangles):
@@ -219,26 +251,39 @@ class Vision:
             marker_color = (255, 0, 255)
             marker_type = cv.MARKER_CROSS
 
-            for (x, y, w, h) in rectangles:
-                center_x = x + int(w/2)
-                center_y = y + int(h/2)
+            for x, y, w, h in rectangles:
+                center_x = x + int(w / 2)
+                center_y = y + int(h / 2)
                 # points.append((center_x, center_y))
-                points.append(Vision.VisionHit(
-                    bbox=(x, y, w, h),
-                    center=(center_x, center_y),
-                ))
+                points.append(
+                    Vision.VisionHit(
+                        bbox=(x, y, w, h),
+                        center=(center_x, center_y),
+                    )
+                )
 
-                if debug_mode == 'rectangles':
+                if debug_mode == "rectangles":
                     top_left = (x, y)
                     bottom_right = (x + w, y + h)
-                    cv.rectangle(haystack_img, top_left, bottom_right, color=line_color,
-                                lineType=line_type, thickness=2)
-                elif debug_mode == 'points':
-                    cv.drawMarker(haystack_img, (center_x, center_y),
-                                color=marker_color, markerType=marker_type,
-                                markerSize=40, thickness=2)
+                    cv.rectangle(
+                        haystack_img,
+                        top_left,
+                        bottom_right,
+                        color=line_color,
+                        lineType=line_type,
+                        thickness=2,
+                    )
+                elif debug_mode == "points":
+                    cv.drawMarker(
+                        haystack_img,
+                        (center_x, center_y),
+                        color=marker_color,
+                        markerType=marker_type,
+                        markerSize=40,
+                        thickness=2,
+                    )
 
         if debug_mode:
-            cv.imshow('Multiscale Matches', haystack_img)
+            cv.imshow("Multiscale Matches", haystack_img)
 
         return points

@@ -1,0 +1,126 @@
+# Test conditional expressions
+@print("=== Conditional Tests ===");
+
+# Basic if-else with true condition
+passed = 0;
+x = 10;
+if x > 5 {
+    passed = 1;
+} else {
+    passed = 0;
+}
+if passed != 1 {
+    @print("FAILED: If-else with true condition");
+    return;
+}
+@print("✓ If-else true branch");
+
+# Basic if-else with false condition
+passed = 0;
+x = 3;
+if x > 5 {
+    passed = 0;
+} else {
+    passed = 1;
+}
+if passed != 1 {
+    @print("FAILED: If-else with false condition");
+    return;
+}
+@print("✓ If-else false branch");
+
+# If without else (true)
+passed = 0;
+y = 3;
+if y < 5 {
+    passed = 1;
+}
+if passed != 1 {
+    @print("FAILED: If without else (true)");
+    return;
+}
+@print("✓ If without else");
+
+# Nested conditionals
+result = 0;
+z = 15;
+if z > 10 {
+    if z > 20 {
+        result = 1;
+    } else {
+        result = 2;
+    }
+} else {
+    result = 3;
+}
+if result != 2 {
+    @print("FAILED: Nested conditionals should give 2, got", result);
+    return;
+}
+@print("✓ Nested conditionals");
+
+# Conditional with logical operators
+passed = 0;
+a = 25;
+if a > 20 && a < 30 {
+    passed = 1;
+} else {
+    passed = 0;
+}
+if passed != 1 {
+    @print("FAILED: Conditional with AND");
+    return;
+}
+@print("✓ Conditional with logical operators");
+
+# Multiple nested conditions
+score = 85;
+grade = 0;
+if score >= 90 {
+    grade = 4;
+} else {
+    if score >= 80 {
+        grade = 3;
+    } else {
+        if score >= 70 {
+            grade = 2;
+        } else {
+            grade = 1;
+        }
+    }
+}
+if grade != 3 {
+    @print("FAILED: Multiple nested conditions should give 3, got", grade);
+    return;
+}
+@print("✓ Multiple nested conditions");
+
+# Conditional with null (true)
+val = null;
+passed = 0;
+if val == null {
+    passed = 1;
+} else {
+    passed = 0;
+}
+if passed != 1 {
+    @print("FAILED: Conditional with null (true)");
+    return;
+}
+@print("✓ Conditional with null (true)");
+
+# Conditional with null (false)
+val = 42;
+passed = 0;
+if val == null {
+    passed = 0;
+} else {
+    passed = 1;
+}
+if passed != 1 {
+    @print("FAILED: Conditional with null (false)");
+    return;
+}
+@print("✓ Conditional with null (false)");
+
+@print("=== All Conditional Tests Passed ===");

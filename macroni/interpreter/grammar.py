@@ -1,6 +1,6 @@
 from lark import Lark
 
-calc_grammar = r'''
+calc_grammar = r"""
 start: program
 
 program: stmt*                              -> stmt_block
@@ -162,6 +162,8 @@ COMMENT: /\#[^\n]*/
 %import common.ESCAPED_STRING -> STRING
 %import common.WS
 %ignore WS
-'''
+"""
 
-calc_parser = Lark(calc_grammar, parser="lalr", propagate_positions=True, maybe_placeholders=False)
+calc_parser = Lark(
+    calc_grammar, parser="lalr", propagate_positions=True, maybe_placeholders=False
+)
