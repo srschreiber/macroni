@@ -156,6 +156,7 @@ def main(filepath, debug, breakpoints: list):
     root_context = ExecutionContext(node=tree, debug=debug, eval_cback=interp.eval)
     interp.eval(root_context)
 
+
 def get_import_paths(node):
     """Recursively extract import paths from the AST node."""
     import_paths = []
@@ -170,6 +171,7 @@ def get_import_paths(node):
         import_paths.extend(get_import_paths(child))
 
     return import_paths
+
 
 if __name__ == "__main__":
     main()
