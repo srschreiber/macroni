@@ -34,6 +34,7 @@ class Sigl: ...
 RET_SIG: Sigl = Sigl()
 BRK_SIG: Sigl = Sigl()
 EXIT_SIG: Sigl = Sigl()
+CNT_SIG: Sigl = Sigl()
 DBG = Debugger()
 
 
@@ -138,11 +139,13 @@ class Interpreter:
                         stmt_ctx = context.create_sibling_context(node=stmt)
                         DBG.maybe_pause(ctx=stmt_ctx)
                         last = self.eval_sibling(context, stmt)
-                        # if last is an iterable with first element RET, terminated early so return
-                        if isinstance(last, ControlSignal) and (
-                            last.is_signal(RET_SIG) or last.is_signal(BRK_SIG)
-                        ):
-                            return last
+                        match last:
+                            case ControlSignal(signal=signal) if signal in (
+                                RET_SIG,
+                                BRK_SIG,
+                                CNT_SIG,
+                            ):
+                                return last
 
                     return last
 
@@ -315,6 +318,8 @@ class Interpreter:
                 case "break_stmt":
                     # emit break signal
                     return ControlSignal([], BRK_SIG)
+                case "continue_stmt":
+                    return ControlSignal([], CNT_SIG)
 
                 case "call":
                     match c:
@@ -344,9 +349,9 @@ class Interpreter:
                         local_vars=local_vars, node=body
                     )
                     v = self.eval(child_context)
-                    # check for return signal. If no return signal, return 0
-                    if isinstance(v, ControlSignal) and v.is_signal(RET_SIG):
-                        return v.get_single() if v.is_single() else v.get_multiple()
+                    match v:
+                        case ControlSignal(signal=signal) if signal is RET_SIG:
+                            return v.get_single() if v.is_single() else v.get_multiple()
 
                     # return is optional, so if values are present return them
                     return v if v is not None else 0
@@ -501,16 +506,19 @@ class Interpreter:
                         case [condition, block]:
                             while self.eval_sibling(context, condition) != 0:
                                 v = self.eval_sibling(context, block)
-                                # check for early return or brk. If brk, just exit loop. If return, propagate up
-                                if isinstance(v, ControlSignal) and v.is_signal(
-                                    RET_SIG
-                                ):
-                                    return v
-                                if isinstance(v, ControlSignal) and v.is_signal(
-                                    BRK_SIG
-                                ):
-                                    break
-
+                                match v:
+                                    case ControlSignal(signal=signal) if (
+                                        signal is BRK_SIG
+                                    ):
+                                        break
+                                    case ControlSignal(signal=signal) if (
+                                        signal is CNT_SIG
+                                    ):
+                                        continue
+                                    case ControlSignal(signal=signal) if (
+                                        signal is RET_SIG
+                                    ):
+                                        return v
                             return 0
 
                 case "wait_func":

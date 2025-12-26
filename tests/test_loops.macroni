@@ -106,4 +106,48 @@ if executed != 0 {
 }
 @print("✓ Non-executing loop");
 
+# Loop with continue
+sum = 0;
+i = 1;
+while i <= 10 {
+    if i % 2 == 0 {
+        i = i + 1;
+        continue;
+    }
+    sum = sum + i;
+    i = i + 1;
+}
+if sum != 25 {
+    @print("FAILED: Sum of odd numbers 1-9 should be 25, got", sum);
+    return;
+}
+@print("✓ Loop with continue");
+
+# Continue in nested loop
+outer_sum = 0;
+inner_sum = 0;
+o = 1;
+while o <= 3 {
+    inner = 1;
+    while inner <= 3 {
+        if inner == 2 {
+            inner = inner + 1;
+            continue;
+        }
+        inner_sum = inner_sum + inner;
+        inner = inner + 1;
+    }
+    outer_sum = outer_sum + o;
+    o = o + 1;
+}
+if outer_sum != 6 {
+    @print("FAILED: Outer sum should be 6, got", outer_sum);
+    return;
+}
+if inner_sum != 12 {
+    @print("FAILED: Inner sum should be 12 (skipping 2s), got", inner_sum);
+    return;
+}
+@print("✓ Continue in nested loop");
+
 @print("=== All Loop Tests Passed ===");

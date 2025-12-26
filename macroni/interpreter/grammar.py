@@ -19,6 +19,7 @@ expr_stmt: expr (";")+                         -> expr_stmt
             | conditional_expr        -> expr_stmt
 control_stmt: "break" (";")+      -> break_stmt
             | "return" [expr] (";")+  -> return_stmt
+              | "continue" (";")+   -> continue_stmt
 
 # ---------- built-ins ----------
 built_in_calls: print_stmt

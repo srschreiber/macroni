@@ -53,20 +53,22 @@ if global_counter != 3 {
 }
 @print("✓ Outer keyword");
 
-# Nested functions with outer
+# Outer with nested functions
 level1 = 100;
 fn outer_func() {
     outer level1;
     level1 = level1 + 10;
-    return level1;
+
+    fn inner_func() {
+        outer level1;
+        level1 = level1 + 1;
+    }
+
+    inner_func();
 }
-result = outer_func();
-if result != 110 {
-    @print("FAILED: result should be 110, got", result);
-    return;
-}
-if level1 != 110 {
-    @print("FAILED: level1 should be 110, got", level1);
+outer_func();
+if level1 != 111 {
+    @print("FAILED: level1 should be 111, got", level1);
     return;
 }
 @print("✓ Nested outer");
