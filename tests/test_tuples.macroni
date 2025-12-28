@@ -130,4 +130,12 @@ if first_pair[1] != 2 {
 }
 @print("✓ Nested tuples");
 
+# empty case
+empty = ();
+if @len(empty) != 0 {
+    @print("FAILED: Empty tuple length should be 0");
+    return;
+}
+@print("✓ Empty tuple");
+
 @print("=== All Tuple Tests Passed ===");

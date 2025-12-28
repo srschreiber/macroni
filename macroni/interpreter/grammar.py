@@ -56,7 +56,27 @@ built_in_calls: print_stmt
           | swap_stmt
           | copy_stmt
           | mouse_position_stmt
+          | int_stmt
+          | float_stmt
+          | str_stmt
+          | is_int_stmt
+          | is_float_stmt
+          | is_str_stmt
+          | is_tuple_stmt
+          | is_list_stmt
+          | bang_statement
 
+# type conversions
+int_stmt: "@int" "(" expr ")"               -> int_func
+float_stmt: "@float" "(" expr ")"           -> float_func
+str_stmt: "@str" "(" expr ")"               -> str_func
+bang_statement: "!" expr                     -> bang_func
+# type check
+is_int_stmt: "@is_int" "(" expr ")"         -> is_int_func
+is_float_stmt: "@is_float" "(" expr ")"     -> is_float_func
+is_str_stmt: "@is_str" "(" expr ")"         -> is_str_func
+is_tuple_stmt: "@is_tuple" "(" expr ")"     -> is_tuple_func
+is_list_stmt: "@is_list" "(" expr ")"       -> is_list_func
 print_stmt: "@print" "(" args ")"           -> print_func
 wait_stmt: "@wait" "(" args ")"             -> wait_func
 rand_stmt: "@rand" "(" args ")"             -> rand_func
@@ -153,7 +173,9 @@ while_stmt: "while" expr block              -> loop_stmt
      | "true"                                -> true
      | "false"                               -> false
      | "(" atom ("," atom)+ ")"              -> tuple
+     | "()"                                  -> tuple
      | "[" [list_items] "]"                  -> list
+     | "[]"                                 -> list
 
 list_items: expr ("," expr)*                 -> list_items
 

@@ -1,0 +1,65 @@
+@print("=== Type Conversion Tests ===");
+# Test integer conversion
+str_float = "37.5";
+conv_float = @float(str_float);
+if conv_float != 37.5 || @is_float(conv_float) == false {
+    @print("FAILED: @float conversion failed, got", conv_float);
+    return;
+}
+@print("✓ String to Float conversion");
+
+float = 42.9;
+conv_int = @int(float);
+if conv_int != 42 || @is_int(conv_int) == false {
+    @print("FAILED: @int conversion failed, got", conv_int);
+    return;
+}
+@print("✓ Float to Int conversion");
+
+conv_str = @str(conv_int);
+if conv_str != "42" || @is_str(conv_str) == false {
+    @print("FAILED: @str conversion failed, got", conv_str);
+    return;
+}
+@print("✓ Int to String conversion");
+
+@print("=== Test Type Checks ===");
+# Test type checking functions
+if @is_str("hello") == false {
+    @print("FAILED: @is_str failed on string");
+    return;
+}
+if @is_str(123) {
+    @print("FAILED: @is_str failed on non-string");
+    return;
+}
+@print("✓ @is_str function");
+if @is_int(100) == false {
+    @print("FAILED: @is_int failed on integer");
+    return;
+}
+if @is_int(3.14) {
+    @print("FAILED: @is_int failed on non-integer");
+    return;
+}
+@print("✓ @is_int function");
+if @is_float(2.718) == false {
+    @print("FAILED: @is_float failed on float");
+    return;
+}
+if @is_float("not a float") {
+    @print("FAILED: @is_float failed on non-float");
+    return;
+}
+
+if @is_list([1, 2, 3]) == false || @is_list(()) {
+    @print("FAILED: @is_list failed on list");
+    return;
+}
+if @is_tuple((1, 2)) == false {
+    @print("FAILED: @is_tuple failed");
+    return;
+}
+
+@print("✓ @is_float function");
+@print("=== All Type Conversion Tests Passed ===");

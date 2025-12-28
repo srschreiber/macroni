@@ -110,6 +110,44 @@ class Interpreter:
             c = node.children
 
             match t:
+                case "int_func" | "float_func" | "str_func":
+                    match c:
+                        case [val_node]:
+                            val = self.eval_sibling(context, val_node)
+                            return (
+                                int(val)
+                                if t == "int_func"
+                                else float(val) if t == "float_func" else str(val)
+                            )
+                case (
+                    "is_int_func"
+                    | "is_float_func"
+                    | "is_str_func"
+                    | "is_tuple_func"
+                    | "is_list_func"
+                ):
+                    match c:
+                        case [val_node]:
+                            if t == "is_int_func":
+                                val = self.eval_sibling(context, val_node)
+                                return 1 if isinstance(val, int) else 0
+                            elif t == "is_float_func":
+                                val = self.eval_sibling(context, val_node)
+                                return 1 if isinstance(val, float) else 0
+                            elif t == "is_str_func":
+                                val = self.eval_sibling(context, val_node)
+                                return 1 if isinstance(val, str) else 0
+                            elif t == "is_tuple_func":
+                                val = self.eval_sibling(context, val_node)
+                                return 1 if isinstance(val, tuple) else 0
+                            elif t == "is_list_func":
+                                val = self.eval_sibling(context, val_node)
+                                return 1 if isinstance(val, list) else 0
+                case "bang_func":
+                    match c:
+                        case [val_node]:
+                            val = self.eval_sibling(context, val_node)
+                            return 0 if val else 1
                 case "import_stmt":
                     # imports should be pre-loaded by now
                     return None
@@ -232,6 +270,8 @@ class Interpreter:
                         case [args_node]:
                             args = self.eval_sibling(context, args_node)
                             return ControlSignal(args, RET_SIG)
+                        case _:
+                            return ControlSignal(None, RET_SIG)
 
                 case "swap_func":
                     match c:

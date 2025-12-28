@@ -1,0 +1,17 @@
+@print("=== Bang Tests ===");
+
+t = true;
+f = false;
+
+if !t {
+    @print("FAILED: !true should be false");
+    return;
+}
+@print("✓ !true is false");
+
+if !f == false {
+    @print("FAILED: !false should be true");
+    return;
+}
+
+@print("✓ !false is true");

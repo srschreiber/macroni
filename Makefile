@@ -29,6 +29,4 @@ publish-dist:
 build-and-publish: build-dist publish-dist
 
 publish-extension: 
-	build-extension
-	vsce login srschreiber
 	cd macroni/extension/macroni && vsce publish

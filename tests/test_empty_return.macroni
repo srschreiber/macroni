@@ -1,0 +1,9 @@
+fn return_nothing() {
+    return;
+}
+
+v = return_nothing();
+if v != null {
+    @print("FAILED: Return value should be null, got", v);
+    return;
+}
