@@ -143,6 +143,19 @@ Returns shuffled copy.
 
 ---
 
+## Type checking
+Returns true/false depending on if the value is the type
+### @is_int(val)
+### @is_float(val)
+### @is_str(val)
+### @is_list(val)
+### @is_tuple(val)
+
+## Type conversion
+### @int(val)
+### @float(val)
+### @str(val)
+
 ## Print
 
 ### @print(arg1, arg2, ...)
