@@ -69,7 +69,7 @@ def smooth_move_to_bezier(
     arc_px_cap=80,
     wobble_px=2,  # max wobble amplitude in pixels
 ):
-    desired_time = total_time * 0.8
+    desired_time = max(total_time * 0.8, 1e-4)  # 0.1 ms minimum (pick what you want)
     x1, y1 = pyautogui.position()
 
     dx, dy = x2 - x1, y2 - y1
@@ -86,7 +86,15 @@ def smooth_move_to_bezier(
     steps_time = max(1, int(desired_time * hz))
     steps_dist = int(max(8, min(steps_time, L * 0.35)))
     steps = max(1, min(steps_time, steps_dist))
-    dt = desired_time / steps
+    # dt = desired_time / steps
+
+    dts = []
+    # randomly sample N times, then normalize weights to sum to desired_time
+    for i in range(steps):
+        dts.append(random.uniform(0.5, 1.5))
+    s = sum(dts)
+    avg_dt = desired_time / s
+    dts = [avg_dt * v for v in dts]
 
     # --- Choose Bezier control points (cubic) ---
     # Pick two random points along the straight line, then push it sideways.
@@ -119,8 +127,10 @@ def smooth_move_to_bezier(
     omega = 2 * math.pi * cycles / max(desired_time, 1e-3)
 
     start = time.perf_counter()
+    cum = 0.0
     for i in range(1, steps + 1):
-        t = i / steps
+        cum_next = cum + dts[i - 1]
+        t = min(1.0, cum_next / desired_time)
 
         # stop early if close enough
         cxp, cyp = pyautogui.position()
@@ -163,7 +173,8 @@ def smooth_move_to_bezier(
         pyautogui.moveTo(int(bx), int(by), duration=0, _pause=False)
 
         # timing
-        target = start + i * dt
+        cum += dts[i - 1]
+        target = start + cum
         now = time.perf_counter()
         if target > now:
             time.sleep(target - now)
