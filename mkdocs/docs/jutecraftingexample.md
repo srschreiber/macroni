@@ -106,7 +106,7 @@ fn wait_for_bank() {
     outer nets;
     # poll until bank is found
     if nets != null {
-        # pre-move mouse to net
+        # pre-move mouse to net, shuffle to avoid hovering over same net every time
         nets = @shuffle(nets);
         net_x, net_y = nets[0];
         @mouse_move(net_x, net_y, fast_pps(), true);
