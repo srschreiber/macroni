@@ -1,4 +1,14 @@
 # Example - Craft Drift Nets in Runescape
+
+!!! warning 
+    This is just an example to showcase language features, it will likely result in a ban if actually used as this is considered cheating
+
+## Prerequisites
+- Bank pin entered
+- start in front of fossil island bank, inventory full of jute
+- zoom out enough to see loom and bank at the same time
+- take screenshots to support the @find_template calls (good to use runelite plugin to highlight loom/bank two colors like blue/red to make them more findable, but images of the raw objects may work too)
+
 ```
 @set_template_dir("<YOUR DIRECTORY>");
 
