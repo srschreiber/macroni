@@ -8,7 +8,7 @@ fn fast_pps() {
 }
 
 fn short_wait() {
-    @wait(50, 12);
+    @wait(50, 62);  # Random wait 50-62ms
 }
 
 fn maybe_toggle_run() {
@@ -101,6 +101,7 @@ fn wait_for_loom() {
     }
 }
 
+nets = null;
 fn wait_for_bank() {
     # outer to specify scope
     outer nets;
@@ -129,8 +130,6 @@ fn close_bank() {
         @left_click();
     }
 }
-
-nets = null;
 
 fn bank() {
     # get some from chest
