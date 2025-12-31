@@ -1,0 +1,33 @@
+site_name: Macroni Documentation
+
+nav:
+  - Home: index.md
+  - Language Syntax: syntax.md
+  - Function Reference: functions.md
+  - Grammar Specification: grammar.md
+  - Runescape Drift Net Bot: jutecraftingexample.md
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - tables
+  - attr_list
+  - md_in_html

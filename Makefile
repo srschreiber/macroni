@@ -30,3 +30,9 @@ build-and-publish: build-dist publish-dist
 
 publish-extension: 
 	cd macroni/extension/macroni && vsce publish
+
+build-docs:
+	cd mkdocs && mkdocs build
+
+serve-docs:
+	cd mkdocs && mkdocs serve
