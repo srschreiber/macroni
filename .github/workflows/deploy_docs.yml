@@ -1,18 +1,22 @@
-  name: Deploy Docs
-  on:
-    push:
-      branches: [main]
-      paths:
-        - 'docs/**'
-        - 'mkdocs/mkdocs.yml'
+name: Deploy Docs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mkdocs/docs/**'
+      - 'mkdocs/mkdocs.yml'
 
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v4
-          with:
-            python-version: 3.x
-        - run: pip install mkdocs-material
-        - run: cd mkdocs && mkdocs gh-deploy --force
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material
+      - run: cd mkdocs && mkdocs gh-deploy --force
