@@ -21,16 +21,6 @@ fn short_wait() {
     @wait(50, 62);  # Random wait 50-62ms
 }
 
-fn maybe_toggle_run() {
-    x, y  = @find_template("run_energy_icon");
-    if x != null {
-        @mouse_move(x, y, fast_pps(), true);
-        short_wait();
-        @left_click();
-        short_wait();
-    }
-}
-
 fn count_jute_in_inv() {
     item_count = @find_templates("jute_bundle", 28);
     if item_count == null {
@@ -96,7 +86,6 @@ fn wait_for_loom() {
     # poll until loom is found
     total_wait = 0;
     while true {
-        maybe_toggle_run();
         # jute_arrive is a screenshot of the prompt that asks you what to craft
         loom_x, loom_y = @find_template("jute_arrive");
         if loom_x != null {
@@ -124,11 +113,11 @@ fn wait_for_bank() {
     }
 
     while true {
-        maybe_toggle_run();
         bank_x, bank_y = @find_template("bank_open");
         if bank_x != null {
             return null;
         }
+        short_wait();
     }
 }
 
@@ -177,7 +166,6 @@ fn bank() {
 
 fn run() {
     while true {
-        maybe_toggle_run();
         jute_count = count_jute_in_inv();
         @print("Jute bundles in inv: " + jute_count);
         if jute_count < 2 {
@@ -221,6 +209,7 @@ fn run() {
                 rem = count_jute_in_inv();
             }
         }
+        short_wait();
     }
 }
 
