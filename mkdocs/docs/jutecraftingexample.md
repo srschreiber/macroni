@@ -8,6 +8,10 @@
 - start in front of fossil island bank, inventory full of jute
 - zoom out enough to see loom and bank at the same time
 - take screenshots to support the @find_template calls (good to use runelite plugin to highlight loom/bank two colors like blue/red to make them more findable, but images of the raw objects may work too)
+- Negative weight clothing so that run energy is never depleted
+
+## Expectations
+- 55k exp an hour if configured correctly
 
 ```
 @set_template_dir("<YOUR DIRECTORY>");
