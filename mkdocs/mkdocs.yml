@@ -1,4 +1,6 @@
 site_name: Macroni Documentation
+repo_url: https://github.com/srschreiber/macroni
+repo_name: srschreiber/macroni
 
 nav:
   - Home: index.md
@@ -16,6 +18,7 @@ nav:
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     primary: indigo
     accent: indigo
