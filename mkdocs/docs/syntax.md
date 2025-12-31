@@ -480,7 +480,7 @@ Macroni automatically creates cache files in your working directory:
 !!! success "Do"
     - Use descriptive variable and function names
     - Cache regions with `@capture_region()` for consistent OCR
-    - Add randomness to timing with `@wait(ms, min, max)` for human-like behavior
+    - Add randomness to timing with `@wait(min, max)` for human-like behavior
     - Use `@len()` to safely check collection sizes before indexing
     - Break complex logic into small functions
     - Use `human_like=true` in `@mouse_move()` for natural movement

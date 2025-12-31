@@ -1,3 +1,17 @@
+# Example: Click Button
+
+This example demonstrates basic template matching to find and click a button on screen.
+
+## Features
+
+- Template matching with `@find_template()`
+- Mouse movement with `@mouse_move()`
+- Random delays for human-like behavior with `@wait(min, max)`
+- Error handling for missing templates
+
+## Code
+
+```macroni
 # Example: Basic Template Matching and Clicking
 # This script demonstrates how to find a button on screen and click it
 
@@ -35,3 +49,10 @@ if x == null {
 }
 
 @print("=== Script Complete ===");
+```
+
+## How to Use
+
+1. Create a `templates/login_button/` directory
+2. Add screenshot(s) of your button as `ex1.png`, `ex2.png`, etc.
+3. Run the script: `macroni click_button.macroni`

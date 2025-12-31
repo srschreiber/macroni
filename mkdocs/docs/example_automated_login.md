@@ -1,4 +1,18 @@
 # Example: Automated Login Flow
+
+This example demonstrates automating a multi-step login process by clicking multiple UI elements in sequence.
+
+## Features
+
+- User-defined functions with return values
+- Sequential template matching
+- Error handling with conditional flow
+- Human-like timing between actions
+
+## Code
+
+```macroni
+# Example: Automated Login Flow
 # Demonstrates clicking multiple UI elements in sequence
 
 @set_template_dir("./templates");
@@ -51,3 +65,14 @@ if find_and_click("login_button", "login button") {
 }
 
 @print("=== Login Flow Complete ===");
+```
+
+## How to Use
+
+1. Create template directories:
+   - `templates/username_field/`
+   - `templates/password_field/`
+   - `templates/login_button/`
+2. Add screenshots for each element
+3. Run the script: `macroni automated_login.macroni`
+4. Type username and password when prompted

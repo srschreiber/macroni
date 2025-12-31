@@ -318,21 +318,21 @@ Check if pixel color matches within tolerance.
 
 ## Timing Functions
 
-### `@wait(ms)` / `@wait(ms, random_min, random_max)`
+### `@wait(ms)` / `@wait(min, max)`
 
 Pause execution.
 
 **Parameters:**
 
-- `ms` (int): Base wait time in milliseconds
-- `random_min, random_max` (optional ints): Random delay range to add
+- `ms` (int): Wait time in milliseconds (deterministic)
+- `min, max` (ints): Random wait between min and max milliseconds
 
-**Returns:** None
+**Returns:** Actual wait time in milliseconds
 
 !!! example
     ```macroni
     @wait(1000);              # Wait exactly 1 second
-    @wait(1000, 0, 200);      # Wait 1.0-1.2 seconds (randomized)
+    @wait(500, 1500);         # Wait random 0.5-1.5 seconds
     ```
 
 ---
@@ -371,7 +371,7 @@ Generate random float.
 !!! example
     ```macroni
     delay = @rand(0.5, 2.0);
-    @wait(@int(delay * 1000));
+    @print("Random delay:", delay, "seconds");
     ```
 
 ---

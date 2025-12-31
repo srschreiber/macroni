@@ -568,20 +568,20 @@ class Interpreter:
                     match c:
                         case [args_node]:
                             args = self.eval_sibling(context, args_node)
-                            if len(args) >= 1 and len(args) <= 3:
+                            if len(args) == 1:
+                                # Deterministic wait
                                 duration = args[0]
-                                # if second arg is scalar, make it (0, scalar)
-                                random_range = (0, 0)
-
-                                if len(args) == 3:
-                                    random_range = (args[1], args[2])
-                                elif len(args) == 2:
-                                    random_range = (0, args[1])
+                                return wait_func(duration)
+                            elif len(args) == 2:
+                                # Random wait between min and max
+                                min_duration = args[0]
+                                max_duration = args[1]
+                                return wait_func(min_duration, max_duration)
                             else:
                                 raise Exception(
-                                    f"wait() takes 1 - 3 arguments, got {len(args)}"
+                                    f"wait() takes 1 or 2 arguments, got {len(args)}"
                                 )
-                            return wait_func(duration, random_range)
+
 
                 case "rand_func":
                     match c:
@@ -1028,12 +1028,19 @@ class Interpreter:
         raise Exception(f"Unknown node type: {type(node)}")
 
 
-def wait_func(duration, random_range: tuple = (0, 0)):
-    wait_time = duration
-    random_delay = random.uniform(random_range[0], random_range[1])
-    print(f"Waiting for {wait_time + random_delay} ms...")
-    time.sleep((wait_time + random_delay) / 1000)
-    return wait_time + random_delay
+def wait_func(min_duration, max_duration=None):
+    if max_duration is None:
+        # Deterministic wait
+        wait_time = min_duration
+        print(f"Waiting for {wait_time} ms...")
+        time.sleep(wait_time / 1000)
+        return wait_time
+    else:
+        # Random wait between min and max
+        wait_time = random.uniform(min_duration, max_duration)
+        print(f"Waiting for {wait_time:.2f} ms (random between {min_duration}-{max_duration})...")
+        time.sleep(wait_time / 1000)
+        return wait_time
 
 
 def load_coordinates_cache(cache_file="coordinates_cache.json"):
