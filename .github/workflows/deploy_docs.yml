@@ -5,6 +5,7 @@ on:
     paths:
       - 'mkdocs/docs/**'
       - 'mkdocs/mkdocs.yml'
+  workflow_dispatch: # manual trigger
 
 jobs:
   deploy:
