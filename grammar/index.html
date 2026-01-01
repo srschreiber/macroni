@@ -1,0 +1,1940 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../functions/">
+      
+      
+        <link rel="next" href="../example_click_button/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Grammar Specification - Macroni Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#grammar-specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Macroni Documentation" class="md-header__button md-logo" aria-label="Macroni Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Macroni Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Grammar Specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/srschreiber/macroni" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    srschreiber/macroni
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Macroni Documentation" class="md-nav__button md-logo" aria-label="Macroni Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Macroni Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/srschreiber/macroni" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    srschreiber/macroni
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Function Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grammar Specification
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grammar Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#program-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Program Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Statements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variable-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variable Assignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outer-scope-declaration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outer Scope Declaration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expression-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expression Statement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#control-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Control Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Definitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#while-loops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        While Loops
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expressions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expressions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expression-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expression Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logical-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logical Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arithmetic-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arithmetic Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#atoms-primary-expressions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Atoms (Primary Expressions)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#built-in-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Built-in Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#built-in-function-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Function Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lexical-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lexical Elements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lexical Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keywords" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keywords
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator Precedence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Grammar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grammar-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grammar Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_click_button/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Click Button
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_automated_login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Automated Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_random_clicks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random Clicks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_pixel_monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pixel Monitor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_interactive_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_record_replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Record & Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jutecraftingexample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drift Net Crafting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#program-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Program Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Statements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variable-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variable Assignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outer-scope-declaration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outer Scope Declaration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expression-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expression Statement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#control-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Control Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Definitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#while-loops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        While Loops
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expressions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Expressions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expression-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expression Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logical-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logical Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arithmetic-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arithmetic Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#atoms-primary-expressions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Atoms (Primary Expressions)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#built-in-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Built-in Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#built-in-function-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Function Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lexical-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lexical Elements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lexical Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keywords" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keywords
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator Precedence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Grammar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grammar-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grammar Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+  
+                  
+
+
+  
+  
+
+
+<h1 id="grammar-specification">Grammar Specification</h1>
+<p>Formal EBNF grammar for the Macroni language.</p>
+<div class="admonition info">
+<p class="admonition-title">Parser</p>
+<p>Macroni uses <a href="https://lark-parser.readthedocs.io/">Lark</a> with LALR(1) parsing.</p>
+</div>
+<hr />
+<h2 id="program-structure">Program Structure</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">start</span><span class="err">:</span> <span class="k">program</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">program</span><span class="err">:</span> <span class="k">stmt</span><span class="err">*</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">stmt</span><span class="err">:</span> <span class="k">func_def</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="err">|</span> <span class="k">while_stmt</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="err">|</span> <span class="k">assign_stmt</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="err">|</span> <span class="k">expr_stmt</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="err">|</span> <span class="k">outer_stmt</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="err">|</span> <span class="k">control_stmt</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="err">|</span> <span class="k">import_stmt</span>
+</code></pre></div>
+<hr />
+<h2 id="imports">Imports</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">import</span><span class="err">&quot;</span> <span class="k">STRING </span><span class="err">&quot;;&quot;</span>
+</code></pre></div>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;utils.macroni&quot;;
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>import &quot;helpers/mouse.macroni&quot;;
+</code></pre></div></p>
+<hr />
+<h2 id="statements">Statements</h2>
+<h3 id="variable-assignment">Variable Assignment</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">assign_stmt</span><span class="err">:</span> <span class="k">NAME </span><span class="err">(&quot;,&quot;</span> <span class="k">NAME</span><span class="err">)*</span> <span class="err">&quot;</span><span class="o">=</span><span class="s2">&quot; expr &quot;</span><span class="p">;</span><span class="err">&quot;</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>x = 10;
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>name = &quot;Alice&quot;;
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>x, y = (100, 200);
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>a, b, c = [1, 2, 3];
+</code></pre></div></p>
+<h3 id="outer-scope-declaration">Outer Scope Declaration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">outer_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">outer</span><span class="err">&quot;</span> <span class="k">NAME </span><span class="err">&quot;;&quot;</span>
+</code></pre></div>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>x = 10;
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>fn modify() {
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    outer x;
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    x = 20;  # Modifies outer x
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>}
+</code></pre></div></p>
+<h3 id="expression-statement">Expression Statement</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">expr_stmt</span><span class="err">:</span> <span class="k">expr </span><span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>         <span class="err">|</span> <span class="k">conditional_expr</span>
+</code></pre></div>
+<h3 id="control-flow">Control Flow</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">control_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">break</span><span class="err">&quot;</span> <span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>            <span class="err">|</span> <span class="err">&quot;</span><span class="k">return</span><span class="err">&quot;</span> <span class="err">[</span><span class="k">expr</span><span class="err">]</span> <span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>            <span class="err">|</span> <span class="err">&quot;</span><span class="k">continue</span><span class="err">&quot;</span> <span class="err">&quot;;&quot;+</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>break;
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>return 42;
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>continue;
+</code></pre></div></p>
+<hr />
+<h2 id="blocks">Blocks</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">block</span><span class="err">:</span> <span class="err">&quot;{&quot;</span> <span class="k">stmt</span><span class="err">*</span> <span class="err">&quot;}&quot;</span> <span class="err">&quot;;&quot;*</span>
+</code></pre></div>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>{
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    x = 10;
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    @print(x);
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>}
+</code></pre></div></p>
+<hr />
+<h2 id="function-definitions">Function Definitions</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">func_def</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">fn</span><span class="err">&quot;</span> <span class="k">NAME </span><span class="err">&quot;(&quot;</span> <span class="err">[</span><span class="k">params</span><span class="err">]</span> <span class="err">&quot;)&quot;</span> <span class="k">block</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="k">params</span><span class="err">:</span> <span class="k">NAME </span><span class="err">(&quot;,&quot;</span> <span class="k">NAME</span><span class="err">)*</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fn greet() {
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    @print(&quot;Hello!&quot;);
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>}
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>fn add(a, b) {
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    return a + b;
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>}
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>fn process(x, y, z) {
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>    return x * y + z;
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>}
+</code></pre></div></p>
+<hr />
+<h2 id="while-loops">While Loops</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">while_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">while</span><span class="err">&quot;</span> <span class="k">expr block</span>
+</code></pre></div>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>while x &lt; 10 {
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    @print(x);
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    x = x + 1;
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>}
+</code></pre></div></p>
+<hr />
+<h2 id="expressions">Expressions</h2>
+<h3 id="expression-hierarchy">Expression Hierarchy</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">expr</span><span class="err">:</span> <span class="k">logical_or</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="err">|</span> <span class="k">conditional_expr</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="k">conditional_expr</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">if</span><span class="err">&quot;</span> <span class="k">logical_or block </span><span class="err">[&quot;</span><span class="k">else</span><span class="err">&quot;</span> <span class="k">block</span><span class="err">]</span>
+</code></pre></div>
+<h3 id="logical-operators">Logical Operators</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">logical_or</span><span class="err">:</span> <span class="k">logical_and</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>          <span class="err">|</span> <span class="k">logical_or </span><span class="err">&quot;||&quot;</span> <span class="k">logical_and</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="k">logical_and</span><span class="err">:</span> <span class="k">comparison</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>           <span class="err">|</span> <span class="k">logical_and </span><span class="err">&quot;&amp;&amp;&quot;</span> <span class="k">comparison</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>x &gt; 5 &amp;&amp; y &lt; 10
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>enabled || debug_mode
+</code></pre></div></p>
+<h3 id="comparison-operators">Comparison Operators</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">comparison</span><span class="err">:</span> <span class="k">sum</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>          <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&gt;&quot;</span> <span class="k">sum</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>          <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&lt;&quot;</span> <span class="k">sum</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>          <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&gt;</span><span class="o">=</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="s2">          | sum &quot;</span><span class="err">&lt;=</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="s2">          | sum &quot;</span><span class="err">==</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="s2">          | sum &quot;</span><span class="err">!=&quot;</span> <span class="k">sum</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>x &gt; 10
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>count == 0
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>temp &gt;= 100
+</code></pre></div></p>
+<h3 id="arithmetic-operators">Arithmetic Operators</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">sum</span><span class="err">:</span> <span class="k">sum </span><span class="err">&quot;+&quot;</span> <span class="k">product</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>   <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;-&quot;</span> <span class="k">product</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>   <span class="err">|</span> <span class="err">&quot;-&quot;</span> <span class="k">sum              </span><span class="err">#</span> <span class="k">Negation</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>   <span class="err">|</span> <span class="k">product</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="k">product</span><span class="err">:</span> <span class="k">product </span><span class="err">&quot;*&quot;</span> <span class="k">atom</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>       <span class="err">|</span> <span class="k">product </span><span class="err">&quot;/&quot;</span> <span class="k">atom</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>       <span class="err">|</span> <span class="k">product </span><span class="err">&quot;%&quot;</span> <span class="k">atom</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>       <span class="err">|</span> <span class="k">atom</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>10 + 5 * 2    # 20 (multiplication first)
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>(10 + 5) * 2  # 30 (parentheses override)
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>-x            # Negation
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>15 % 4        # 3 (modulo)
+</code></pre></div></p>
+<hr />
+<h2 id="atoms-primary-expressions">Atoms (Primary Expressions)</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">atom</span><span class="err">:</span> <span class="k">atom </span><span class="err">&quot;[&quot;</span> <span class="k">expr </span><span class="err">&quot;]&quot;</span>          <span class="err">#</span> <span class="k">Indexing</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>    <span class="err">|</span> <span class="k">NUMBER</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>    <span class="err">|</span> <span class="k">STRING</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>    <span class="err">|</span> <span class="k">call</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>    <span class="err">|</span> <span class="k">built_in_calls</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>    <span class="err">|</span> <span class="k">NAME                       </span><span class="err">#</span> <span class="k">Variable</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>    <span class="err">|</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>               <span class="err">#</span> <span class="k">Grouping</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>    <span class="err">|</span> <span class="err">&quot;</span><span class="k">null</span><span class="err">&quot;</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>    <span class="err">|</span> <span class="err">&quot;</span><span class="k">true</span><span class="err">&quot;</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>    <span class="err">|</span> <span class="err">&quot;</span><span class="k">false</span><span class="err">&quot;</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>    <span class="err">|</span> <span class="err">&quot;(&quot;</span> <span class="k">atom </span><span class="err">(&quot;,&quot;</span> <span class="k">atom</span><span class="err">)+</span> <span class="err">&quot;)&quot;</span>   <span class="err">#</span> <span class="k">Tuple</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>    <span class="err">|</span> <span class="err">&quot;()&quot;</span>                       <span class="err">#</span> <span class="k">Empty tuple</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>    <span class="err">|</span> <span class="err">&quot;[&quot;</span> <span class="err">[</span><span class="k">list_items</span><span class="err">]</span> <span class="err">&quot;]&quot;</span>       <span class="err">#</span> <span class="k">List</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>    <span class="err">|</span> <span class="err">&quot;[]&quot;</span>                       <span class="err">#</span> <span class="k">Empty list</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="k">list_items</span><span class="err">:</span> <span class="k">expr </span><span class="err">(&quot;,&quot;</span> <span class="k">expr</span><span class="err">)*</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a># Literals
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>42
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>3.14
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>&quot;hello&quot;
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>true
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>false
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>null
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a># Collections
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>(1, 2, 3)
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>[1, 2, 3]
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>()
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>[]
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a># Indexing
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>items[0]
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>matrix[i][j]
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a># Variables
+<a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a>x
+<a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a>name
+<a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a>coords
+<a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a>
+<a id="__codelineno-24-24" name="__codelineno-24-24" href="#__codelineno-24-24"></a># Grouping
+<a id="__codelineno-24-25" name="__codelineno-24-25" href="#__codelineno-24-25"></a>(x + y) * 2
+</code></pre></div></p>
+<hr />
+<h2 id="function-calls">Function Calls</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">call</span><span class="err">:</span> <span class="k">NAME </span><span class="err">&quot;(&quot;</span> <span class="err">[</span><span class="k">args</span><span class="err">]</span> <span class="err">&quot;)&quot;</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="k">args</span><span class="err">:</span> <span class="k">expr </span><span class="err">(&quot;,&quot;</span> <span class="k">expr</span><span class="err">)*</span>
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>greet()
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>add(10, 20)
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>process(x, y, z * 2)
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>nested(outer(inner()))
+</code></pre></div></p>
+<hr />
+<h2 id="built-in-functions">Built-in Functions</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">built_in_calls</span><span class="err">:</span> <span class="k">print_stmt</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>              <span class="err">|</span> <span class="k">wait_stmt</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>              <span class="err">|</span> <span class="k">rand_stmt</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>              <span class="err">|</span> <span class="k">mouse_move_stmt</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>              <span class="err">|</span> <span class="k">set_template_dir_stmt</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>              <span class="err">|</span> <span class="k">find_template_stmt</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>              <span class="err">|</span> <span class="k">find_templates_stmt</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>              <span class="err">|</span> <span class="k">get_coordinates_stmt</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>              <span class="err">|</span> <span class="k">check_pixel_color_stmt</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>              <span class="err">|</span> <span class="k">get_pixel_color_stmt</span>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>              <span class="err">|</span> <span class="k">left_click_stmt</span>
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>              <span class="err">|</span> <span class="k">send_input_stmt</span>
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>              <span class="err">|</span> <span class="k">press_and_release_stmt</span>
+<a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a>              <span class="err">|</span> <span class="k">record_stmt</span>
+<a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a>              <span class="err">|</span> <span class="k">playback_stmt</span>
+<a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a>              <span class="err">|</span> <span class="k">recording_exists_stmt</span>
+<a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a>              <span class="err">|</span> <span class="k">len_stmt</span>
+<a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a>              <span class="err">|</span> <span class="k">rand_i_stmt</span>
+<a id="__codelineno-27-19" name="__codelineno-27-19" href="#__codelineno-27-19"></a>              <span class="err">|</span> <span class="k">time_stmt</span>
+<a id="__codelineno-27-20" name="__codelineno-27-20" href="#__codelineno-27-20"></a>              <span class="err">|</span> <span class="k">shuffle_stmt</span>
+<a id="__codelineno-27-21" name="__codelineno-27-21" href="#__codelineno-27-21"></a>              <span class="err">|</span> <span class="k">get_pixel_at_stmt</span>
+<a id="__codelineno-27-22" name="__codelineno-27-22" href="#__codelineno-27-22"></a>              <span class="err">|</span> <span class="k">append_stmt</span>
+<a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a>              <span class="err">|</span> <span class="k">pop_stmt</span>
+<a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a>              <span class="err">|</span> <span class="k">capture_region_stmt</span>
+<a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a>              <span class="err">|</span> <span class="k">ocr_find_text_stmt</span>
+<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a>              <span class="err">|</span> <span class="k">swap_stmt</span>
+<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a>              <span class="err">|</span> <span class="k">copy_stmt</span>
+<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a>              <span class="err">|</span> <span class="k">mouse_position_stmt</span>
+<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a>              <span class="err">|</span> <span class="k">int_stmt</span>
+<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a>              <span class="err">|</span> <span class="k">float_stmt</span>
+<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a>              <span class="err">|</span> <span class="k">str_stmt</span>
+<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a>              <span class="err">|</span> <span class="k">is_int_stmt</span>
+<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a>              <span class="err">|</span> <span class="k">is_float_stmt</span>
+<a id="__codelineno-27-34" name="__codelineno-27-34" href="#__codelineno-27-34"></a>              <span class="err">|</span> <span class="k">is_str_stmt</span>
+<a id="__codelineno-27-35" name="__codelineno-27-35" href="#__codelineno-27-35"></a>              <span class="err">|</span> <span class="k">is_tuple_stmt</span>
+<a id="__codelineno-27-36" name="__codelineno-27-36" href="#__codelineno-27-36"></a>              <span class="err">|</span> <span class="k">is_list_stmt</span>
+<a id="__codelineno-27-37" name="__codelineno-27-37" href="#__codelineno-27-37"></a>              <span class="err">|</span> <span class="k">bang_statement</span>
+</code></pre></div>
+<h3 id="built-in-function-definitions">Built-in Function Definitions</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="err">#</span> <span class="k">Type Conversion</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">int_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">int</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="k">float_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">float</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="k">str_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">str</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="err">#</span> <span class="k">Type Checking</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="k">is_int_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">is_int</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="k">is_float_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">is_float</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="k">is_str_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">is_str</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="k">is_tuple_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">is_tuple</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a><span class="k">is_list_stmt</span><span class="err">:</span>  <span class="err">&quot;@</span><span class="k">is_list</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>
+<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="err">#</span> <span class="k">Utility</span>
+<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="k">print_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">print</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="k">bang_statement</span><span class="err">:</span> <span class="err">&quot;!&quot;</span> <span class="k">expr                </span><span class="err">#</span> <span class="k">Logical NOT</span>
+<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>
+<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="err">#</span> <span class="k">Timing</span>
+<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="k">wait_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">wait</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a><span class="k">time_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">time</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>
+<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a><span class="err">#</span> <span class="k">Random</span>
+<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a><span class="k">rand_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">rand</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a><span class="k">rand_i_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">rand_i</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a>
+<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a><span class="err">#</span> <span class="k">Mouse</span>
+<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a><span class="k">mouse_move_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">mouse_move</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a><span class="k">left_click_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">left_click</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a><span class="k">mouse_position_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">mouse_position</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a>
+<a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a><span class="err">#</span> <span class="k">Keyboard</span>
+<a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a><span class="k">press_and_release_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">press_and_release</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a><span class="k">send_input_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">send_input</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a>
+<a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a><span class="err">#</span> <span class="k">Template Matching</span>
+<a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a><span class="k">set_template_dir_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">set_template_dir</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a><span class="k">find_template_stmt</span><span class="err">:</span>    <span class="err">&quot;@</span><span class="k">find_template</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a><span class="k">find_templates_stmt</span><span class="err">:</span>   <span class="err">&quot;@</span><span class="k">find_templates</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-38" name="__codelineno-28-38" href="#__codelineno-28-38"></a>
+<a id="__codelineno-28-39" name="__codelineno-28-39" href="#__codelineno-28-39"></a><span class="err">#</span> <span class="k">Screen</span>
+<a id="__codelineno-28-40" name="__codelineno-28-40" href="#__codelineno-28-40"></a><span class="k">get_coordinates_stmt</span><span class="err">:</span>  <span class="err">&quot;@</span><span class="k">get_coordinates</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-41" name="__codelineno-28-41" href="#__codelineno-28-41"></a><span class="k">get_pixel_at_stmt</span><span class="err">:</span>     <span class="err">&quot;@</span><span class="k">get_pixel_at</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-42" name="__codelineno-28-42" href="#__codelineno-28-42"></a><span class="k">get_pixel_color_stmt</span><span class="err">:</span>  <span class="err">&quot;@</span><span class="k">get_pixel_color</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-43" name="__codelineno-28-43" href="#__codelineno-28-43"></a><span class="k">check_pixel_color_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">check_pixel_color</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-44" name="__codelineno-28-44" href="#__codelineno-28-44"></a>
+<a id="__codelineno-28-45" name="__codelineno-28-45" href="#__codelineno-28-45"></a><span class="err">#</span> <span class="k">OCR</span>
+<a id="__codelineno-28-46" name="__codelineno-28-46" href="#__codelineno-28-46"></a><span class="k">capture_region_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">capture_region</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-47" name="__codelineno-28-47" href="#__codelineno-28-47"></a><span class="k">ocr_find_text_stmt</span><span class="err">:</span>  <span class="err">&quot;@</span><span class="k">ocr_find_text</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-48" name="__codelineno-28-48" href="#__codelineno-28-48"></a>
+<a id="__codelineno-28-49" name="__codelineno-28-49" href="#__codelineno-28-49"></a><span class="err">#</span> <span class="k">Recording</span>
+<a id="__codelineno-28-50" name="__codelineno-28-50" href="#__codelineno-28-50"></a><span class="k">record_stmt</span><span class="err">:</span>           <span class="err">&quot;@</span><span class="k">record</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-51" name="__codelineno-28-51" href="#__codelineno-28-51"></a><span class="k">playback_stmt</span><span class="err">:</span>         <span class="err">&quot;@</span><span class="k">playback</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-52" name="__codelineno-28-52" href="#__codelineno-28-52"></a><span class="k">recording_exists_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">recording_exists</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-53" name="__codelineno-28-53" href="#__codelineno-28-53"></a>
+<a id="__codelineno-28-54" name="__codelineno-28-54" href="#__codelineno-28-54"></a><span class="err">#</span> <span class="k">List Operations</span>
+<a id="__codelineno-28-55" name="__codelineno-28-55" href="#__codelineno-28-55"></a><span class="k">len_stmt</span><span class="err">:</span>     <span class="err">&quot;@</span><span class="k">len</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-56" name="__codelineno-28-56" href="#__codelineno-28-56"></a><span class="k">append_stmt</span><span class="err">:</span>  <span class="err">&quot;@</span><span class="k">append</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-57" name="__codelineno-28-57" href="#__codelineno-28-57"></a><span class="k">pop_stmt</span><span class="err">:</span>     <span class="err">&quot;@</span><span class="k">pop</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-58" name="__codelineno-28-58" href="#__codelineno-28-58"></a><span class="k">shuffle_stmt</span><span class="err">:</span> <span class="err">&quot;@</span><span class="k">shuffle</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-59" name="__codelineno-28-59" href="#__codelineno-28-59"></a><span class="k">swap_stmt</span><span class="err">:</span>    <span class="err">&quot;@</span><span class="k">swap</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">args </span><span class="err">&quot;)&quot;</span>
+<a id="__codelineno-28-60" name="__codelineno-28-60" href="#__codelineno-28-60"></a><span class="k">copy_stmt</span><span class="err">:</span>    <span class="err">&quot;@</span><span class="k">copy</span><span class="err">&quot;</span> <span class="err">&quot;(&quot;</span> <span class="k">expr </span><span class="err">&quot;)&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="lexical-elements">Lexical Elements</h2>
+<h3 id="tokens">Tokens</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="k">COMMENT</span><span class="err">:</span> <span class="err">/#[^\</span><span class="k">n</span><span class="err">]*/</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="k">NAME</span><span class="err">:</span>    <span class="err">/[</span><span class="k">a-zA-Z_</span><span class="err">][</span><span class="k">a-zA-Z0-9_</span><span class="err">]*/</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="k">NUMBER</span><span class="err">:</span>  <span class="err">/[0-9]+\.?[0-9]*/</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="k">STRING</span><span class="err">:</span>  <span class="err">/&quot;[^&quot;]*&quot;/</span>
+</code></pre></div>
+<h3 id="keywords">Keywords</h3>
+<p>Reserved words that cannot be used as identifiers:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>fn        # Function definition
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>if        # Conditional
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>else      # Alternative branch
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>while     # Loop
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>break     # Exit loop
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>continue  # Skip iteration
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>return    # Return from function
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>outer     # Outer scope
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>import    # Import module
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>true      # Boolean true
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>false     # Boolean false
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>null      # Null value
+</code></pre></div>
+<h3 id="operators">Operators</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a># Arithmetic
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>+  -  *  /  %  (unary -)
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a># Comparison
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>&gt;  &lt;  &gt;=  &lt;=  ==  !=
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a># Logical
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>&amp;&amp;  ||  !
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a># Other
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>=     # Assignment
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>[]    # Indexing
+<a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a>()    # Grouping/Tuples/Calls
+<a id="__codelineno-31-14" name="__codelineno-31-14" href="#__codelineno-31-14"></a>{}    # Blocks
+<a id="__codelineno-31-15" name="__codelineno-31-15" href="#__codelineno-31-15"></a>,     # Separator
+<a id="__codelineno-31-16" name="__codelineno-31-16" href="#__codelineno-31-16"></a>;     # Statement terminator
+</code></pre></div>
+<hr />
+<h2 id="operator-precedence">Operator Precedence</h2>
+<p>From highest to lowest precedence:</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Operators</th>
+<th>Associativity</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>[]</code> (indexing)</td>
+<td>Left</td>
+<td><code>items[0]</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Function calls</td>
+<td>Left</td>
+<td><code>add(1, 2)</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>-</code> (unary)</td>
+<td>Right</td>
+<td><code>-x</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>*</code> <code>/</code> <code>%</code></td>
+<td>Left</td>
+<td><code>a * b / c</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>+</code> <code>-</code></td>
+<td>Left</td>
+<td><code>a + b - c</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code> <code>==</code> <code>!=</code></td>
+<td>Left</td>
+<td><code>x &gt; 5</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>&amp;&amp;</code></td>
+<td>Left</td>
+<td><code>a &amp;&amp; b</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>||</code></td>
+<td>Left</td>
+<td><code>a || b</code></td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>if</code> (conditional expression)</td>
+<td>Right</td>
+<td><code>if x { a } else { b }</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Grouping with parentheses overrides precedence:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>(a + b) * c    # Addition first
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>a + (b * c)    # Multiplication first (same as a + b * c)
+</code></pre></div></p>
+<hr />
+<h2 id="complete-grammar">Complete Grammar</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="k">start</span><span class="err">:</span> <span class="k">program</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="k">program</span><span class="err">:</span> <span class="k">stmt</span><span class="err">*</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="err">?</span><span class="k">stmt</span><span class="err">:</span> <span class="k">func_def</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>     <span class="err">|</span> <span class="k">while_stmt</span>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>     <span class="err">|</span> <span class="k">assign_stmt</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>     <span class="err">|</span> <span class="k">expr_stmt</span>
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>     <span class="err">|</span> <span class="k">outer_stmt</span>
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>     <span class="err">|</span> <span class="k">control_stmt</span>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>     <span class="err">|</span> <span class="k">import_stmt</span>
+<a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a>
+<a id="__codelineno-33-13" name="__codelineno-33-13" href="#__codelineno-33-13"></a><span class="k">import_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">import</span><span class="err">&quot;</span> <span class="k">STRING </span><span class="err">&quot;;&quot;</span>
+<a id="__codelineno-33-14" name="__codelineno-33-14" href="#__codelineno-33-14"></a>
+<a id="__codelineno-33-15" name="__codelineno-33-15" href="#__codelineno-33-15"></a><span class="k">outer_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">outer</span><span class="err">&quot;</span> <span class="k">NAME </span><span class="err">&quot;;&quot;</span>
+<a id="__codelineno-33-16" name="__codelineno-33-16" href="#__codelineno-33-16"></a><span class="k">assign_stmt</span><span class="err">:</span> <span class="k">NAME </span><span class="err">(&quot;,&quot;</span> <span class="k">NAME</span><span class="err">)*</span> <span class="err">&quot;</span><span class="o">=</span><span class="s2">&quot; expr &quot;</span><span class="p">;</span><span class="err">&quot;</span>
+<a id="__codelineno-33-17" name="__codelineno-33-17" href="#__codelineno-33-17"></a><span class="k">expr_stmt</span><span class="err">:</span> <span class="k">expr </span><span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-33-18" name="__codelineno-33-18" href="#__codelineno-33-18"></a>         <span class="err">|</span> <span class="k">conditional_expr</span>
+<a id="__codelineno-33-19" name="__codelineno-33-19" href="#__codelineno-33-19"></a><span class="k">control_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">break</span><span class="err">&quot;</span> <span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-33-20" name="__codelineno-33-20" href="#__codelineno-33-20"></a>            <span class="err">|</span> <span class="err">&quot;</span><span class="k">return</span><span class="err">&quot;</span> <span class="err">[</span><span class="k">expr</span><span class="err">]</span> <span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-33-21" name="__codelineno-33-21" href="#__codelineno-33-21"></a>            <span class="err">|</span> <span class="err">&quot;</span><span class="k">continue</span><span class="err">&quot;</span> <span class="err">&quot;;&quot;+</span>
+<a id="__codelineno-33-22" name="__codelineno-33-22" href="#__codelineno-33-22"></a>
+<a id="__codelineno-33-23" name="__codelineno-33-23" href="#__codelineno-33-23"></a><span class="k">func_def</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">fn</span><span class="err">&quot;</span> <span class="k">NAME </span><span class="err">&quot;(&quot;</span> <span class="err">[</span><span class="k">params</span><span class="err">]</span> <span class="err">&quot;)&quot;</span> <span class="k">block</span>
+<a id="__codelineno-33-24" name="__codelineno-33-24" href="#__codelineno-33-24"></a><span class="k">params</span><span class="err">:</span> <span class="k">NAME </span><span class="err">(&quot;,&quot;</span> <span class="k">NAME</span><span class="err">)*</span>
+<a id="__codelineno-33-25" name="__codelineno-33-25" href="#__codelineno-33-25"></a>
+<a id="__codelineno-33-26" name="__codelineno-33-26" href="#__codelineno-33-26"></a><span class="k">block</span><span class="err">:</span> <span class="err">&quot;{&quot;</span> <span class="k">stmt</span><span class="err">*</span> <span class="err">&quot;}&quot;</span> <span class="err">&quot;;&quot;*</span>
+<a id="__codelineno-33-27" name="__codelineno-33-27" href="#__codelineno-33-27"></a>
+<a id="__codelineno-33-28" name="__codelineno-33-28" href="#__codelineno-33-28"></a><span class="k">while_stmt</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">while</span><span class="err">&quot;</span> <span class="k">expr block</span>
+<a id="__codelineno-33-29" name="__codelineno-33-29" href="#__codelineno-33-29"></a>
+<a id="__codelineno-33-30" name="__codelineno-33-30" href="#__codelineno-33-30"></a><span class="err">?</span><span class="k">expr</span><span class="err">:</span> <span class="k">logical_or</span>
+<a id="__codelineno-33-31" name="__codelineno-33-31" href="#__codelineno-33-31"></a>     <span class="err">|</span> <span class="k">conditional_expr</span>
+<a id="__codelineno-33-32" name="__codelineno-33-32" href="#__codelineno-33-32"></a>
+<a id="__codelineno-33-33" name="__codelineno-33-33" href="#__codelineno-33-33"></a><span class="err">?</span><span class="k">conditional_expr</span><span class="err">:</span> <span class="err">&quot;</span><span class="k">if</span><span class="err">&quot;</span> <span class="k">logical_or block </span><span class="err">[&quot;</span><span class="k">else</span><span class="err">&quot;</span> <span class="k">block</span><span class="err">]</span>
+<a id="__codelineno-33-34" name="__codelineno-33-34" href="#__codelineno-33-34"></a>
+<a id="__codelineno-33-35" name="__codelineno-33-35" href="#__codelineno-33-35"></a><span class="err">?</span><span class="k">logical_or</span><span class="err">:</span> <span class="k">logical_and</span>
+<a id="__codelineno-33-36" name="__codelineno-33-36" href="#__codelineno-33-36"></a>           <span class="err">|</span> <span class="k">logical_or </span><span class="err">&quot;||&quot;</span> <span class="k">logical_and</span>
+<a id="__codelineno-33-37" name="__codelineno-33-37" href="#__codelineno-33-37"></a>
+<a id="__codelineno-33-38" name="__codelineno-33-38" href="#__codelineno-33-38"></a><span class="err">?</span><span class="k">logical_and</span><span class="err">:</span> <span class="k">comparison</span>
+<a id="__codelineno-33-39" name="__codelineno-33-39" href="#__codelineno-33-39"></a>            <span class="err">|</span> <span class="k">logical_and </span><span class="err">&quot;&amp;&amp;&quot;</span> <span class="k">comparison</span>
+<a id="__codelineno-33-40" name="__codelineno-33-40" href="#__codelineno-33-40"></a>
+<a id="__codelineno-33-41" name="__codelineno-33-41" href="#__codelineno-33-41"></a><span class="err">?</span><span class="k">comparison</span><span class="err">:</span> <span class="k">sum</span>
+<a id="__codelineno-33-42" name="__codelineno-33-42" href="#__codelineno-33-42"></a>           <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&gt;&quot;</span> <span class="k">sum</span>
+<a id="__codelineno-33-43" name="__codelineno-33-43" href="#__codelineno-33-43"></a>           <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&lt;&quot;</span> <span class="k">sum</span>
+<a id="__codelineno-33-44" name="__codelineno-33-44" href="#__codelineno-33-44"></a>           <span class="err">|</span> <span class="k">sum </span><span class="err">&quot;&gt;</span><span class="o">=</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-33-45" name="__codelineno-33-45" href="#__codelineno-33-45"></a><span class="s2">           | sum &quot;</span><span class="err">&lt;=</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-33-46" name="__codelineno-33-46" href="#__codelineno-33-46"></a><span class="s2">           | sum &quot;</span><span class="err">==</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-33-47" name="__codelineno-33-47" href="#__codelineno-33-47"></a><span class="s2">           | sum &quot;</span><span class="err">!=</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-33-48" name="__codelineno-33-48" href="#__codelineno-33-48"></a>
+<a id="__codelineno-33-49" name="__codelineno-33-49" href="#__codelineno-33-49"></a><span class="s2">?sum: sum &quot;</span><span class="err">+</span><span class="s2">&quot; product</span>
+<a id="__codelineno-33-50" name="__codelineno-33-50" href="#__codelineno-33-50"></a><span class="s2">    | sum &quot;</span><span class="o">-</span><span class="s2">&quot; product</span>
+<a id="__codelineno-33-51" name="__codelineno-33-51" href="#__codelineno-33-51"></a><span class="s2">    | &quot;</span><span class="o">-</span><span class="s2">&quot; sum</span>
+<a id="__codelineno-33-52" name="__codelineno-33-52" href="#__codelineno-33-52"></a><span class="s2">    | product</span>
+<a id="__codelineno-33-53" name="__codelineno-33-53" href="#__codelineno-33-53"></a>
+<a id="__codelineno-33-54" name="__codelineno-33-54" href="#__codelineno-33-54"></a><span class="s2">?product: product &quot;</span><span class="err">*</span><span class="s2">&quot; atom</span>
+<a id="__codelineno-33-55" name="__codelineno-33-55" href="#__codelineno-33-55"></a><span class="s2">        | product &quot;</span><span class="err">/</span><span class="s2">&quot; atom</span>
+<a id="__codelineno-33-56" name="__codelineno-33-56" href="#__codelineno-33-56"></a><span class="s2">        | product &quot;</span><span class="err">%</span><span class="s2">&quot; atom</span>
+<a id="__codelineno-33-57" name="__codelineno-33-57" href="#__codelineno-33-57"></a><span class="s2">        | atom</span>
+<a id="__codelineno-33-58" name="__codelineno-33-58" href="#__codelineno-33-58"></a>
+<a id="__codelineno-33-59" name="__codelineno-33-59" href="#__codelineno-33-59"></a><span class="s2">?atom: atom &quot;</span><span class="p">[</span><span class="s2">&quot; expr &quot;</span><span class="p">]</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-60" name="__codelineno-33-60" href="#__codelineno-33-60"></a><span class="s2">     | NUMBER</span>
+<a id="__codelineno-33-61" name="__codelineno-33-61" href="#__codelineno-33-61"></a><span class="s2">     | STRING</span>
+<a id="__codelineno-33-62" name="__codelineno-33-62" href="#__codelineno-33-62"></a><span class="s2">     | call</span>
+<a id="__codelineno-33-63" name="__codelineno-33-63" href="#__codelineno-33-63"></a><span class="s2">     | built_in_calls</span>
+<a id="__codelineno-33-64" name="__codelineno-33-64" href="#__codelineno-33-64"></a><span class="s2">     | NAME</span>
+<a id="__codelineno-33-65" name="__codelineno-33-65" href="#__codelineno-33-65"></a><span class="s2">     | &quot;</span><span class="p">(</span><span class="s2">&quot; expr &quot;</span><span class="p">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-66" name="__codelineno-33-66" href="#__codelineno-33-66"></a><span class="s2">     | &quot;</span><span class="k">null</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-67" name="__codelineno-33-67" href="#__codelineno-33-67"></a><span class="s2">     | &quot;</span><span class="k">true</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-68" name="__codelineno-33-68" href="#__codelineno-33-68"></a><span class="s2">     | &quot;</span><span class="k">false</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-69" name="__codelineno-33-69" href="#__codelineno-33-69"></a><span class="s2">     | &quot;</span><span class="p">(</span><span class="s2">&quot; atom (&quot;</span><span class="p">,</span><span class="s2">&quot; atom)+ &quot;</span><span class="p">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-70" name="__codelineno-33-70" href="#__codelineno-33-70"></a><span class="s2">     | &quot;</span><span class="p">()</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-71" name="__codelineno-33-71" href="#__codelineno-33-71"></a><span class="s2">     | &quot;</span><span class="p">[</span><span class="s2">&quot; [list_items] &quot;</span><span class="p">]</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-72" name="__codelineno-33-72" href="#__codelineno-33-72"></a><span class="s2">     | &quot;</span><span class="p">[]</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-73" name="__codelineno-33-73" href="#__codelineno-33-73"></a>
+<a id="__codelineno-33-74" name="__codelineno-33-74" href="#__codelineno-33-74"></a><span class="s2">list_items: expr (&quot;</span><span class="p">,</span><span class="s2">&quot; expr)*</span>
+<a id="__codelineno-33-75" name="__codelineno-33-75" href="#__codelineno-33-75"></a>
+<a id="__codelineno-33-76" name="__codelineno-33-76" href="#__codelineno-33-76"></a><span class="s2">call: NAME &quot;</span><span class="p">(</span><span class="s2">&quot; [args] &quot;</span><span class="p">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-33-77" name="__codelineno-33-77" href="#__codelineno-33-77"></a><span class="s2">args: expr (&quot;</span><span class="p">,</span><span class="err">&quot;</span> <span class="k">expr</span><span class="p">)</span><span class="err">*</span>
+<a id="__codelineno-33-78" name="__codelineno-33-78" href="#__codelineno-33-78"></a>
+<a id="__codelineno-33-79" name="__codelineno-33-79" href="#__codelineno-33-79"></a><span class="k">COMMENT</span><span class="err">:</span> <span class="err">/#</span><span class="p">[</span><span class="err">^\</span><span class="k">n</span><span class="p">]</span><span class="err">*/</span>
+<a id="__codelineno-33-80" name="__codelineno-33-80" href="#__codelineno-33-80"></a><span class="err">%</span><span class="k">ignore COMMENT</span>
+<a id="__codelineno-33-81" name="__codelineno-33-81" href="#__codelineno-33-81"></a><span class="err">%</span><span class="k">import common</span><span class="p">.</span><span class="k">CNAME -</span><span class="err">&gt;</span> <span class="k">NAME</span>
+<a id="__codelineno-33-82" name="__codelineno-33-82" href="#__codelineno-33-82"></a><span class="err">%</span><span class="k">import common</span><span class="err">.</span><span class="k">NUMBER</span>
+<a id="__codelineno-33-83" name="__codelineno-33-83" href="#__codelineno-33-83"></a><span class="err">%</span><span class="k">import common</span><span class="err">.</span><span class="k">ESCAPED_STRING -</span><span class="err">&gt;</span> <span class="k">STRING</span>
+<a id="__codelineno-33-84" name="__codelineno-33-84" href="#__codelineno-33-84"></a><span class="err">%</span><span class="k">import common</span><span class="err">.</span><span class="k">WS</span>
+<a id="__codelineno-33-85" name="__codelineno-33-85" href="#__codelineno-33-85"></a><span class="err">%</span><span class="k">ignore WS</span>
+</code></pre></div>
+<hr />
+<h2 id="grammar-notes">Grammar Notes</h2>
+<div class="admonition note">
+<p class="admonition-title">Statement Terminators</p>
+<ul>
+<li>All statements must end with <code>;</code></li>
+<li>Multiple semicolons are allowed (e.g., <code>;;</code>)</li>
+<li>Blocks can optionally have trailing semicolons</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Expressions vs Statements</p>
+<ul>
+<li>Conditional <code>if</code> can be used as both expression and statement</li>
+<li>Expression form: <code>result = if x &gt; 0 { 1 } else { -1 };</code></li>
+<li>Statement form: <code>if x &gt; 0 { @print("positive"); }</code></li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Comments</p>
+<ul>
+<li>Only single-line comments (<code>#</code>) are supported</li>
+<li>No multi-line comment syntax</li>
+<li>Comments are ignored by the parser</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Whitespace</p>
+<ul>
+<li>Whitespace (spaces, tabs, newlines) is ignored except within strings</li>
+<li>Indentation is not significant (unlike Python)</li>
+<li>Code style is flexible</li>
+</ul>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Parser Implementation</p>
+<p>The grammar is implemented using Lark with LALR(1) parsing:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lark</span><span class="w"> </span><span class="kn">import</span> <span class="n">Lark</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="n">parser</span> <span class="o">=</span> <span class="n">Lark</span><span class="p">(</span><span class="n">calc_grammar</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s2">&quot;lalr&quot;</span><span class="p">,</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>              <span class="n">propagate_positions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>              <span class="n">maybe_placeholders</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+Source: <code>macroni/interpreter/grammar.py</code></p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+  <div style="text-align: center; padding: 30px 20px 20px 20px; margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.08); opacity: 0.7; font-size: 0.9em;">
+    <p style="margin: 0;">
+      Enjoying Macroni?
+      <a href="https://github.com/srschreiber/macroni" target="_blank" style="text-decoration: none; color: #5c6bc0;">
+        ⭐ Give us a star on GitHub
+      </a>
+    </p>
+  </div>
+
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "search.share", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

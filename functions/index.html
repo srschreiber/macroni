@@ -1,0 +1,2344 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../syntax/">
+      
+      
+        <link rel="next" href="../grammar/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Function Reference - Macroni Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#function-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Macroni Documentation" class="md-header__button md-logo" aria-label="Macroni Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Macroni Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Function Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/srschreiber/macroni" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    srschreiber/macroni
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Macroni Documentation" class="md-nav__button md-logo" aria-label="Macroni Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Macroni Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/srschreiber/macroni" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    srschreiber/macroni
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Function Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Function Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ocr-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OCR Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OCR Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture_regionkey-overwrite_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @capture_region(key, overwrite_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_find_textregion-min_conf-filter-upscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @ocr_find_text(region, min_conf, filter, upscale)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mouse-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mouse Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mouse Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mouse_movex-y-speed-human_like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @mouse_move(x, y, speed, human_like)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#left_click" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @left_click()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mouse_position" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @mouse_position()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#press_and_releasedelay_ms-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @press_and_release(delay_ms, ...keys)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_inputtype-key-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @send_input(type, key, action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#template-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Matching
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Template Matching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set_template_dirpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @set_template_dir(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_templatename-find_templatename-left-top-width-height" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @find_template(name) / @find_template(name, left, top, width, height)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_templatesname-top_k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @find_templates(name, top_k)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screen Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_coordinateslabel-use_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_coordinates(label, use_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pixel_atx-y" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_pixel_at(x, y)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pixel_coloralias-use_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_pixel_color(alias, use_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_pixel_colorx-y-radius-r-g-b-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @check_pixel_color(x, y, radius, r, g, b, tolerance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timing-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timing Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Timing Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#waitms-waitmin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @wait(ms) / @wait(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Random Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#randmin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @rand(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rand_imin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @rand_i(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recording-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recording Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recordname-start_btn-stop_btn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @record(name, start_btn, stop_btn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playbackname-stop_btn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @playback(name, stop_btn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording_existsname" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @recording_exists(name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="List Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lencollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @len(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendlist-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @append(list, item)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poplist-poplist-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @pop(list) / @pop(list, index)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shufflecollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @shuffle(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swaplist-i-j" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @swap(list, i, j)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copycollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @copy(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-checking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Checking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Checking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#is_intval-is_floatval-is_strval-is_listval-is_tupleval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @is_int(val) / @is_float(val) / @is_str(val) / @is_list(val) / @is_tuple(val)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Conversion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intval-floatval-strval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @int(val) / @float(val) / @str(val)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utility-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utility Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#printarg1-arg2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @print(arg1, arg2, ...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grammar Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_click_button/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Click Button
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_automated_login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Automated Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_random_clicks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random Clicks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_pixel_monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pixel Monitor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_interactive_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example_record_replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Record & Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jutecraftingexample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drift Net Crafting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ocr-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OCR Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OCR Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture_regionkey-overwrite_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @capture_region(key, overwrite_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_find_textregion-min_conf-filter-upscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @ocr_find_text(region, min_conf, filter, upscale)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mouse-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mouse Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mouse Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mouse_movex-y-speed-human_like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @mouse_move(x, y, speed, human_like)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#left_click" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @left_click()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mouse_position" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @mouse_position()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#press_and_releasedelay_ms-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @press_and_release(delay_ms, ...keys)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_inputtype-key-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @send_input(type, key, action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#template-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Matching
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Template Matching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set_template_dirpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @set_template_dir(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_templatename-find_templatename-left-top-width-height" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @find_template(name) / @find_template(name, left, top, width, height)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_templatesname-top_k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @find_templates(name, top_k)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screen Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_coordinateslabel-use_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_coordinates(label, use_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pixel_atx-y" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_pixel_at(x, y)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_pixel_coloralias-use_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @get_pixel_color(alias, use_cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_pixel_colorx-y-radius-r-g-b-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @check_pixel_color(x, y, radius, r, g, b, tolerance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timing-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timing Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Timing Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#waitms-waitmin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @wait(ms) / @wait(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @time()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Random Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#randmin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @rand(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rand_imin-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @rand_i(min, max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recording-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recording Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recordname-start_btn-stop_btn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @record(name, start_btn, stop_btn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playbackname-stop_btn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @playback(name, stop_btn)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording_existsname" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @recording_exists(name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="List Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lencollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @len(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendlist-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @append(list, item)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poplist-poplist-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @pop(list) / @pop(list, index)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shufflecollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @shuffle(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swaplist-i-j" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @swap(list, i, j)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copycollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @copy(collection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-checking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Checking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Checking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#is_intval-is_floatval-is_strval-is_listval-is_tupleval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @is_int(val) / @is_float(val) / @is_str(val) / @is_list(val) / @is_tuple(val)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Conversion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intval-floatval-strval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @int(val) / @float(val) / @str(val)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utility-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utility Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#printarg1-arg2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @print(arg1, arg2, ...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+  
+                  
+
+
+  
+  
+
+
+<h1 id="function-reference">Function Reference</h1>
+<p>Complete reference for all built-in Macroni functions.</p>
+<h2 id="ocr-functions">OCR Functions</h2>
+<h3 id="capture_regionkey-overwrite_cache"><code>@capture_region(key, overwrite_cache)</code></h3>
+<p>Interactive region capture with caching.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>key</code> (string): Unique identifier for caching</li>
+<li><code>overwrite_cache</code> (boolean): <code>true</code> to force recapture, <code>false</code> to use cache</li>
+</ul>
+<p><strong>Returns:</strong> <code>(x1, y1, x2, y2)</code> - Top-left and bottom-right coordinates</p>
+<p><strong>Cache:</strong> Saved to <code>regions_cache.json</code></p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>region = @capture_region(&quot;search_box&quot;, false);  # Use cache
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>region = @capture_region(&quot;search_box&quot;, true);   # Force recapture
+</code></pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Interactive Flow</p>
+<ol>
+<li>Hover mouse over top-left corner → Press Enter</li>
+<li>Hover mouse over bottom-right corner → Press Enter</li>
+</ol>
+</div>
+<hr />
+<h3 id="ocr_find_textregion-min_conf-filter-upscale"><code>@ocr_find_text(region, min_conf, filter, upscale)</code></h3>
+<p>Find text on screen using OCR (EasyOCR).</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>region</code> (tuple or null): <code>(x1, y1, x2, y2)</code> from <code>@capture_region()</code> or <code>null</code> for full screen</li>
+<li><code>min_conf</code> (float): Confidence threshold 0.0-1.0 (0.8 recommended)</li>
+<li><code>filter</code> (string or null): Case-insensitive substring to search for, or <code>null</code> for all text</li>
+<li><code>upscale</code> (float): Scaling factor - <code>1.0</code> = default, <code>0.5</code> = faster, <code>2.0</code> = tiny text</li>
+</ul>
+<p><strong>Returns:</strong> List of <code>(text, confidence, [[x1,y1], [x2,y2], [x3,y3], [x4,y4]])</code></p>
+<ul>
+<li>Bounding box has 4 corners in screen coordinates</li>
+<li>Sorted by confidence (highest first)</li>
+</ul>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>results = @ocr_find_text(region, 0.8, &quot;Login&quot;, 1.0);
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>if @len(results) &gt; 0 {
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    text, conf, bbox = results[0];
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    x, y = bbox[0];  # Top-left corner
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    @mouse_move(x, y, 500, true);
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    @left_click();
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>}
+</code></pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">GPU Acceleration</p>
+<p>Edit <code>ocr.py</code> line 10: <code>reader = easyocr.Reader(['en'], gpu=True)</code> (Requires CUDA)</p>
+</div>
+<hr />
+<h2 id="mouse-functions">Mouse Functions</h2>
+<h3 id="mouse_movex-y-speed-human_like"><code>@mouse_move(x, y, speed, human_like)</code></h3>
+<p>Move mouse cursor to coordinates.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>x</code> (int): X coordinate</li>
+<li><code>y</code> (int): Y coordinate</li>
+<li><code>speed</code> (int): Movement speed in pixels/second</li>
+<li><code>human_like</code> (boolean): <code>true</code> for curved path, <code>false</code> for straight line</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>@mouse_move(500, 300, 1000, true);  # Smooth, human-like movement
+</code></pre></div>
+</div>
+<hr />
+<h3 id="left_click"><code>@left_click()</code></h3>
+<p>Perform left mouse click at current cursor position.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>@mouse_move(100, 200, 500, true);
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>@left_click();
+</code></pre></div>
+</div>
+<hr />
+<h3 id="mouse_position"><code>@mouse_position()</code></h3>
+<p>Get current mouse cursor position.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Returns:</strong> <code>(x, y)</code> - Current cursor coordinates</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>x, y = @mouse_position();
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>@print(&quot;Cursor at:&quot;, x, y);
+</code></pre></div>
+</div>
+<hr />
+<h2 id="keyboard-functions">Keyboard Functions</h2>
+<h3 id="press_and_releasedelay_ms-keys"><code>@press_and_release(delay_ms, ...keys)</code></h3>
+<p>Press and release keyboard keys in sequence.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>delay_ms</code> (int): Delay between press and release in milliseconds</li>
+<li><code>...keys</code> (strings): Variable number of key names (e.g., "ctrl", "c", "shift", "a")</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>@press_and_release(50, &quot;ctrl&quot;, &quot;c&quot;);       # Copy
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>@press_and_release(50, &quot;ctrl&quot;, &quot;v&quot;);       # Paste
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>@press_and_release(100, &quot;ctrl&quot;, &quot;alt&quot;, &quot;delete&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="send_inputtype-key-action"><code>@send_input(type, key, action)</code></h3>
+<p>Low-level input control.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>type</code> (string): <code>"keyboard"</code> or <code>"mouse"</code></li>
+<li><code>key</code> (string): Key or button name</li>
+<li><code>action</code> (string): <code>"press"</code>, <code>"release"</code>, or <code>"click"</code></li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>@send_input(&quot;keyboard&quot;, &quot;a&quot;, &quot;press&quot;);
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>@wait(100);
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>@send_input(&quot;keyboard&quot;, &quot;a&quot;, &quot;release&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h2 id="template-matching">Template Matching</h2>
+<h3 id="set_template_dirpath"><code>@set_template_dir(path)</code></h3>
+<p>Set directory containing template images.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>path</code> (string): Path to templates directory</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition note">
+<p class="admonition-title">Directory Structure</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>templates/
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── button/
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>│   ├── ex1.png
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│   └── ex2.png
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>└── icon/
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    └── ex1.png
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>@set_template_dir(&quot;./templates&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="find_templatename-find_templatename-left-top-width-height"><code>@find_template(name)</code> / <code>@find_template(name, left, top, width, height)</code></h3>
+<p>Find first template match on screen.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>name</code> (string): Template name (subdirectory in templates folder)</li>
+<li><code>left, top, width, height</code> (optional ints): Search region bounds</li>
+</ul>
+<p><strong>Returns:</strong> <code>(x, y)</code> coordinates of center, or <code>(null, null)</code> if not found</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>x, y = @find_template(&quot;button&quot;);
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>if x != null {
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    @mouse_move(x, y, 1000, true);
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    @left_click();
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>}
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a># Search in specific region
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>x, y = @find_template(&quot;icon&quot;, 0, 0, 1920, 1080);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="find_templatesname-top_k"><code>@find_templates(name, top_k)</code></h3>
+<p>Find multiple template matches.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>name</code> (string): Template name</li>
+<li><code>top_k</code> (int): Maximum number of matches to return</li>
+</ul>
+<p><strong>Returns:</strong> Tuple of <code>(x, y)</code> coordinate pairs</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>matches = @find_templates(&quot;button&quot;, 5);
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>x, y = matches[0];  # First match
+</code></pre></div>
+</div>
+<hr />
+<h2 id="screen-functions">Screen Functions</h2>
+<h3 id="get_coordinateslabel-use_cache"><code>@get_coordinates(label, use_cache)</code></h3>
+<p>Interactive coordinate capture.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>label</code> (string): Unique identifier for caching</li>
+<li><code>use_cache</code> (boolean): <code>true</code> to use cache, <code>false</code> to recapture</li>
+</ul>
+<p><strong>Returns:</strong> <code>(x, y)</code> coordinates</p>
+<p><strong>Cache:</strong> Saved to <code>coordinates_cache.json</code></p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>x, y = @get_coordinates(&quot;login_button&quot;, true);
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>@mouse_move(x, y, 500, true);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="get_pixel_atx-y"><code>@get_pixel_at(x, y)</code></h3>
+<p>Get RGB color at specific pixel.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>x</code> (int): X coordinate</li>
+<li><code>y</code> (int): Y coordinate</li>
+</ul>
+<p><strong>Returns:</strong> <code>(r, g, b)</code> - RGB values (0-255)</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>r, g, b = @get_pixel_at(100, 200);
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>@print(&quot;Color:&quot;, r, g, b);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="get_pixel_coloralias-use_cache"><code>@get_pixel_color(alias, use_cache)</code></h3>
+<p>Interactive color capture.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>alias</code> (string): Unique identifier for caching</li>
+<li><code>use_cache</code> (boolean): <code>true</code> to use cache, <code>false</code> to recapture</li>
+</ul>
+<p><strong>Returns:</strong> <code>(r, g, b)</code> - RGB values</p>
+<p><strong>Cache:</strong> Saved to <code>pixel_colors_cache.json</code></p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>r, g, b = @get_pixel_color(&quot;button_color&quot;, true);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="check_pixel_colorx-y-radius-r-g-b-tolerance"><code>@check_pixel_color(x, y, radius, r, g, b, tolerance)</code></h3>
+<p>Check if pixel color matches within tolerance.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>x, y</code> (int): Coordinates</li>
+<li><code>radius</code> (int): Search radius in pixels</li>
+<li><code>r, g, b</code> (int): Expected RGB values (0-255)</li>
+<li><code>tolerance</code> (int): Color difference tolerance (0-255)</li>
+</ul>
+<p><strong>Returns:</strong> <code>true</code> if match found, <code>false</code> otherwise</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>found = @check_pixel_color(100, 200, 5, 255, 0, 0, 10);
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>if found {
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    @print(&quot;Red pixel found!&quot;);
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>}
+</code></pre></div>
+</div>
+<hr />
+<h2 id="timing-functions">Timing Functions</h2>
+<h3 id="waitms-waitmin-max"><code>@wait(ms)</code> / <code>@wait(min, max)</code></h3>
+<p>Pause execution.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>ms</code> (int): Wait time in milliseconds (deterministic)</li>
+<li><code>min, max</code> (ints): Random wait between min and max milliseconds</li>
+</ul>
+<p><strong>Returns:</strong> Actual wait time in milliseconds</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>@wait(1000);              # Wait exactly 1 second
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>@wait(500, 1500);         # Wait random 0.5-1.5 seconds
+</code></pre></div>
+</div>
+<hr />
+<h3 id="time"><code>@time()</code></h3>
+<p>Get current Unix timestamp.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Returns:</strong> Float timestamp in seconds</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>start = @time();
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a># ... do work ...
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>elapsed = @time() - start;
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>@print(&quot;Took&quot;, elapsed, &quot;seconds&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h2 id="random-functions">Random Functions</h2>
+<h3 id="randmin-max"><code>@rand(min, max)</code></h3>
+<p>Generate random float.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>min</code> (float): Minimum value (inclusive)</li>
+<li><code>max</code> (float): Maximum value (inclusive)</li>
+</ul>
+<p><strong>Returns:</strong> Random float in range</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>delay = @rand(0.5, 2.0);
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>@print(&quot;Random delay:&quot;, delay, &quot;seconds&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h3 id="rand_imin-max"><code>@rand_i(min, max)</code></h3>
+<p>Generate random integer.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>min</code> (int): Minimum value (inclusive)</li>
+<li><code>max</code> (int): Maximum value (inclusive)</li>
+</ul>
+<p><strong>Returns:</strong> Random integer in range</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>x = @rand_i(100, 500);
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>y = @rand_i(100, 500);
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>@mouse_move(x, y, 1000, true);
+</code></pre></div>
+</div>
+<hr />
+<h2 id="recording-functions">Recording Functions</h2>
+<h3 id="recordname-start_btn-stop_btn"><code>@record(name, start_btn, stop_btn)</code></h3>
+<p>Record mouse and keyboard actions.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>name</code> (string): Recording identifier</li>
+<li><code>start_btn</code> (optional string): Key to start recording (default: <code>"space"</code>)</li>
+<li><code>stop_btn</code> (optional string): Key to stop recording (default: <code>"esc"</code>)</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<p><strong>Cache:</strong> Saved to <code>recordings_cache.json</code></p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>@record(&quot;login_sequence&quot;);              # Space to start, Esc to stop
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>@record(&quot;macro&quot;, &quot;f1&quot;, &quot;f2&quot;);           # F1 to start, F2 to stop
+</code></pre></div>
+</div>
+<hr />
+<h3 id="playbackname-stop_btn"><code>@playback(name, stop_btn)</code></h3>
+<p>Replay recorded actions.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>name</code> (string): Recording identifier</li>
+<li><code>stop_btn</code> (optional string): Key to stop playback (default: <code>"esc"</code>)</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>@playback(&quot;login_sequence&quot;);
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>@playback(&quot;macro&quot;, &quot;f3&quot;);               # F3 to stop
+</code></pre></div>
+</div>
+<hr />
+<h3 id="recording_existsname"><code>@recording_exists(name)</code></h3>
+<p>Check if recording exists.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>name</code> (string): Recording identifier</li>
+</ul>
+<p><strong>Returns:</strong> <code>true</code> if exists, <code>false</code> otherwise</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>if !@recording_exists(&quot;macro&quot;) {
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    @record(&quot;macro&quot;);
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>}
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>@playback(&quot;macro&quot;);
+</code></pre></div>
+</div>
+<hr />
+<h2 id="list-functions">List Functions</h2>
+<h3 id="lencollection"><code>@len(collection)</code></h3>
+<p>Get length of collection.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>collection</code> (list, tuple, or string): Collection to measure</li>
+</ul>
+<p><strong>Returns:</strong> Integer length</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>items = [1, 2, 3];
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>@print(@len(items));        # 3
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>@print(@len(&quot;hello&quot;));      # 5
+</code></pre></div>
+</div>
+<hr />
+<h3 id="appendlist-item"><code>@append(list, item)</code></h3>
+<p>Add item to end of list (modifies in place).</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>list</code> (list): List to modify</li>
+<li><code>item</code> (any): Item to append</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>items = [1, 2, 3];
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>@append(items, 4);
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a># items is now [1, 2, 3, 4]
+</code></pre></div>
+</div>
+<hr />
+<h3 id="poplist-poplist-index"><code>@pop(list)</code> / <code>@pop(list, index)</code></h3>
+<p>Remove and return item from list.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>list</code> (list): List to modify</li>
+<li><code>index</code> (optional int): Index to remove (default: -1, last item)</li>
+</ul>
+<p><strong>Returns:</strong> Removed item</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>items = [1, 2, 3];
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>last = @pop(items);         # last = 3, items = [1, 2]
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>first = @pop(items, 0);     # first = 1, items = [2]
+</code></pre></div>
+</div>
+<hr />
+<h3 id="shufflecollection"><code>@shuffle(collection)</code></h3>
+<p>Return shuffled copy of collection.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>collection</code> (list or tuple): Collection to shuffle</li>
+</ul>
+<p><strong>Returns:</strong> New shuffled list</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>original = [1, 2, 3, 4];
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>shuffled = @shuffle(original);
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a># original unchanged, shuffled is randomized
+</code></pre></div>
+</div>
+<hr />
+<h3 id="swaplist-i-j"><code>@swap(list, i, j)</code></h3>
+<p>Swap two elements in a list.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>list</code> (list): List to modify</li>
+<li><code>i</code> (int): First index</li>
+<li><code>j</code> (int): Second index</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>items = [1, 2, 3];
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>@swap(items, 0, 2);
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a># items is now [3, 2, 1]
+</code></pre></div>
+</div>
+<hr />
+<h3 id="copycollection"><code>@copy(collection)</code></h3>
+<p>Create shallow copy of collection.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>collection</code> (list or tuple): Collection to copy</li>
+</ul>
+<p><strong>Returns:</strong> New collection with same elements</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>original = [1, 2, 3];
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>duplicate = @copy(original);
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>@append(duplicate, 4);
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a># original still [1, 2, 3], duplicate is [1, 2, 3, 4]
+</code></pre></div>
+</div>
+<hr />
+<h2 id="type-checking">Type Checking</h2>
+<h3 id="is_intval-is_floatval-is_strval-is_listval-is_tupleval"><code>@is_int(val)</code> / <code>@is_float(val)</code> / <code>@is_str(val)</code> / <code>@is_list(val)</code> / <code>@is_tuple(val)</code></h3>
+<p>Check value type.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>val</code> (any): Value to check</li>
+</ul>
+<p><strong>Returns:</strong> <code>true</code> if value matches type, <code>false</code> otherwise</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>x = 42;
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>if @is_int(x) {
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>    @print(&quot;x is an integer&quot;);
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>}
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>items = [1, 2, 3];
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>@print(@is_list(items));    # true
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>@print(@is_tuple(items));   # false
+</code></pre></div>
+</div>
+<hr />
+<h2 id="type-conversion">Type Conversion</h2>
+<h3 id="intval-floatval-strval"><code>@int(val)</code> / <code>@float(val)</code> / <code>@str(val)</code></h3>
+<p>Convert value to specified type.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>val</code> (any): Value to convert</li>
+</ul>
+<p><strong>Returns:</strong> Converted value</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>x = @int(3.7);          # 3
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>y = @float(5);          # 5.0
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>s = @str(123);          # &quot;123&quot;
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>n = @int(&quot;42&quot;);         # 42
+</code></pre></div>
+</div>
+<hr />
+<h2 id="utility-functions">Utility Functions</h2>
+<h3 id="printarg1-arg2"><code>@print(arg1, arg2, ...)</code></h3>
+<p>Print values to console.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>...args</code> (any): Variable number of arguments to print</li>
+</ul>
+<p><strong>Returns:</strong> None</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>@print(&quot;Hello, world!&quot;);
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>@print(&quot;X:&quot;, x, &quot;Y:&quot;, y);
+</code></pre></div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+  <div style="text-align: center; padding: 30px 20px 20px 20px; margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.08); opacity: 0.7; font-size: 0.9em;">
+    <p style="margin: 0;">
+      Enjoying Macroni?
+      <a href="https://github.com/srschreiber/macroni" target="_blank" style="text-decoration: none; color: #5c6bc0;">
+        ⭐ Give us a star on GitHub
+      </a>
+    </p>
+  </div>
+
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "search.share", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
