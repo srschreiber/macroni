@@ -14,7 +14,7 @@ nav:
     - Pixel Monitor: example_pixel_monitor.md
     - Interactive Setup: example_interactive_setup.md
     - Record & Replay: example_record_replay.md
-    - Runescape Drift Net Bot: jutecraftingexample.md
+    - Drift Net Crafting: jutecraftingexample.md
 
 theme:
   name: material
